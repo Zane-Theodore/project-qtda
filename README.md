@@ -110,13 +110,25 @@ git push origin main
 ```
 
 ## 🏗 5. Cấu trúc thư mục dự án
-```Plaintext
-├── src/                # Toàn bộ mã nguồn
-│   ├── appsscript.json # File cấu hình hệ thống (Manifest)
-│   ├── main.js         # File Backend (doGet, doPost...)
-│   ├── index.html      # Giao diện chính
-│   └── ...             # Các file logic/UI khác
-├── .clasp.json         # Cấu hình kết nối Clasp (Không đẩy lên Git)
-├── .gitignore          # Danh sách file Git bỏ qua
-└── README.md           # Hướng dẫn này
-```
+```text
+├── src/                 # Thư mục chứa toàn bộ mã nguồn (được push lên Apps Script)
+│   ├── backend/         # Xử lý logic máy chủ (Server-side)
+│   │   ├── lecturer/    # API và logic dành riêng cho Giảng viên
+│   │   ├── student/     # API và logic dành riêng cho Sinh viên
+│   │   ├── auth.js      # Xử lý phân quyền, nhận diện email & Role
+│   │   ├── db.js        # Các hàm giao tiếp với Database (Google Sheets)
+│   │   └── main.js      # Điểm neo chính (chứa hàm doGet, điều hướng trang)
+│   │
+│   ├── config/          # Chứa các biến môi trường, ID Sheet, thông số cấu hình chung
+│   │
+│   ├── frontend/        # Giao diện người dùng (Client-side)
+│   │   ├── assets/      # Chứa CSS tĩnh và JS chạy trên trình duyệt
+│   │   ├── components/  # Các phần UI dùng chung (Header, Footer, Sidebar)
+│   │   └── views/       # Các trang giao diện chính (Trang SV, Trang GV)
+│   │
+│   └── appsscript.json  # File cấu hình Manifest bắt buộc của Google Apps Script
+│
+├── .clasp.json          # File liên kết dự án local với Google Apps Script
+├── .claspignore         # Chỉ định các file KHÔNG được push lên Google server
+├── .gitignore           # Chỉ định các file KHÔNG được push lên GitHub
+└── README.md            # Tài liệu hướng dẫn cài đặt và sử dụng dự án
