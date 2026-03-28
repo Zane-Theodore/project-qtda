@@ -1,0 +1,14 @@
+# Bỏ qua tất cả các file bị Git bỏ qua
+.gitignore
+
+# Bỏ qua các file cấu hình và tài liệu không cần chạy trên server Google
+**/**/.git/
+**/**/.vscode/
+**/**/node_modules/
+**/**/README.md
+**/**/package.json
+**/**/package-lock.json
+
+# Bỏ qua các file nháp (nếu bạn hay tạo file nháp bắt đầu bằng chữ 'test' hoặc đuôi '.txt')
+**/**/test_*.js
+**/**/*.txt
