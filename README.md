@@ -48,12 +48,12 @@ cd project-qtda
    - Tìm và Copy dòng **Script ID**.
 
 2. **Cấu hình tại VS Code:**
-   - Tại thư mục gốc của dự án (ngang hàng với thư mục `src`), hãy tạo một file mới tên là `.clasp.json` (Lưu ý có dấu chấm ở đầu).
-   - Dán nội dung sau vào file đó và thay `ID_CUA_BAN` bằng Script ID bạn vừa copy:
+   - Tại thư mục gốc của dự án, vào file .clasp.json (ngang hàng với thư mục `src`).
+   - Thay Script ID vừa copy vào phần `enter-your-script-id-here`:
 
    ```json
    {
-    "scriptId": "ID_CUA_BAN",
+    "scriptId": "enter-your-script-id-here",
     "rootDir": "./src",
     ... 
    }
