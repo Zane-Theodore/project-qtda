@@ -48,14 +48,25 @@ cd project-qtda
    - Tìm và Copy dòng **Script ID**.
 
 2. **Cấu hình tại VS Code:**
-   - Tại thư mục gốc của dự án, vào file .clasp.json (ngang hàng với thư mục `src`).
-   - Thay Script ID vừa copy vào phần `enter-your-script-id-here`:
+   - Tại thư mục gốc của dự án, tạo một file mới tên là ".clasp.json" (có dấu . và ngang hàng với thư mục `src`).
+   - Copy nội dung sau vào file vừa tạo, và thay Script ID vừa copy vào phần `enter-your-script-id-here`:
 
    ```json
    {
-    "scriptId": "enter-your-script-id-here",
-    "rootDir": "./src",
-    ... 
+   "scriptId": "enter-your-script-id-here",
+   "rootDir": "./src",
+   "scriptExtensions": [
+      ".js",
+      ".gs"
+   ],
+   "htmlExtensions": [
+      ".html"
+   ],
+   "jsonExtensions": [
+      ".json"
+   ],
+   "filePushOrder": [],
+   "skipSubdirectories": false
    }
    ```
 
