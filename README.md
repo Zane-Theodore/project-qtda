@@ -66,7 +66,7 @@ cd project-qtda
     ```Bash
     clasp push
     ```
-    - Nếu Terminal báo Pushed x files, chúc mừng bạn đã kết nối thành công!
+    - Nếu Terminal báo Pushed x files, thì đã kết nối thành công.
 
 #### Cách chạy và Kiểm tra giao diện (Test)
 
