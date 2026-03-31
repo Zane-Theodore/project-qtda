@@ -1,0 +1,37 @@
+<script>
+  /**
+   * ==========================================
+   * MODULE: QUẢN LÝ TÀI KHOẢN (USER)
+   * ==========================================
+   */
+  function loadUserData() {
+    const tbody = document.getElementById('user-table-body');
+    if (!tbody) return; 
+
+    google.script.run
+      .withSuccessHandler(function(response) {
+        const data = JSON.parse(response);
+        
+        if (data.error) {
+          tbody.innerHTML = `<tr><td colspan="3" style="color:red;">Lỗi: ${data.error}</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = ''; 
+
+        data.forEach(function(user) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${user.id || ''}</td>
+            <td>${user.first_name || ''}</td>
+            <td>${user.last_name || ''}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      })
+      .withFailureHandler(function(error) {
+        alert("Lỗi kết nối: " + error.message);
+      })
+      .api_getUsers();
+  }
+</script>

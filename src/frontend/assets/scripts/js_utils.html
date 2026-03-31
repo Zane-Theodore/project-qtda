@@ -1,0 +1,61 @@
+<script>
+  /**
+   * ==========================================
+   * MODULE: TIỆN ÍCH DÙNG CHUNG (UTILITIES)
+   * ==========================================
+   */
+
+   
+  /** Hiển thị thông báo toast **/
+  function showNotification(message, type) {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'toast-container';
+      document.body.appendChild(container);
+    }
+
+    const activeToasts = Array.from(container.children).filter(t => !t.classList.contains('toast-exit'));
+
+    if (activeToasts.length >= 3) {
+      const oldestToast = activeToasts[0];
+      
+      oldestToast.classList.add('toast-exit');
+      
+      setTimeout(() => {
+        if (container.contains(oldestToast)) {
+          oldestToast.remove();
+        }
+      }, 400); 
+    }
+
+    const alertBox = document.createElement('div');
+    alertBox.className = 'toast-notification';
+    alertBox.innerText = message;
+    
+    if (type === 'success') {
+      alertBox.style.backgroundColor = '#d4edda'; 
+      alertBox.style.color = '#155724';
+      alertBox.style.borderLeft = '6px solid #28a745'; 
+    } else if (type === 'error') {
+      alertBox.style.backgroundColor = '#f8d7da'; 
+      alertBox.style.color = '#721c24';
+      alertBox.style.borderLeft = '6px solid #dc3545';
+    } else {
+      alertBox.style.backgroundColor = '#fff3cd'; 
+      alertBox.style.color = '#856404';
+      alertBox.style.borderLeft = '6px solid #ffc107';
+    }
+    
+    container.appendChild(alertBox);
+    
+    setTimeout(() => { 
+      if (container.contains(alertBox) && !alertBox.classList.contains('toast-exit')) {
+        alertBox.classList.add('toast-exit');
+        setTimeout(() => {
+          if (container.contains(alertBox)) alertBox.remove();
+        }, 400);
+      }
+    }, 3000);
+  }
+</script>

@@ -1,0 +1,26 @@
+<script>
+      function navigate(viewName, initFunctionName) {
+    const contentDiv = document.getElementById('app-content');
+    contentDiv.innerHTML =`
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <h3 style="color: #7f8c8d; margin-top: 20px;">Đang tải ...</h3>
+      </div>
+    `;
+
+    google.script.run
+      .withSuccessHandler(function(htmlString) {
+        contentDiv.innerHTML = htmlString;
+
+        if (initFunctionName && typeof window[initFunctionName] === 'function') {
+          window[initFunctionName](); 
+        } else if (initFunctionName) {
+          console.error("LỖI: Không tìm thấy hàm tên là " + initFunctionName);
+        }
+      })
+      .withFailureHandler(function(error) {
+        contentDiv.innerHTML = '<h3 style="color:red">Lỗi tải trang!</h3>';
+      })
+      .api_loadView(viewName);
+  }
+</script>

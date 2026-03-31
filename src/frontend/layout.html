@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Apps Script</title>
+  
+  <?!= include('frontend/assets/styles/css_global'); ?>
+</head>
+<body>
+
+  <header class="layout-header">
+    <?!= include('frontend/components/header'); ?>
+  </header>
+
+  <div class="layout-body">
+    
+    <aside class="layout-sidebar">
+      <?!= include('frontend/components/sidebar'); ?>
+    </aside>
+
+    <main class="layout-main">
+
+      <div id="app-content">
+        <h1>Đây là trang chủ</h1>
+      </div>
+      
+    </main>
+
+  </div>
+
+  <footer class="layout-footer">
+    <?!= include('frontend/components/footer'); ?>
+  </footer>
+
+  <?!= include('frontend/assets/scripts/js_utils'); ?>
+  <?!= include('frontend/assets/scripts/js_router'); ?>
+  <?!= include('frontend/assets/scripts/js_student'); ?>
+  <?!= include('frontend/assets/scripts/js_user'); ?>
+  <?!= include('frontend/assets/scripts/js_lecture'); ?>
+
+</body>
+</html>

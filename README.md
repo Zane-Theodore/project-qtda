@@ -122,24 +122,46 @@ git push origin main
 
 ## 🏗 5. Cấu trúc thư mục dự án
 ```text
-├── src/                 # Thư mục chứa toàn bộ mã nguồn (được push lên Apps Script)
-│   ├── backend/         # Xử lý logic máy chủ (Server-side)
-│   │   ├── lecturer/    # API và logic dành riêng cho Giảng viên
-│   │   ├── student/     # API và logic dành riêng cho Sinh viên
-│   │   ├── auth.js      # Xử lý phân quyền, nhận diện email & Role
-│   │   ├── db.js        # Các hàm giao tiếp với Database (Google Sheets)
-│   │   └── main.js      # Điểm neo chính (chứa hàm doGet, điều hướng trang)
+├── src/
+│   ├── backend/                       # Xử lý logic máy chủ (Server-side - Google Apps Script)
+│   │   ├── lecturer/                  # Nhóm API và logic dành riêng cho Giảng viên
+│   │   │   └── le_api.js
+│   │   ├── student/                   # Nhóm API và logic dành riêng cho Sinh viên
+│   │   │   └── st_api.js
+│   │   ├── auth.js                    # Xử lý phân quyền, nhận diện email & phân quyền Role
+│   │   ├── db.js                      # Các hàm lõi giao tiếp trực tiếp với Database (Google Sheets)
+│   │   └── main.js                    # Nơi bắt đầu của trang web
 │   │
-│   ├── config/          # Chứa các biến môi trường, ID Sheet, thông số cấu hình chung
+│   ├── config/                        # Cấu hình dự án
+│   │   └── 0_Config.js                # Chứa ID Sheet, biến môi trường
 │   │
-│   ├── frontend/        # Giao diện người dùng (Client-side)
-│   │   ├── assets/      # Chứa CSS tĩnh và JS chạy trên trình duyệt
-│   │   ├── components/  # Các phần UI dùng chung (Header, Footer, Sidebar)
-│   │   └── views/       # Các trang giao diện chính (Trang SV, Trang GV)
-│   │
-│   └── appsscript.json  # File cấu hình Manifest bắt buộc của Google Apps Script
+│   ├── frontend/                      # Giao diện người dùng (Client-side - HTML/CSS/JS)
+│   │   ├── assets/                    # Tài nguyên giao diện (Scripts & Styles)
+│   │   │   ├── scripts/               # Mã nguồn JavaScript chạy trên trình duyệt (bọc trong thẻ <script>)
+│   │   │   │   ├── js_lecture.html 
+│   │   │   │   ├── js_router.html  
+│   │   │   │   ├── js_student.html 
+│   │   │   │   ├── js_user.html    
+│   │   │   │   └── js_utils.html 
+│   │   │   └── styles/                # Mã nguồn CSS (bọc trong thẻ <style>)
+│   │   │       └── css_global.html
+│   │   │
+│   │   ├── components/                # Các mảnh UI tĩnh (Partials) lắp ráp thành bố cục
+│   │   │   ├── footer.html  
+│   │   │   ├── header.html   
+│   │   │   └── sidebar.html 
+│   │   │
+│   │   ├── views/                     # Các màn hình chính (Được nạp động qua Router vào phần content)
+│   │   │   ├── lecturer/      
+│   │   │   │   └── view_lecturer.html
+│   │   │   └── student/
+│   │   │       └── view_student.html
+│   │   │
+│   │   ├── layout.html                # Khung sườn gốc
+│   │   └── appsscript.json            # File cấu hình Manifest bắt buộc của Google Apps Script (Quyền truy cập)
 │
-├── .clasp.json          # File liên kết dự án local với Google Apps Script
-├── .claspignore         # Chỉ định các file KHÔNG được push lên Google server
-├── .gitignore           # Chỉ định các file KHÔNG được push lên GitHub
-└── README.md            # Tài liệu hướng dẫn cài đặt và sử dụng dự án
+├── .clasp.json                        # File cấu hình Clasp (Liên kết thư mục src/ với Script ID trên Google)
+├── .claspignore            
+├── .gitignore            
+└── README.md                
+```
