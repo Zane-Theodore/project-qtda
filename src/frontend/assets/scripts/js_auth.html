@@ -86,7 +86,7 @@
 
           if(appContent) appContent.innerHTML = '';
           
-          if (response.userData.role === 'LECTURE') {
+          if (response.userData.role === 'LECTURER') {
             navigate('frontend/views/lecturer/view_lecturer');
           } else {
             navigate('frontend/views/student/view_student');
@@ -170,14 +170,14 @@
 
   /**
    * Tải và nhúng động (inject) các nút Menu vào Sidebar dựa trên chức vụ.
-   * * @param {string} role - Chức vụ của người dùng (VD: 'LECTURE', 'STUDENT').
+   * * @param {string} role - Chức vụ của người dùng (VD: 'LECTURER', 'STUDENT').
    */
   function loadMenuByRole(role) {
     const menuContainer = document.getElementById('sidebar-menu-container');
     if (!menuContainer) return;
 
     let fileName = '';
-    if (role === 'LECTURE') {
+    if (role === 'LECTURER') {
       fileName = 'frontend/components/sidebars/sidebar_lecturer';
     } else {
       fileName = 'frontend/components/sidebars/sidebar_student';
