@@ -20,7 +20,7 @@ function verifyLogin(account) {
                 success: true,
                 userData: {
                     email: user.email,
-                    name: user.name,
+                    fullName: user.fullName,
                     role: user.role,
                 }
             };

@@ -70,7 +70,7 @@
           const sideName = document.getElementById('side-user-name');
           const sideEmail = document.getElementById('side-user-email');
 
-          if (sideName) sideName.textContent = window.currentUserData.name;
+          if (sideName) sideName.textContent = window.currentUserData.fullName;
           if (sideEmail) sideEmail.textContent = window.currentUserData.email;
 
           loadMenuByRole(response.userData.role);
@@ -78,10 +78,10 @@
           const avatarText = document.getElementById('avatarText');
           const avatarBtn = document.getElementById('userAvatarBtn');
           if(avatarText) {
-            avatarText.textContent = response.userData.name.charAt(0).toUpperCase();
+            avatarText.textContent = response.userData.fullName.charAt(0).toUpperCase();
           }
           if(avatarBtn) {
-            avatarBtn.title = response.userData.name + ' (' + response.userData.email + ')';
+            avatarBtn.title = response.userData.fullName + ' (' + response.userData.email + ')';
           }
 
           if(appContent) appContent.innerHTML = '';

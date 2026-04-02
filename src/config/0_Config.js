@@ -6,7 +6,16 @@ var CONFIG = {
   
   // Tên các Tab (Bảng) trong DB
   TABLES: {
-    USER: 'User',
+    ACCOUNT: 'Account',
     STUDENT: 'Student',
-  },
+    LECTURER: 'Lecturer',
+    NOTIFICATION: 'Notification',
+    THESIS: 'Thesis',
+    COUNCIL: 'Council',
+    COUNCIL_MEMBER: 'CouncilMember',
+    SCORE: 'Score',
+    SUBMISSION: 'Submission',
+    EVALUATION_RECORD: 'EvaluationRecord',
+    DEFENSE_ROOM: 'DefenseRoom',
+  }
 };

@@ -71,7 +71,7 @@ function db_findRecordByColumn(tableName, columnName, value) {
  * @returns {Object|null} Trả về Object chứa dữ liệu của dòng đó, hoặc `null` nếu không tìm thấy.
  */
 function db_getUserByEmail(email) {
-  return db_findRecordByColumn(CONFIG.TABLES.USER, "email", email);
+  return db_findRecordByColumn(CONFIG.TABLES.ACCOUNT, "email", email);
 }
 
 /**
