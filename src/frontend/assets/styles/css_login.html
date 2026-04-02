@@ -1,0 +1,122 @@
+<style>
+    /* Login page */
+  .login-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f4f6f9;
+  }
+
+  .login-wrapper .login-card {
+    background: #ffffff;
+    width: 100%;
+    max-width: 400px;
+    padding: 40px 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  }
+
+  .login-wrapper .login-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .login-wrapper .login-header h2 {
+    color: #2F5597;
+    margin: 15px 0 5px 0;
+    font-size: 22px;
+    font-weight: bold;
+  }
+
+  .login-wrapper .login-header p {
+    color: #7f8c8d;
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .login-wrapper .input-group {
+    margin-bottom: 20px;
+  }
+
+  .login-wrapper .input-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: bold;
+    color: #34495e;
+    margin-bottom: 8px;
+  }
+
+  .login-wrapper .input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .login-wrapper .input-with-icon .icon {
+    position: absolute;
+    left: 12px;
+    color: #95a5a6;
+    font-size: 20px;
+  }
+
+  .login-wrapper .input-with-icon input {
+    width: 100%;
+    padding: 12px 45px 12px 40px;
+    border: 1px solid #bdc3c7;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  .login-wrapper .input-with-icon input:focus {
+    border-color: #2F5597;
+    box-shadow: 0 0 0 3px rgba(47, 85, 151, 0.1);
+  }
+
+  .login-wrapper .input-error-border {
+    border: 1px solid #e74c3c;
+    box-shadow: 0 0 5px rgba(231, 76, 60, 0.3);
+  }
+
+  .login-wrapper .toggle-password {
+    position: absolute;
+    right: 15px;
+    cursor: pointer;
+    color: #95a5a6;
+    user-select: none;
+    transition: color 0.2s ease;
+  }
+
+  .login-wrapper .toggle-password:hover {
+    color: #2F5597; 
+  }
+
+  .login-wrapper .btn-submit {
+    width: 100%;
+    padding: 14px;
+    background-color: #2F5597;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.2s;
+    margin-top: 10px;
+  }
+
+  .login-wrapper .btn-submit:hover {
+    background-color: #1a3c73;
+  }
+
+  .login-wrapper .btn-submit:disabled {
+    background-color: #95a5a6;
+    cursor: not-allowed;
+  }
+</style>
