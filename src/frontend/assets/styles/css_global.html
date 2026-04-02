@@ -45,25 +45,32 @@
 
   .sidebar-scrollable-menu .menu-btn {
     width: 100%;
-    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    
     padding: 12px 15px;
     background: transparent;
-    color: #ecf0f1;
+    color: #bdc3c7;
     border: none;
     border-radius: 6px;
     cursor: pointer;
     font-size: 15px;
-    
-    margin-bottom: 12px;
-    
-    transition: background-color 0.2s, padding-left 0.2s;
+    margin-bottom: 5px;
+    transition: all 0.3s ease; 
+    border-left: 4px solid transparent;
+  }
+
+  .sidebar-scrollable-menu .menu-btn .material-symbols-outlined {
+    font-size: 22px;
+    flex-shrink: 0;
   }
 
   .sidebar-scrollable-menu .menu-btn:hover {
-    background-color: #214073;
-    padding-left: 20px; 
+    background-color: rgba(255, 255, 255, 0.1);
     color: #ffffff;
-    font-weight: bold;
+    font-weight: 500;
+    border-left-color: #ffffff;
   }
 
   .sidebar-scrollable-menu::-webkit-scrollbar { width: 6px; }
@@ -207,6 +214,17 @@
     animation: spin 1s linear infinite;
   }
 
+  /* Loading Spinner for Buttons */
+  .btn-spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top: 3px solid #ffffff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+  }
+
   @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
@@ -287,11 +305,11 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh; /* Chiếm toàn bộ chiều cao màn hình */
-    background-color: #f4f6f9; /* Màu nền xám nhạt */
+    min-height: 100vh;
+    background-color: #f4f6f9;
   }
 
-  .login-card {
+  .login-wrapper .login-card {
     background: #ffffff;
     width: 100%;
     max-width: 400px;
@@ -300,29 +318,29 @@
     box-shadow: 0 10px 25px rgba(0,0,0,0.05);
   }
 
-  .login-header {
+  .login-wrapper .login-header {
     text-align: center;
     margin-bottom: 30px;
   }
 
-  .login-header h2 {
+  .login-wrapper .login-header h2 {
     color: #2F5597;
     margin: 15px 0 5px 0;
     font-size: 22px;
     font-weight: bold;
   }
 
-  .login-header p {
+  .login-wrapper .login-header p {
     color: #7f8c8d;
     font-size: 14px;
     margin: 0;
   }
 
-  .input-group {
+  .login-wrapper .input-group {
     margin-bottom: 20px;
   }
 
-  .input-group label {
+  .login-wrapper .input-group label {
     display: block;
     font-size: 13px;
     font-weight: bold;
@@ -330,22 +348,22 @@
     margin-bottom: 8px;
   }
 
-  .input-with-icon {
+  .login-wrapper .input-with-icon {
     position: relative;
     display: flex;
     align-items: center;
   }
 
-  .input-with-icon .icon {
+  .login-wrapper .input-with-icon .icon {
     position: absolute;
     left: 12px;
     color: #95a5a6;
     font-size: 20px;
   }
 
-  .input-with-icon input {
+  .login-wrapper .input-with-icon input {
     width: 100%;
-    padding: 12px 12px 12px 40px; /* Chừa 40px bên trái cho Icon */
+    padding: 12px 45px 12px 40px;
     border: 1px solid #bdc3c7;
     border-radius: 6px;
     font-size: 14px;
@@ -353,12 +371,30 @@
     transition: all 0.2s ease;
   }
 
-  .input-with-icon input:focus {
+  .login-wrapper .input-with-icon input:focus {
     border-color: #2F5597;
     box-shadow: 0 0 0 3px rgba(47, 85, 151, 0.1);
   }
 
-  .btn-submit {
+  .login-wrapper .input-error-border {
+    border: 1px solid #e74c3c;
+    box-shadow: 0 0 5px rgba(231, 76, 60, 0.3);
+  }
+
+  .login-wrapper .toggle-password {
+    position: absolute;
+    right: 15px;
+    cursor: pointer;
+    color: #95a5a6;
+    user-select: none;
+    transition: color 0.2s ease;
+  }
+
+  .login-wrapper .toggle-password:hover {
+    color: #2F5597; 
+  }
+
+  .login-wrapper .btn-submit {
     width: 100%;
     padding: 14px;
     background-color: #2F5597;
@@ -376,11 +412,11 @@
     margin-top: 10px;
   }
 
-  .btn-submit:hover {
+  .login-wrapper .btn-submit:hover {
     background-color: #1a3c73;
   }
 
-  .btn-submit:disabled {
+  .login-wrapper .btn-submit:disabled {
     background-color: #95a5a6;
     cursor: not-allowed;
   }

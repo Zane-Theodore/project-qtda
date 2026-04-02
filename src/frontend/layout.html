@@ -14,7 +14,7 @@
   <div class="app-layout">
 
     <aside class="layout-sidebar">
-      <?!= include('frontend/components/sidebar'); ?>
+      <?!= include('frontend/components/sidebars/sidebar'); ?>
     </aside>
 
     <div class="layout-right-column">
@@ -36,6 +36,37 @@
     </div>
 
   </div>
+
+  <template id="preload-sidebar-student">
+    <?!= api_loadView('frontend/components/sidebars/sidebar_student') ?>
+  </template>
+
+  <template id="preload-sidebar-lecturer">
+    <?!= api_loadView('frontend/components/sidebars/sidebar_lecturer') ?>
+  </template>
+
+  <script>
+    window.ViewCache = window.ViewCache || {};
+    window.SidebarReady = {
+      student: false,
+      lecturer: false
+    };
+
+    requestAnimationFrame(function() {
+      const studentTemplate = document.getElementById('preload-sidebar-student');
+      const lecturerTemplate = document.getElementById('preload-sidebar-lecturer');
+      
+      if (studentTemplate) {
+        window.ViewCache['frontend/components/sidebars/sidebar_student'] = studentTemplate.innerHTML;
+        window.SidebarReady.student = true;
+      }
+      
+      if (lecturerTemplate) {
+        window.ViewCache['frontend/components/sidebars/sidebar_lecturer'] = lecturerTemplate.innerHTML;
+        window.SidebarReady.lecturer = true;
+      }
+    });
+  </script>
 
   <?!= include('frontend/assets/scripts/js_utils'); ?>
   <?!= include('frontend/assets/scripts/js_router'); ?>

@@ -1,6 +1,42 @@
 <script>
-      function navigate(viewName, initFunctionName) {
+  /**
+   * Kho lưu trữ bộ nhớ đệm (Cache) toàn cục cho các View.
+   * Lưu trữ mã HTML của các trang đã tải để tái sử dụng, giúp người dùng
+   * chuyển trang tức thì trong các lần truy cập sau mà không cần gọi lại Backend.
+   * @type {Object.<string, string>}
+   */
+  window.ViewCache = {};
+
+  /**
+   * Hàm điều hướng (Router) cốt lõi của ứng dụng SPA.
+   * Phụ trách việc thay đổi nội dung màn hình chính (#app-content) một cách mượt mà.
+   * * @param {string} viewName - Đường dẫn/tên file của View cần tải (VD: 'frontend/views/student/view_dashboard').
+   * @param {string} [initFunctionName] - (Tùy chọn) Tên của hàm JavaScript (dạng chuỗi) sẽ được 
+   * tự động thực thi NGAY SAU KHI giao diện đã được đổ ra màn hình. Rất hữu ích để gọi API lấy dữ liệu.
+   */
+  function navigate(viewName, initFunctionName) {
     const contentDiv = document.getElementById('app-content');
+
+    if (window.ViewCache[viewName]) {
+      const fragment = document.createDocumentFragment();
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = window.ViewCache[viewName];
+      
+      while (tempDiv.firstChild) {
+        fragment.appendChild(tempDiv.firstChild);
+      }
+      
+      contentDiv.innerHTML = '';
+      contentDiv.appendChild(fragment);
+      
+      if (initFunctionName && typeof window[initFunctionName] === 'function') {
+        window[initFunctionName](); 
+      } else if (initFunctionName) {
+        console.error("LỖI: Không tìm thấy hàm tên là " + initFunctionName);
+      }
+      return;
+    }
+
     contentDiv.innerHTML =`
       <div class="loading-container">
         <div class="spinner"></div>
@@ -9,8 +45,19 @@
     `;
 
     google.script.run
-      .withSuccessHandler(function(htmlString) {
-        contentDiv.innerHTML = htmlString;
+      .withSuccessHandler(function(htmlContent) {
+        window.ViewCache[viewName] = htmlContent;
+
+        const fragment = document.createDocumentFragment();
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlContent;
+        
+        while (tempDiv.firstChild) {
+          fragment.appendChild(tempDiv.firstChild);
+        }
+        
+        contentDiv.innerHTML = '';
+        contentDiv.appendChild(fragment);
 
         if (initFunctionName && typeof window[initFunctionName] === 'function') {
           window[initFunctionName](); 

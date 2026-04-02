@@ -1,34 +1,60 @@
 <script>
   /**
-   * Xử lý sự kiện đăng nhập
+   * Xử lý quá trình đăng nhập của người dùng từ giao diện Frontend.
+   * * @param {Event} event - Sự kiện submit của form đăng nhập.
    */
   function handleLogin(event) {
-    event.preventDefault(); // Chặn việc tải lại trang
+    event.preventDefault();
 
-    // 1. Lấy dữ liệu từ ô nhập
     const emailInput = document.getElementById('login-email').value.trim();
     const passInput = document.getElementById('login-password').value.trim();
     const btnSubmit = document.getElementById('btnLogin');
 
-    // 2. Hiển thị trạng thái đang tải (Loading)
-    btnSubmit.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">autorenew</span> Đang xử lý...';
+    const emailError = document.getElementById('email-error');
+    const passError = document.getElementById('password-error');
+    const elEmailInput = document.getElementById('login-email');
+    const elPassInput = document.getElementById('login-password');
+
+    let isValid = true;
+
+    if (emailInput === '') {
+      emailError.textContent = 'Vui lòng nhập tài khoản email của bạn!';
+      emailError.style.display = 'block';
+      elEmailInput.classList.add('input-error-border');
+      isValid = false;
+    }
+
+    if (passInput === '') {
+      passError.textContent = 'Vui lòng nhập mật khẩu!';
+      passError.style.display = 'block';
+      elPassInput.classList.add('input-error-border');
+      isValid = false;
+    }
+
+    if (!isValid) {
+      return; 
+    }
+
+    emailError.style.display = 'none';
+    passError.style.display = 'none';
+    elEmailInput.classList.remove('input-error-border');
+    elPassInput.classList.remove('input-error-border');
+
+    btnSubmit.innerHTML = '<div class="btn-spinner"></div>';
     btnSubmit.disabled = true;
 
-    // Đóng gói dữ liệu thành Object khớp với hàm Backend
     const accountData = {
       email: emailInput,
       password: passInput
     };
 
-    // 3. Gửi lên Backend
     google.script.run
       .withSuccessHandler(function(response) {
-        // Khôi phục nút bấm
+
         btnSubmit.innerHTML = 'ĐĂNG NHẬP';
         btnSubmit.disabled = false;
 
         if (response.success) {
-          // Hiển thị giao diện chính (sidebar, header, footer)
           const sidebar = document.querySelector('.layout-sidebar');
           const header = document.querySelector('.layout-header');
           const footer = document.querySelector('.layout-footer');
@@ -38,11 +64,17 @@
           if(header) header.style.display = '';
           if(footer) footer.style.display = '';
           if(appContent) appContent.style.width = '100%';
-          
-          // Lưu userData tạm thời trong memory (không lưu trên storage)
+
           window.currentUserData = response.userData;
+
+          const sideName = document.getElementById('side-user-name');
+          const sideEmail = document.getElementById('side-user-email');
+
+          if (sideName) sideName.textContent = window.currentUserData.name;
+          if (sideEmail) sideEmail.textContent = window.currentUserData.email;
+
+          loadMenuByRole(response.userData.role);
           
-          // Cập nhật avatar với chữ cái đầu của tên người dùng
           const avatarText = document.getElementById('avatarText');
           const avatarBtn = document.getElementById('userAvatarBtn');
           if(avatarText) {
@@ -51,25 +83,18 @@
           if(avatarBtn) {
             avatarBtn.title = response.userData.name + ' (' + response.userData.email + ')';
           }
-          
-          // Xóa nội dung cũ (login form) trước khi load view mới
+
           if(appContent) appContent.innerHTML = '';
           
-          // Điều hướng đến trang phù hơp tùy theo role (CHỈ LOAD VIEW, không load layout)
           if (response.userData.role === 'LECTURE') {
             navigate('frontend/views/lecturer/view_lecturer');
-          } else if (response.userData.role === 'STUDENT') {
-            navigate('frontend/views/student/view_student');
           } else {
-            // Nếu role khác, mặc định hiển thị student view
             navigate('frontend/views/student/view_student');
           }
 
         } else {
-          // Hiển thị lỗi từ Backend
           alert(response.message);
           
-          // Xóa trắng ô mật khẩu cho người dùng nhập lại
           document.getElementById('login-password').value = '';
           document.getElementById('login-password').focus();
         }
@@ -83,17 +108,32 @@
   }
 
   /**
-   * Xử lý đăng xuất
+   * Hàm xử lý tính năng Ẩn/Hiện mật khẩu (Toggle Password Visibility).
+   * * @returns {void}
+   */
+  function togglePasswordVisibility() {
+    const passInput = document.getElementById('login-password');
+    const toggleIcon = document.querySelector('.toggle-password');
+
+    if (passInput.type === 'password') {
+      passInput.type = 'text';
+      toggleIcon.textContent = 'visibility';
+    } else {
+      passInput.type = 'password';
+      toggleIcon.textContent = 'visibility_off';
+    }
+  }
+
+  /**
+   * Xử lý quá trình đăng xuất khỏi hệ thống.
    */
   function handleLogout() {
     if (!confirm("Bạn có chắc muốn đăng xuất?")) {
       return;
     }
 
-    // Xóa dữ liệu người dùng
     window.currentUserData = null;
-    
-    // Ẩn giao diện chính
+
     const sidebar = document.querySelector('.layout-sidebar');
     const header = document.querySelector('.layout-header');
     const footer = document.querySelector('.layout-footer');
@@ -104,12 +144,13 @@
     if(footer) footer.style.display = 'none';
     if(appContent) appContent.innerHTML = '';
     
-    // Xóa nội dung và tải lại trang login
     navigate('frontend/views/auth/view_login');
   }
 
   /**
-   * Khởi tạo trang - luôn hiển thị login
+   * Bộ bảo vệ trạng thái ban đầu (Auth Guard - Initializer).
+   * Tự động chạy ngay khi người dùng vừa tải trang (F5).
+   * Mặc định khóa toàn bộ Layout và ép hiển thị giao diện Login để đảm bảo bảo mật.
    */
   function initializePage() {
     const sidebar = document.querySelector('.layout-sidebar');
@@ -117,16 +158,70 @@
     const footer = document.querySelector('.layout-footer');
     const appContent = document.getElementById('app-content');
 
-    // Ẩn giao diện chính ban đầu
     if(sidebar) sidebar.style.display = 'none';
     if(header) header.style.display = 'none';
     if(footer) footer.style.display = 'none';
     if(appContent) appContent.innerHTML = '';
-    
-    // Hiển thị trang login
+
     navigate('frontend/views/auth/view_login');
   }
 
-  // Chạy khởi tạo ngay khi load trang
   window.addEventListener('load', initializePage);
+
+  /**
+   * Tải và nhúng động (inject) các nút Menu vào Sidebar dựa trên chức vụ.
+   * * @param {string} role - Chức vụ của người dùng (VD: 'LECTURE', 'STUDENT').
+   */
+  function loadMenuByRole(role) {
+    const menuContainer = document.getElementById('sidebar-menu-container');
+    if (!menuContainer) return;
+
+    let fileName = '';
+    if (role === 'LECTURE') {
+      fileName = 'frontend/components/sidebars/sidebar_lecturer';
+    } else {
+      fileName = 'frontend/components/sidebars/sidebar_student';
+    }
+
+    if (window.ViewCache && window.ViewCache[fileName]) {
+
+      const fragment = document.createDocumentFragment();
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = window.ViewCache[fileName];
+
+      while (tempDiv.firstChild) {
+        fragment.appendChild(tempDiv.firstChild);
+      }
+      
+      menuContainer.innerHTML = '';
+      menuContainer.appendChild(fragment);
+      return; 
+    }
+
+    menuContainer.innerHTML = `
+      <div class="loading-container" style="min-height: 100px;">
+        <div class="spinner"></div>
+      </div>
+    `;
+
+    google.script.run
+      .withSuccessHandler(function(htmlContent) {
+        window.ViewCache[fileName] = htmlContent;
+
+        const fragment = document.createDocumentFragment();
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlContent;
+        
+        while (tempDiv.firstChild) {
+          fragment.appendChild(tempDiv.firstChild);
+        }
+        
+        menuContainer.innerHTML = '';
+        menuContainer.appendChild(fragment);
+      })
+      .withFailureHandler(function(error) {
+        menuContainer.innerHTML = '<div style="color: #e74c3c; text-align: center; padding: 20px;">Lỗi kết nối máy chủ!</div>';
+      })
+      .api_loadView(fileName);
+  }
 </script>
