@@ -1,0 +1,38 @@
+<div class="login-wrapper">
+  <div class="login-card">
+    
+    <div class="login-header">
+      <img src="https://raw.githubusercontent.com/Zane-Theodore/project-qtda/main/src/frontend/assets/images/LOGO-HCMUTE.png"
+        alt="Logo" 
+        style="display: block; margin: 0 auto 5px auto; max-width: 100px; height: auto;">
+      <h1 style="display: block; text-align: center; margin: 0; font-size: 24px; color: #2F5597; font-weight: bold;">
+        HCM-UTE
+      </h1>
+      <p>Đăng nhập để tiếp tục</p>
+    </div>
+
+    <form id="loginForm" onsubmit="handleLogin(event)">
+      
+      <div class="input-group">
+        <label for="login-email">Tài khoản (Email)</label>
+        <div class="input-with-icon">
+          <span class="material-symbols-outlined icon">mail</span>
+          <input type="email" id="login-email" placeholder="Nhập email của bạn..." required autocomplete="off">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label for="login-password">Mật khẩu</label>
+        <div class="input-with-icon">
+          <span class="material-symbols-outlined icon">lock</span>
+          <input type="password" id="login-password" placeholder="Nhập mật khẩu..." required autocomplete="off">
+        </div>
+      </div>
+
+      <button type="submit" id="btnLogin" class="btn-submit">
+        ĐĂNG NHẬP
+      </button>
+
+    </form>
+  </div>
+</div>

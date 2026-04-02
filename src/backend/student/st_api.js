@@ -8,11 +8,11 @@
  */
 function api_st_getStudentById(studentId) {
     try {
-        var studentInfo = db_getById(CONFIG.TABLES.STUDENT, "student_id", studentId);
+        var studentInfo = db_findRecordByColumn(CONFIG.TABLES.STUDENT, "student_id", studentId);
 
         if (!studentInfo) throw new Error("Không tìm thấy sinh viên với ID: " + studentId);
 
-        var userInfo = db_getById(CONFIG.TABLES.USER, "user_id", studentInfo.user_id);
+        var userInfo = db_findRecordByColumn(CONFIG.TABLES.USER, "user_id", studentInfo.user_id);
 
         var result = {
             studentId: studentInfo.student_id,
@@ -134,7 +134,7 @@ function api_st_updateStudent(studentId, updateData) {
     try {
         if (!studentId) throw new Error("Lỗi: Không xác định được mã sinh viên!");
 
-        var studentInfo = db_getById(CONFIG.TABLES.STUDENT, "student_id", studentId);
+        var studentInfo = db_findRecordByColumn(CONFIG.TABLES.STUDENT, "student_id", studentId);
         if (!studentInfo) throw new Error("Không tìm thấy sinh viên có mã [" + studentId + "].");
 
         var userUpdates = {};

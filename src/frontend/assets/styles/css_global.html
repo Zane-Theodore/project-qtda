@@ -82,25 +82,51 @@
 
   /* Header */
   .layout-header {
-    height: 100px;
+    height: 80px;
     background-color: #2F5597;
     border-left: 1px solid #bdc3c7;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
     display: flex;
-    align-items: center;
+    flex-direction: row; 
+    flex-wrap: nowrap;
     justify-content: space-between;
+    align-items: center;
     padding: 0 20px;
     flex-shrink: 0; 
+    color: #ffffff;
     position: sticky; 
     top: 0;
     z-index: 10;
-    color: #ffffff;
+  }
+
+  .header-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+    gap: 20px;
+  }
+
+  .header-title {
+    font-size: 22px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .header-right-group {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 15px;
+    flex-shrink: 0;
   }
 
   .header-icon-btn {
@@ -109,8 +135,8 @@
     color: white;
     font-size: 24px;
     cursor: pointer;
-    width: 50px;
-    height: 50px;
+    width: 45px;
+    height: 45px;
     border-radius: 50%; 
     display: flex;
     align-items: center;
@@ -123,18 +149,23 @@
   }
 
   .header-avatar {
-    width: 65px;
-    height: 65px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     background-color: #ecf0f1;
     color: #2F5597;
     font-weight: bold;
+    font-size: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    margin-left: 10px;
     box-shadow: 0 0 0 2px rgba(255,255,255,0.3);
+    transition: background-color 0.2s;
+  }
+
+  .header-avatar:hover {
+    background-color: #d5dbdb;
   }
 
   .layout-main {
@@ -168,10 +199,10 @@
   }
 
   .spinner {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
     border: 5px solid #e0e0e0;
-    border-top: 5px solid #3498db;
+    border-top: 4px solid #2F5597;
     border-radius: 50%;
     animation: spin 1s linear infinite;
   }
@@ -248,5 +279,109 @@
 
   @keyframes fadeOut {
     to { opacity: 0; transform: translateX(150%); }
+  }
+  /* ------------------------------------ */
+
+  /* Login page */
+  .login-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Chiếm toàn bộ chiều cao màn hình */
+    background-color: #f4f6f9; /* Màu nền xám nhạt */
+  }
+
+  .login-card {
+    background: #ffffff;
+    width: 100%;
+    max-width: 400px;
+    padding: 40px 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  }
+
+  .login-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .login-header h2 {
+    color: #2F5597;
+    margin: 15px 0 5px 0;
+    font-size: 22px;
+    font-weight: bold;
+  }
+
+  .login-header p {
+    color: #7f8c8d;
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .input-group {
+    margin-bottom: 20px;
+  }
+
+  .input-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: bold;
+    color: #34495e;
+    margin-bottom: 8px;
+  }
+
+  .input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .input-with-icon .icon {
+    position: absolute;
+    left: 12px;
+    color: #95a5a6;
+    font-size: 20px;
+  }
+
+  .input-with-icon input {
+    width: 100%;
+    padding: 12px 12px 12px 40px; /* Chừa 40px bên trái cho Icon */
+    border: 1px solid #bdc3c7;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  .input-with-icon input:focus {
+    border-color: #2F5597;
+    box-shadow: 0 0 0 3px rgba(47, 85, 151, 0.1);
+  }
+
+  .btn-submit {
+    width: 100%;
+    padding: 14px;
+    background-color: #2F5597;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.2s;
+    margin-top: 10px;
+  }
+
+  .btn-submit:hover {
+    background-color: #1a3c73;
+  }
+
+  .btn-submit:disabled {
+    background-color: #95a5a6;
+    cursor: not-allowed;
   }
 </style>

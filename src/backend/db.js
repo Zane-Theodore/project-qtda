@@ -47,22 +47,31 @@ function db_getAll(tableName) {
  * @description Trả về một Object duy nhất dựa trên ID (Giá trị của một cột cụ thể).
  * Quét toàn bộ bảng, tìm và trả về 1 Object đầu tiên có giá trị cột khớp với ID truyền vào.
  * * @param {string} tableName - Tên tab cần tìm.
- * @param {string} idColumn - Tên cột dùng làm điều kiện tìm kiếm (VD: 'Email', 'MaSV').
- * @param {string|number} idValue - Giá trị cần tìm.
+ * @param {string} columnName - Tên cột dùng làm điều kiện tìm kiếm (VD: 'Email', 'MaSV').
+ * @param {string|number} value - Giá trị cần tìm.
  * @returns {Object|null} Trả về Object chứa dữ liệu của dòng đó, hoặc `null` nếu không tìm thấy.
  * * @example
- * var user = db_getById(CONFIG.TABLES.TAI_KHOAN, "Email", "gv.a@truong.edu.vn");
+ * var user = db_findRecordByColumn(CONFIG.TABLES.TAI_KHOAN, "Email", "gv.a@truong.edu.vn");
  * if (user) { Logger.log("Tìm thấy: " + user.HoTen); }
  */
-function db_getById(tableName, idColumn, idValue) {
+function db_findRecordByColumn(tableName, columnName, value) {
   var allData = db_getAll(tableName);
   
   for (var i = 0; i < allData.length; i++) {
-    if (String(allData[i][idColumn]) === String(idValue)) {
+    if (String(allData[i][columnName]) === String(value)) {
       return allData[i];
     }
   }
   return null;
+}
+
+/**
+ * @description Hàm tái sử dụng lại hàm db_findRecordByColumn để tìm một User dựa trên Email.
+ * * @param {string} email - Email của người dùng cần tìm.
+ * @returns {Object|null} Trả về Object chứa dữ liệu của dòng đó, hoặc `null` nếu không tìm thấy.
+ */
+function db_getUserByEmail(email) {
+  return db_findRecordByColumn(CONFIG.TABLES.USER, "email", email);
 }
 
 /**
