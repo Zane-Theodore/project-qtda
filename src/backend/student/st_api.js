@@ -1,27 +1,27 @@
 // File: src/backend/student/st_api.js
 
 /**
- * @description Đọc thông tin chi tiết của một Sinh viên dựa vào STUDENT_ID.
+ * @description Đọc thông tin chi tiết của một Sinh viên dựa vào STUDENTID.
  * Hàm này tự động JOIN với bảng ACCOUNT để lấy thêm thông tin liên lạc (Email, Số điện thoại).
  * * @param {string} studentId - Mã sinh viên cần tìm kiếm.
  * @returns {string} Chuỗi JSON chứa trạng thái `success` và `data` (Object chi tiết Sinh viên), hoặc `error` nếu thất bại.
  */
 function api_st_getStudentById(studentId) {
     try {
-        var studentInfo = db_findRecordByColumn(CONFIG.TABLES.STUDENT, "student_id", studentId);
+        var studentInfo = db_findRecordByColumn(CONFIG.TABLES.STUDENT, "studentId", studentId);
 
         if (!studentInfo) throw new Error("Không tìm thấy sinh viên với ID: " + studentId);
 
-        var userInfo = db_findRecordByColumn(CONFIG.TABLES.ACCOUNT, "id", studentInfo.account_id);
+        var userInfo = db_findRecordByColumn(CONFIG.TABLES.ACCOUNT, "id", studentInfo.accountId);
 
         var result = {
             email: userInfo.email,
             fullName: userInfo.fullName,
-            nationalId: userInfo.national_id,
-            number: userInfo.number,
+            nationalId: userInfo.nationalId,
+            number: userInfo.phoneNumber,
             address: userInfo.address,
-            studentId: studentInfo.student_id,
-            classId: studentInfo.class_id,
+            studentId: studentInfo.studentId,
+            classId: studentInfo.classId,
             major: studentInfo.major,
             cohort: studentInfo.cohort,
             programType: studentInfo.programType,
@@ -34,7 +34,7 @@ function api_st_getStudentById(studentId) {
 }
 
 /**
- * @description Đọc thông tin chi tiết của một Sinh viên dựa vào ACCOUNT_ID.
+ * @description Đọc thông tin chi tiết của một Sinh viên dựa vào ACCOUNTId.
  * Được gọi từ Frontend sau khi đăng nhập để lấy dữ liệu hồ sơ sinh viên.
  * Hàm này tự động JOIN với bảng ACCOUNT để lấy thêm thông tin liên lạc.
  * * @param {string} accountId - ID tài khoản (User ID) từ bảng ACCOUNT.
@@ -42,7 +42,7 @@ function api_st_getStudentById(studentId) {
  */
 function api_st_getStudentByAccountId(accountId) {
     try {
-        var studentInfo = db_findRecordByColumn(CONFIG.TABLES.STUDENT, "account_id", accountId);
+        var studentInfo = db_findRecordByColumn(CONFIG.TABLES.STUDENT, "accountId", accountId);
 
         if (!studentInfo) throw new Error("Không tìm thấy hồ sơ sinh viên cho tài khoản: " + accountId);
 
@@ -53,11 +53,11 @@ function api_st_getStudentByAccountId(accountId) {
         var result = {
             email: userInfo.email,
             fullName: userInfo.fullName,
-            nationalId: userInfo.national_id,
+            nationalId: userInfo.nationalId,
             number: userInfo.number,
             address: userInfo.address,
-            studentId: studentInfo.student_id,
-            classId: studentInfo.class_id,
+            studentId: studentInfo.studentId,
+            classId: studentInfo.classId,
             major: studentInfo.major,
             cohort: studentInfo.cohort,
             programType: studentInfo.programType,
@@ -91,11 +91,11 @@ function api_st_getAllStudents() {
         }
 
         var result = allStudents.map(function(studentInfo) {
-            var userInfo = accountDictionary[studentInfo.account_id];
+            var userInfo = accountDictionary[studentInfo.accountId];
 
             return {
-                studentId: studentInfo.student_id,
-                classId: studentInfo.class_id,
+                studentId: studentInfo.studentId,
+                classId: studentInfo.classId,
                 major: studentInfo.major,
                 cohort: studentInfo.cohort,
                 programType: studentInfo.programType,
@@ -104,7 +104,7 @@ function api_st_getAllStudents() {
                 fullName: userInfo ? userInfo.fullName : "Chưa cập nhật",
                 email: userInfo ? userInfo.email : "Chưa cập nhật",
                 number: userInfo ? userInfo.number : "Chưa cập nhật",
-                nationalId: userInfo ? userInfo.national_id : "Chưa cập nhật",
+                nationalId: userInfo ? userInfo.nationalId : "Chưa cập nhật",
                 address: userInfo ? userInfo.address : "Chưa cập nhật"
             };
         });
@@ -118,17 +118,17 @@ function api_st_getAllStudents() {
 
 /**
  * @description Thêm mới một Sinh viên vào hệ thống.
- * Sẽ tạo một bản ghi trên bảng ACCOUNT trước, sau đó dùng `account_id` để tạo bản ghi bên bảng STUDENT.
- * * @param {Object} studentData - Object chứa thông tin sinh viên mới. Yêu cầu bắt buộc phải có `fullName` và `class_id`.
+ * Sẽ tạo một bản ghi trên bảng ACCOUNT trước, sau đó dùng `accountId` để tạo bản ghi bên bảng STUDENT.
+ * * @param {Object} studentData - Object chứa thông tin sinh viên mới. Yêu cầu bắt buộc phải có `fullName` và `classId`.
  * @returns {string} Chuỗi JSON chứa trạng thái `success`, `message`.
  */
 function api_st_createStudent(studentData) {
     try {
-        if (!studentData.fullName || !studentData.class_id) {
+        if (!studentData.fullName || !studentData.classId) {
             throw new Error("Vui lòng nhập đầy đủ Họ tên và Lớp của sinh viên!");
         }
 
-        var currentAccountId = studentData.account_id;
+        var currentAccountId = studentData.accountId;
 
         // TẠO TÀI KHOẢN (BẢNG ACCOUNT)
         if (!currentAccountId || currentAccountId.trim() === "") {
@@ -139,21 +139,21 @@ function api_st_createStudent(studentData) {
                 fullName: studentData.fullName, 
                 email: studentData.email || (currentAccountId + "@student.hcmute.edu.vn"),
                 number: studentData.number || "",
-                national_id: studentData.national_id || "",
+                nationalId: studentData.nationalId || "",
                 address: studentData.address || "",
                 password: studentData.password || "123", // Mật khẩu mặc định
-                role_id: "STUDENT" // Hoặc truyền ID (vd: 1) tùy vào quy định của bảng Role
+                roleId: "STUDENT" // Hoặc truyền ID (vd: 1) tùy vào quy định của bảng Role
             };
             db_insert(CONFIG.TABLES.ACCOUNT, newAccountObject);
         }
 
         // TẠO THÔNG TIN HỌC VỤ (BẢNG STUDENT)
-        var newStudentId = studentData.student_id || ("ST_" + new Date().getTime());
+        var newStudentId = studentData.studentId || ("ST_" + new Date().getTime());
 
         var newStudentObject = {
-            student_id: newStudentId,
-            account_id: currentAccountId,
-            class_id: studentData.class_id,
+            studentId: newStudentId,
+            accountId: currentAccountId,
+            classId: studentData.classId,
             major: studentData.major || "",
             cohort: studentData.cohort || "",
             programType: studentData.programType || ""
@@ -182,7 +182,7 @@ function api_st_updateStudent(studentId, updateData) {
     try {
         if (!studentId) throw new Error("Lỗi: Không xác định được mã sinh viên!");
 
-        var studentInfo = db_findRecordByColumn(CONFIG.TABLES.STUDENT, "student_id", studentId);
+        var studentInfo = db_findRecordByColumn(CONFIG.TABLES.STUDENT, "studentId", studentId);
         if (!studentInfo) throw new Error("Không tìm thấy sinh viên có mã [" + studentId + "].");
 
         var accountUpdates = {};
@@ -192,25 +192,25 @@ function api_st_updateStudent(studentId, updateData) {
         if (updateData.fullName) accountUpdates.fullName = updateData.fullName;
         if (updateData.email) accountUpdates.email = updateData.email;
         if (updateData.number) accountUpdates.number = updateData.number;
-        if (updateData.national_id) accountUpdates.national_id = updateData.national_id;
+        if (updateData.nationalId) accountUpdates.nationalId = updateData.nationalId;
         if (updateData.address) accountUpdates.address = updateData.address;
         if (updateData.password) accountUpdates.password = updateData.password;
 
         // Phân loại data cho bảng STUDENT
-        if (updateData.class_id) studentUpdates.class_id = updateData.class_id;
+        if (updateData.classId) studentUpdates.classId = updateData.classId;
         if (updateData.major) studentUpdates.major = updateData.major;
         if (updateData.cohort) studentUpdates.cohort = updateData.cohort;
         if (updateData.programType) studentUpdates.programType = updateData.programType;
 
         // 1. Cập nhật bảng Account (nếu có trường thay đổi)
-        if (Object.keys(accountUpdates).length > 0 && studentInfo.account_id) {
-            db_update(CONFIG.TABLES.ACCOUNT, "id", studentInfo.account_id, accountUpdates);
+        if (Object.keys(accountUpdates).length > 0 && studentInfo.accountId) {
+            db_update(CONFIG.TABLES.ACCOUNT, "id", studentInfo.accountId, accountUpdates);
         }
 
         // 2. Cập nhật bảng Student (nếu có trường thay đổi)
         var isSuccess = true;
         if (Object.keys(studentUpdates).length > 0) {
-            isSuccess = db_update(CONFIG.TABLES.STUDENT, "student_id", studentId, studentUpdates);
+            isSuccess = db_update(CONFIG.TABLES.STUDENT, "studentId", studentId, studentUpdates);
         }
 
         if (isSuccess) {
@@ -235,19 +235,19 @@ function api_st_deleteStudent(studentId) {
             throw new Error("Lỗi: Không xác định được mã sinh viên cần xóa!");
         }
 
-        // Lấy thông tin sinh viên để biết đang dùng account_id nào
-        var studentInfo = db_findRecordByColumn(CONFIG.TABLES.STUDENT, "student_id", studentId);
+        // Lấy thông tin sinh viên để biết đang dùng accountId nào
+        var studentInfo = db_findRecordByColumn(CONFIG.TABLES.STUDENT, "studentId", studentId);
         if (!studentInfo) {
             throw new Error("Xóa thất bại: Không tìm thấy sinh viên có mã [" + studentId + "].");
         }
 
         // Xóa bên bảng Student trước
-        var isSuccess = db_delete(CONFIG.TABLES.STUDENT, "student_id", studentId);
+        var isSuccess = db_delete(CONFIG.TABLES.STUDENT, "studentId", studentId);
 
         if (isSuccess) {
             // Xóa luôn tài khoản bên bảng Account
-            if (studentInfo.account_id) {
-                db_delete(CONFIG.TABLES.ACCOUNT, "id", studentInfo.account_id);
+            if (studentInfo.accountId) {
+                db_delete(CONFIG.TABLES.ACCOUNT, "id", studentInfo.accountId);
             }
             return JSON.stringify({ success: true, message: "Đã xóa sinh viên và tài khoản liên kết khỏi hệ thống!" });
         } else {

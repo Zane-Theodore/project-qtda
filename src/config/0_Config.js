@@ -2,7 +2,7 @@
 
 var CONFIG = {
   // ID của file Google Sheets, sửa lại khi có sheet mới
-  DB_ID: '1TWDJItVEAVgzFCsiwTnYQy1Cv4tF4VGEMkTv-Ci1qQk', 
+  DB_ID: '1XGziAyboD4BHpS_ifcxrMkj43_iRkVT-BCDxYthoMGI', 
   
   // Tên các Tab (Bảng) trong DB
   TABLES: {
@@ -10,6 +10,8 @@ var CONFIG = {
     STUDENT: 'Student',
     LECTURER: 'Lecturer',
     NOTIFICATION: 'Notification',
+    TEACHING_ACTIVITY: 'TeachingActivity',
+    ACHIVEMENT: 'Achievement',
     THESIS: 'Thesis',
     COUNCIL: 'Council',
     COUNCIL_MEMBER: 'CouncilMember',
