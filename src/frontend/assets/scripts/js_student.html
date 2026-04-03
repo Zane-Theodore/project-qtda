@@ -1,37 +1,80 @@
 <script>
+  // Khởi tạo vùng nhớ đệm dữ liệu (Data Cache)
+  window.DataCache = window.DataCache || {};
 
-  function initStudentProfile() {
+  // Hàm được Router gọi tự động
+  window.initStudentProfile = function() {
     const currentAccountId = window.currentUserData.id;
+    const cacheKey = 'profile_data_' + currentAccountId;
 
-    google.script.run
-      .withSuccessHandler(function(responseString) {
-        const response = JSON.parse(responseString);
+    const loadingEl = document.getElementById('profile-loading');
+    const contentEl = document.getElementById('profile-content');
+    
+    if(loadingEl) loadingEl.style.display = 'flex';
+    if(contentEl) contentEl.style.display = 'none';
 
-        if (response.success) {
-          const data = response.data;
+    const renderProfile = (data) => {
+      const formatData = (val) => (val === undefined || val === null || val === '') ? "--" : val;
+      const formatDate = (dateStr) => {
+        if (!dateStr) return "--";
+        try {
+          const d = new Date(dateStr);
+          return isNaN(d.getTime()) ? dateStr : d.toLocaleDateString('vi-VN');
+        } catch(e) { return dateStr; }
+      };
 
-          document.getElementById('lbl-fullname').textContent = data.fullName;
-          document.getElementById('lbl-student-code').textContent = data.studentId;
-          document.getElementById('lbl-email').textContent = data.email;
-          document.getElementById('lbl-phone').textContent = data.number;
-          document.getElementById('lbl-national-id').textContent = data.nationalId;
-          document.getElementById('lbl-address').textContent = data.address;
-          
-          document.getElementById('lbl-class').textContent = data.classId;
-          document.getElementById('lbl-major').textContent = data.major;
-          document.getElementById('lbl-cohort').textContent = data.cohort;
-          document.getElementById('lbl-program').textContent = data.programType;
+      if (data.fullName) {
+        const nameParts = data.fullName.trim().split(' ');
+        const firstName = nameParts[nameParts.length - 1]; 
+        const avatarEl = document.getElementById('profile-avatar-text');
+        if (avatarEl) avatarEl.textContent = firstName.charAt(0).toUpperCase();
+      }
 
-          document.getElementById('profile-loading').style.display = 'none';
-          document.getElementById('profile-content').style.display = 'block';
-        } else {
-          alert("Lỗi tải hồ sơ: " + response.error);
-          document.getElementById('profile-loading').innerHTML = '<span style="color: red;">Lỗi tải dữ liệu.</span>';
-        }
-      })
-      .withFailureHandler(function(error) {
-        alert("Lỗi kết nối máy chủ!");
-      })
-      .api_st_getStudentByAccountId(currentAccountId);
+      document.getElementById('lbl-fullname').textContent = formatData(data.fullName);
+      document.getElementById('lbl-student-code').textContent = formatData(data.studentId);
+      document.getElementById('lbl-dob').textContent = formatDate(data.dob);
+      document.getElementById('lbl-email').textContent = formatData(data.email);
+      document.getElementById('lbl-phone').textContent = formatData(data.number);
+      document.getElementById('lbl-national-id').textContent = formatData(data.nationalId);
+      document.getElementById('lbl-address').textContent = formatData(data.address);
+      
+      document.getElementById('lbl-enrollment-date').textContent = formatDate(data.enrollmentDate);
+      document.getElementById('lbl-class').textContent = formatData(data.classId);
+      document.getElementById('lbl-major').textContent = formatData(data.major);
+      document.getElementById('lbl-cohort').textContent = formatData(data.cohort);
+      document.getElementById('lbl-program').textContent = formatData(data.programType);
+      
+      let gpaText = formatData(data.gpa);
+      if(gpaText !== "--" && !isNaN(gpaText)) gpaText = parseFloat(gpaText).toFixed(2); 
+      document.getElementById('lbl-gpa').textContent = gpaText;
+
+      document.getElementById('lbl-practicum-company').textContent = formatData(data.practicumCompany);
+      document.getElementById('lbl-practicum-score').textContent = formatData(data.practicumScore);
+      document.getElementById('lbl-internship-company').textContent = formatData(data.internshipCompany);
+      document.getElementById('lbl-internship-score').textContent = formatData(data.internshipScore);
+
+      loadingEl.style.display = 'none';
+      contentEl.style.display = 'block';
+    };
+
+    if (window.DataCache[cacheKey]) {
+      renderProfile(window.DataCache[cacheKey]);
+    } else {
+      google.script.run
+        .withSuccessHandler(function(responseString) {
+          const response = JSON.parse(responseString);
+          if (response.success) {
+            window.DataCache[cacheKey] = response.data;
+            renderProfile(response.data);
+          } else {
+            alert("Lỗi tải hồ sơ: " + response.error);
+            loadingEl.innerHTML = '<span style="color: red;">Lỗi tải dữ liệu.</span>';
+          }
+        })
+        .withFailureHandler(function(error) {
+          alert("Lỗi kết nối máy chủ! Vui lòng kiểm tra lại mạng.");
+        })
+        .api_st_getStudentByAccountId(currentAccountId);
+    }
   };
 </script>

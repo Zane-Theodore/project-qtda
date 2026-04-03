@@ -51,16 +51,26 @@ function api_st_getStudentByAccountId(accountId) {
         if (!userInfo) throw new Error("Tài khoản không tồn tại: " + accountId);
 
         var result = {
+            // Account Info
             email: userInfo.email,
             fullName: userInfo.fullName,
+            dob: userInfo.dob,
+            number: userInfo.phoneNumber,
             nationalId: userInfo.nationalId,
-            number: userInfo.number,
             address: userInfo.address,
-            studentId: studentInfo.studentId,
+
+            // Student Info
+            studentId: studentInfo.studentCode,
+            gpa: studentInfo.gpa,
             classId: studentInfo.classId,
             major: studentInfo.major,
             cohort: studentInfo.cohort,
             programType: studentInfo.programType,
+            enrollmentDate: studentInfo.enrollmentDate,
+            practicumCompany: studentInfo.practicumCompany,
+            practicumScore: studentInfo.practicumScore,
+            internshipCompany: studentInfo.internshipCompany,
+            internshipScore: studentInfo.internshipScore,
         }
 
         return JSON.stringify({ success: true, data: result });

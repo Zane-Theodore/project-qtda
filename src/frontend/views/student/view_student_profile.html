@@ -1,33 +1,97 @@
-<div style="padding: 20px; max-width: 800px; margin: 0 auto;">
-  <h2 style="color: #2F5597; margin-bottom: 20px; border-bottom: 2px solid #bdc3c7; padding-bottom: 10px;">
-    Hồ sơ Sinh viên
-  </h2>
-
-  <div id="profile-loading" style="text-align: center; padding: 40px;">
-    <div class="spinner"></div>
-    <p style="color: #7f8c8d; margin-top: 15px;">Đang tải thông tin...</p>
+<div class="profile-container">
+  
+  <div id="profile-loading">
+    <?!= include('frontend/components/loading_spinner'); ?>
   </div>
 
-  <div id="profile-content" style="display: none; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+  <div id="profile-content" style="display: none;">
     
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-      <div>
-        <h3 style="color: #27ae60; font-size: 16px; margin-bottom: 15px;">Thông tin liên hệ</h3>
-        <p><strong>Họ và tên:</strong> <span id="lbl-fullname">...</span></p>
-        <p><strong>MSSV:</strong> <span id="lbl-student-code" style="font-weight: bold; color: #c0392b;">...</span></p>
-        <p><strong>Email:</strong> <span id="lbl-email">...</span></p>
-        <p><strong>Số điện thoại:</strong> <span id="lbl-phone">...</span></p>
-        <p><strong>CCCD:</strong> <span id="lbl-national-id">...</span></p>
-        <p><strong>Địa chỉ:</strong> <span id="lbl-address">...</span></p>
+    <div class="profile-header-card">
+      <div class="header-left">
+        <div class="avatar-wrapper">
+          <div class="profile-avatar">
+            <span class="material-symbols-outlined" style="font-size: 45px;">person</span>
+          </div>
+        </div>
+        <div class="header-info">
+          <span class="tag">HỒ SƠ SINH VIÊN</span>
+          <h1 id="lbl-fullname">...</h1> 
+          <p>Trường Đại học Công nghệ Kỹ Thuật TP.HCM</p>
+        </div>
+      </div>
+      <button class="btn-update" onclick="showNotification('Tính năng đang phát triển!', 'info')">Cập nhật thông tin</button>
+    </div>
+
+    <div class="profile-grid">
+      
+      <div class="info-card">
+        <div class="card-title">
+          <span class="material-symbols-outlined">badge</span>
+          Thông tin cá nhân
+        </div>
+        <div class="info-row"><span class="info-label">MSSV</span><span class="info-value" id="lbl-student-code">...</span></div>
+        <div class="info-row"><span class="info-label">Ngày sinh</span><span class="info-value" id="lbl-dob">...</span></div>
+        <div class="info-row"><span class="info-label">Email</span><span class="info-value" id="lbl-email">...</span></div>
+        <div class="info-row"><span class="info-label">Điện thoại</span><span class="info-value" id="lbl-phone">...</span></div>
+        <div class="info-row"><span class="info-label">CCCD</span><span class="info-value" id="lbl-national-id">...</span></div>
+        <div class="info-row"><span class="info-label">Địa chỉ</span><span class="info-value" id="lbl-address">...</span></div>
+      </div>
+
+      <div class="info-card">
+        <div class="card-title">
+          <span class="material-symbols-outlined">menu_book</span>
+          Thông tin học tập
+        </div>
+        <div class="info-row" style="flex-direction: column; align-items: flex-start; gap: 5px;">
+          <span class="info-label">Lớp sinh hoạt</span>
+          <span class="info-value" id="lbl-class" style="text-align: left;">...</span>
+        </div>
+        <div class="info-row" style="flex-direction: column; align-items: flex-start; gap: 5px;">
+          <span class="info-label">Ngành học</span>
+          <span class="info-value" id="lbl-major" style="text-align: left;">...</span>
+        </div>
+        <div class="info-row" style="flex-direction: column; align-items: flex-start; gap: 5px;">
+          <span class="info-label">Khoá / Niên khoá</span>
+          <span class="info-value" id="lbl-cohort" style="text-align: left;">...</span>
+        </div>
+        <div class="info-row" style="flex-direction: column; align-items: flex-start; gap: 5px;">
+          <span class="info-label">Hệ đào tạo</span>
+          <span class="info-value" id="lbl-program" style="text-align: left;">...</span>
+        </div>
+        <div class="info-row" style="flex-direction: column; align-items: flex-start; gap: 5px;">
+          <span class="info-label">Ngày nhập học</span>
+          <span class="info-value" id="lbl-enrollment-date" style="text-align: left;">...</span>
+        </div>
       </div>
 
       <div>
-        <h3 style="color: #27ae60; font-size: 16px; margin-bottom: 15px;">Thông tin học vụ</h3>
-        <p><strong>Lớp sinh hoạt:</strong> <span id="lbl-class">...</span></p>
-        <p><strong>Ngành học:</strong> <span id="lbl-major">...</span></p>
-        <p><strong>Khóa học (Cohort):</strong> <span id="lbl-cohort">...</span></p>
-        <p><strong>Hệ đào tạo:</strong> <span id="lbl-program">...</span></p>
+        <div class="gpa-hero-card">
+          <div class="gpa-title">KẾT QUẢ HỌC TẬP</div>
+          <div class="gpa-score">
+            <span id="lbl-gpa">...</span> <span class="gpa-max">/ 4.0</span>
+          </div>
+          <div class="gpa-status">Tình trạng: Đang học</div>
+        </div>
+
+        <h4 style="color: #718096; text-transform: uppercase; font-size: 13px; letter-spacing: 1px; margin-bottom: 15px;">KẾT QUẢ THỰC HÀNH</h4>
+        
+        <div class="intern-card">
+          <div class="intern-info">
+            <h4>Báo cáo kiến tập</h4>
+            <p id="lbl-practicum-company">Công ty...</p>
+          </div>
+          <div class="intern-score" id="lbl-practicum-score">-</div>
+        </div>
+
+        <div class="intern-card">
+          <div class="intern-info">
+            <h4>Báo cáo thực tập</h4>
+            <p id="lbl-internship-company">Công ty...</p>
+          </div>
+          <div class="intern-score" id="lbl-internship-score">-</div>
+        </div>
       </div>
+
     </div>
   </div>
 </div>
