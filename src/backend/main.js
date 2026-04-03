@@ -16,7 +16,7 @@ function include(filename) {
 // =========================================
 function api_loadView(viewName) {
   try {
-    return HtmlService.createHtmlOutputFromFile(viewName).getContent();
+    return HtmlService.createTemplateFromFile(viewName).evaluate().getContent();
   } catch (error) {
     return `
       <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; font-family: 'Segoe UI', sans-serif;">
