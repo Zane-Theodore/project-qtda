@@ -1,149 +1,37 @@
 <script>
-  /**
-   * ==========================================
-   * MODULE: QUẢN LÝ SINH VIÊN
-   * ==========================================
-   */
 
-  // 1. TẢI DANH SÁCH (READ)
-  function loadStudentData() {
-    const tbody = document.getElementById('student-table-body');
-    if (!tbody) return;
-    
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">⏳ Đang tải dữ liệu từ Google Sheets...</td></tr>';
+  function initStudentProfile() {
+    const currentAccountId = window.currentUserData.id;
 
     google.script.run
-      .withSuccessHandler(function(responseStr) {
-        const res = JSON.parse(responseStr);
-        if (!res.success) {
-          tbody.innerHTML = `<tr><td colspan="6" style="color:red; text-align:center;">Lỗi: ${res.error}</td></tr>`;
-          return;
-        }
+      .withSuccessHandler(function(responseString) {
+        const response = JSON.parse(responseString);
 
-        const data = res.data;
-        if (data.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Chưa có sinh viên nào trong hệ thống.</td></tr>';
-          return;
-        }
+        if (response.success) {
+          const data = response.data;
 
-        tbody.innerHTML = ''; 
-        
-        data.forEach(function(st) {
-          const stJson = encodeURIComponent(JSON.stringify(st));
-          const tr = document.createElement('tr');
-          tr.style.borderBottom = '1px solid #eee';
+          document.getElementById('lbl-fullname').textContent = data.fullName;
+          document.getElementById('lbl-student-code').textContent = data.studentId;
+          document.getElementById('lbl-email').textContent = data.email;
+          document.getElementById('lbl-phone').textContent = data.number;
+          document.getElementById('lbl-national-id').textContent = data.nationalId;
+          document.getElementById('lbl-address').textContent = data.address;
           
-          tr.innerHTML = `
-            <td style="padding: 12px;">${st.studentId}</td>
-            <td style="padding: 12px; font-weight: bold;">${st.name}</td>
-            <td style="padding: 12px;">${st.classId}</td>
-            <td style="padding: 12px;">${st.major}</td>
-            <td style="padding: 12px; color: #7f8c8d;">${st.email}</td>
-            <td style="padding: 12px; text-align: center;">
-              <button onclick="editStudent('${stJson}')" style="background: #f39c12; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">✏️ Sửa</button>
-              <button onclick="deleteStudent('${st.studentId}')" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">🗑️ Xóa</button>
-            </td>
-          `;
-          tbody.appendChild(tr);
-        });
+          document.getElementById('lbl-class').textContent = data.classId;
+          document.getElementById('lbl-major').textContent = data.major;
+          document.getElementById('lbl-cohort').textContent = data.cohort;
+          document.getElementById('lbl-program').textContent = data.programType;
+
+          document.getElementById('profile-loading').style.display = 'none';
+          document.getElementById('profile-content').style.display = 'block';
+        } else {
+          alert("Lỗi tải hồ sơ: " + response.error);
+          document.getElementById('profile-loading').innerHTML = '<span style="color: red;">Lỗi tải dữ liệu.</span>';
+        }
       })
       .withFailureHandler(function(error) {
-        tbody.innerHTML = `<tr><td colspan="6" style="color:red; text-align:center;">Lỗi mạng: ${error.message}</td></tr>`;
+        alert("Lỗi kết nối máy chủ!");
       })
-      .api_st_getAllStudents();
-  }
-
-  // 2. FORM THÊM / SỬA (CREATE / UPDATE)
-  function handleStudentSubmit(event) {
-    event.preventDefault(); 
-    
-    const btnSubmit = document.getElementById('st_btn_submit');
-    btnSubmit.innerText = "⏳ Đang lưu...";
-    btnSubmit.disabled = true;
-
-    const studentId = document.getElementById('st_id').value;
-    
-    const formData = {
-      name: document.getElementById('st_name').value,
-      email: document.getElementById('st_email').value,
-      number: document.getElementById('st_number').value,
-      password: document.getElementById('st_password').value,
-      user_id: document.getElementById('st_user_id').value,
-      class_id: document.getElementById('st_class').value,
-      major: document.getElementById('st_major').value,
-      cohort: document.getElementById('st_cohort').value,
-    };
-
-    if (studentId === "") {
-      google.script.run.withSuccessHandler(handleResponse).api_st_createStudent(formData);
-    } else {
-      google.script.run.withSuccessHandler(handleResponse).api_st_updateStudent(studentId, formData);
-    }
-  }
-
-  function handleResponse(responseStr) {
-    const res = JSON.parse(responseStr);
-    const btnSubmit = document.getElementById('st_btn_submit');
-    btnSubmit.innerText = "💾 Lưu Sinh Viên";
-    btnSubmit.disabled = false;
-
-    if (res.success) {
-      showNotification(res.message, "success");
-      resetStudentForm();
-      loadStudentData();
-    } else {
-      showNotification("Lỗi: " + res.error, "error");
-    }
-  }
-
-  // 3. CHUẨN BỊ FORM ĐỂ SỬA
-  function editStudent(stJsonEncoded) {
-    const st = JSON.parse(decodeURIComponent(stJsonEncoded)); 
-    
-    document.getElementById('st_id').value = st.studentId;
-    document.getElementById('st_class').value = st.classId;
-    document.getElementById('st_major').value = st.major;
-    document.getElementById('st_cohort').value = st.cohort;
-    
-    document.getElementById('st_name').value = st.name;
-    document.getElementById('st_email').value = st.email !== "Chưa cập nhật" ? st.email : "";
-    document.getElementById('st_number').value = st.number !== "Chưa cập nhật" ? st.number : "";
-    document.getElementById('st_password').value = ""; 
-    
-    document.getElementById('st-form-title').innerText = "✏️ Đang sửa: " + st.name;
-    document.getElementById('st_btn_submit').innerText = "💾 Cập nhật Toàn diện";
-    document.getElementById('st_btn_cancel').style.display = "inline-block";
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  // 4. XÓA SINH VIÊN (DELETE)
-  function deleteStudent(studentId) {
-    if (!confirm("⚠️ Bạn có chắc chắn muốn xóa vĩnh viễn sinh viên " + studentId + " không?")) {
-      return;
-    }
-
-    showNotification("⏳ Đang xóa...", "warning");
-
-    google.script.run
-      .withSuccessHandler(function(resStr) {
-        const res = JSON.parse(resStr);
-        if (res.success) {
-          showNotification(res.message, "success");
-          loadStudentData();
-        } else {
-          showNotification(res.error, "error");
-        }
-      })
-      .api_st_deleteStudent(studentId);
-  }
-
-  // 5. RESET FORM
-  function resetStudentForm() {
-    document.getElementById('studentForm').reset();
-    document.getElementById('st_id').value = "";
-    document.getElementById('st_user_id').value = ""; // Đã thêm để tránh lỗi kẹt tài khoản
-    document.getElementById('st-form-title').innerText = "Thêm Sinh Viên Mới";
-    document.getElementById('st_btn_submit').innerText = "💾 Lưu Sinh Viên";
-    document.getElementById('st_btn_cancel').style.display = "none";
-  }
+      .api_st_getStudentByAccountId(currentAccountId);
+  };
 </script>

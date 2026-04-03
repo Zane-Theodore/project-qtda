@@ -1,8 +1,8 @@
 // File: src/backend/student/st_api.js
 
 /**
- * @description Đọc thông tin chi tiết của một Sinh viên dựa vào ID.
- * Hàm này tự động JOIN với bảng USER để lấy thêm thông tin liên lạc (Email, Số điện thoại).
+ * @description Đọc thông tin chi tiết của một Sinh viên dựa vào STUDENT_ID.
+ * Hàm này tự động JOIN với bảng ACCOUNT để lấy thêm thông tin liên lạc (Email, Số điện thoại).
  * * @param {string} studentId - Mã sinh viên cần tìm kiếm.
  * @returns {string} Chuỗi JSON chứa trạng thái `success` và `data` (Object chi tiết Sinh viên), hoặc `error` nếu thất bại.
  */
@@ -13,6 +13,42 @@ function api_st_getStudentById(studentId) {
         if (!studentInfo) throw new Error("Không tìm thấy sinh viên với ID: " + studentId);
 
         var userInfo = db_findRecordByColumn(CONFIG.TABLES.ACCOUNT, "id", studentInfo.account_id);
+
+        var result = {
+            email: userInfo.email,
+            fullName: userInfo.fullName,
+            nationalId: userInfo.national_id,
+            number: userInfo.number,
+            address: userInfo.address,
+            studentId: studentInfo.student_id,
+            classId: studentInfo.class_id,
+            major: studentInfo.major,
+            cohort: studentInfo.cohort,
+            programType: studentInfo.programType,
+        }
+
+        return JSON.stringify({ success: true, data: result });
+    } catch (error) {
+        return JSON.stringify({ success: false, error: error.message });
+    }
+}
+
+/**
+ * @description Đọc thông tin chi tiết của một Sinh viên dựa vào ACCOUNT_ID.
+ * Được gọi từ Frontend sau khi đăng nhập để lấy dữ liệu hồ sơ sinh viên.
+ * Hàm này tự động JOIN với bảng ACCOUNT để lấy thêm thông tin liên lạc.
+ * * @param {string} accountId - ID tài khoản (User ID) từ bảng ACCOUNT.
+ * @returns {string} Chuỗi JSON chứa trạng thái `success` và `data` (Object chi tiết Sinh viên), hoặc `error` nếu thất bại.
+ */
+function api_st_getStudentByAccountId(accountId) {
+    try {
+        var studentInfo = db_findRecordByColumn(CONFIG.TABLES.STUDENT, "account_id", accountId);
+
+        if (!studentInfo) throw new Error("Không tìm thấy hồ sơ sinh viên cho tài khoản: " + accountId);
+
+        var userInfo = db_findRecordByColumn(CONFIG.TABLES.ACCOUNT, "id", accountId);
+
+        if (!userInfo) throw new Error("Tài khoản không tồn tại: " + accountId);
 
         var result = {
             email: userInfo.email,

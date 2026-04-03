@@ -19,6 +19,7 @@ function verifyLogin(account) {
             return {
                 success: true,
                 userData: {
+                    id: user.id,
                     email: user.email,
                     fullName: user.fullName,
                     role: user.role,
