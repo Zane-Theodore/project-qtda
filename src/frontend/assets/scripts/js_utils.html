@@ -58,4 +58,112 @@
       }
     }, 3000);
   }
+
+  /**
+   * ==========================================
+   * MODULE: HỖ TRỢ PROFILE (PROFILE UTILITIES)
+   * ==========================================
+   */
+
+  /**
+   * Định dạng giá trị dữ liệu, thay thế null/undefined/chuỗi rỗng bằng "--"
+   * @param {any} value - Giá trị cần định dạng
+   * @returns {string} Giá trị định dạng hoặc "--" nếu trống
+   */
+  function formatValue(value) {
+    return (value === undefined || value === null || value === '') ? "--" : value;
+  }
+
+  /**
+   * Chuyển đổi chuỗi ngày thành định dạng vi-VN (dd/mm/yyyy)
+   * @param {string} dateStr - Chuỗi ngày cần chuyển đổi
+   * @returns {string} Ngày định dạng hoặc "--" nếu không hợp lệ
+   */
+  function formatDate(dateStr) {
+    if (!dateStr) return "--";
+    try {
+      const date = new Date(dateStr);
+      return isNaN(date.getTime()) ? dateStr : date.toLocaleDateString('vi-VN');
+    } catch (error) {
+      return dateStr;
+    }
+  }
+
+  /**
+   * An toàn gán text cho phần tử DOM bằng ID
+   * @param {string} elementId - ID của phần tử DOM
+   * @param {any} text - Nội dung cần gán
+   */
+  function safeSetText(elementId, text) {
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.textContent = text;
+    }
+  }
+
+  /**
+   * Cập nhật avatar từ chữ cái đầu tiên của tên
+   * @param {string} fullName - Tên đầy đủ
+   * @param {string} avatarElementId - ID của phần tử avatar
+   */
+  function updateAvatarFromName(fullName, avatarElementId = 'profile-avatar-text') {
+    if (fullName) {
+      const nameParts = fullName.trim().split(' ');
+      const firstName = nameParts[nameParts.length - 1];
+      const avatarEl = document.getElementById(avatarElementId);
+      if (avatarEl) {
+        avatarEl.textContent = firstName.charAt(0).toUpperCase();
+      }
+    }
+  }
+
+  /**
+   * Hiện loading, ẩn nội dung
+   * @param {string} loadingId - ID phần tử loading
+   * @param {string} contentId - ID phần tử nội dung
+   */
+  function showProfileLoading(loadingId = 'profile-loading', contentId = 'profile-content') {
+    const loadingEl = document.getElementById(loadingId);
+    const contentEl = document.getElementById(contentId);
+    if (loadingEl) loadingEl.style.display = 'flex';
+    if (contentEl) contentEl.style.display = 'none';
+  }
+
+  /**
+   * Ẩn loading, hiện nội dung
+   * @param {string} loadingId - ID phần tử loading
+   * @param {string} contentId - ID phần tử nội dung
+   */
+  function hideProfileLoading(loadingId = 'profile-loading', contentId = 'profile-content') {
+    const loadingEl = document.getElementById(loadingId);
+    const contentEl = document.getElementById(contentId);
+    if (loadingEl) loadingEl.style.display = 'none';
+    if (contentEl) contentEl.style.display = 'block';
+  }
+
+  /**
+   * Xử lý lỗi tải hồ sơ
+   * @param {string} errorMessage - Thông báo lỗi
+   * @param {string} loadingId - ID phần tử loading
+   */
+  function handleProfileLoadError(errorMessage, loadingId = 'profile-loading') {
+    const loadingEl = document.getElementById(loadingId);
+    if (loadingEl) {
+      loadingEl.innerHTML = '<span style="color: #e74c3c;">Lỗi: ' + errorMessage + '</span>';
+    }
+  }
+
+  /**
+   * Tạo danh sách HTML từ mảng
+   * @param {Array} items - Mảng đối tượng
+   * @param {Function} templateFn - Hàm tạo template cho mỗi item
+   * @param {string} emptyMessage - Thông báo khi danh sách trống
+   * @returns {string} HTML string
+   */
+  function renderList(items, templateFn, emptyMessage = 'Chưa có dữ liệu') {
+    if (!items || items.length === 0) {
+      return `<div style="color: #94a3b8; padding: 10px;">${emptyMessage}</div>`;
+    }
+    return items.map(templateFn).join('');
+  }
 </script>

@@ -1,0 +1,102 @@
+<script>
+  window.DataCache = window.DataCache || {};
+
+  /**
+   * Khởi tạo và hiển thị hồ sơ giảng viên
+   * Tự động gọi từ Router, lấy dữ liệu hồ sơ từ backend và cập nhật UI
+   */
+  window.initLecturerProfile = function() {
+    const currentAccountId = window.currentUserData.id;
+    const cacheKey = 'profile_data_' + currentAccountId;
+
+    showProfileLoading();
+
+    /**
+     * Cập nhật giao diện với dữ liệu hồ sơ giảng viên
+     * @param {Object} data - Dữ liệu hồ sơ từ backend
+     */
+    const renderProfile = (data) => {
+      updateAvatarFromName(data.fullName, 'profile-avatar-text');
+
+      safeSetText('lbl-fullname', formatValue(data.fullName));
+      safeSetText('lbl-lecturer-code', formatValue(data.lecturerId));
+      safeSetText('lbl-national-id', formatValue(data.nationalId));
+      safeSetText('contact-phone', formatValue(data.phoneNumber));
+      safeSetText('contact-address', formatValue(data.address));
+
+      let yearsText = formatValue(data.yearsOfService);
+      safeSetText('lbl-years-of-service', yearsText !== "--" ? yearsText + " năm" : yearsText);
+
+      renderTeachingActivities(data.teachingActivities);
+      renderAchievements(data.achievements);
+
+      hideProfileLoading();
+    };
+
+    if (window.DataCache[cacheKey]) {
+      renderProfile(window.DataCache[cacheKey]);
+    } else {
+      google.script.run
+        .withSuccessHandler(function(responseString) {
+          const response = JSON.parse(responseString);
+          if (response.success) {
+            window.DataCache[cacheKey] = response.data;
+            renderProfile(response.data);
+          } else {
+            const errorMsg = response.error || 'Không thể tải hồ sơ';
+            alert("Lỗi tải hồ sơ: " + errorMsg);
+            handleProfileLoadError(errorMsg);
+          }
+        })
+        .withFailureHandler(function(error) {
+          alert("Lỗi kết nối máy chủ! Vui lòng kiểm tra lại mạng.");
+          handleProfileLoadError('Lỗi kết nối máy chủ');
+        })
+        .api_lec_getLecturerByAccountId(currentAccountId);
+    }
+  };
+
+  /**
+   * Hiển thị danh sách hoạt động đào tạo
+   * @param {Array} activities - Mảng hoạt động đào tạo
+   */
+  function renderTeachingActivities(activities) {
+    const container = document.getElementById('list-teaching-activities');
+    if (!container) return;
+
+    const html = renderList(activities, (item) => `
+      <div class="teaching-item">
+        <span class="material-symbols-outlined">check_circle</span>
+        <div class="t-content">
+          <span class="t-title">${item.content}</span>
+        </div>
+      </div>
+    `, 'Chưa có dữ liệu hoạt động.');
+
+    container.innerHTML = html;
+  }
+
+  /**
+   * Hiển thị danh sách thành tựu và khen thưởng (sắp xếp theo năm mới nhất trước)
+   * @param {Array} achievements - Mảng thành tựu
+   */
+  function renderAchievements(achievements) {
+    const container = document.getElementById('list-achievements');
+    if (!container) return;
+
+    if (!achievements || achievements.length === 0) {
+      container.innerHTML = '<div style="color: #94a3b8; padding: 10px;">Chưa có dữ liệu thành tựu.</div>';
+      return;
+    }
+
+    const sortedAchievements = achievements.sort((a, b) => b.year - a.year);
+    const html = sortedAchievements.map((item) => `
+      <div class="timeline-item">
+        <div class="t-year">${item.year}</div>
+        <div class="t-detail">${item.achievementDetail}</div>
+      </div>
+    `).join('');
+
+    container.innerHTML = html;
+  }
+</script>

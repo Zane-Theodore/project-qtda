@@ -11,7 +11,7 @@ var CONFIG = {
     LECTURER: 'Lecturer',
     NOTIFICATION: 'Notification',
     TEACHING_ACTIVITY: 'TeachingActivity',
-    ACHIVEMENT: 'Achievement',
+    ACHIEVEMENT: 'Achievement',
     THESIS: 'Thesis',
     COUNCIL: 'Council',
     COUNCIL_MEMBER: 'CouncilMember',
