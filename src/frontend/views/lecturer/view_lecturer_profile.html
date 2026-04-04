@@ -1,97 +1,81 @@
 <div class="profile-container">
+  
   <div id="profile-loading">
     <?!= include('frontend/components/loading_spinner'); ?>
   </div>
+
   <div id="profile-content" style="display: none;">
-    
-    <!--Header-->
-    <div class="profile-header-card">
-      <div class="header-left">
-        <div class="avatar-wrapper">
-          <div class="profile-avatar" id="profile-avatar-text">?</div>
-        </div>
-        <div class="header-info">
-          <span class="tag">HỒ SƠ GIẢNG VIÊN</span>
-          <h1 id="lbl-fullname">...</h1> 
-          <p>Trường Đại học Công nghệ Kỹ Thuật TP.HCM</p>
-        </div>
-      </div>
-      <button class="btn-update" onclick="showNotification('Tính năng đang phát triển!', 'info')">Cập nhật thông tin</button>
-    </div>
-
-    <!--Grid-->
-    <div class="profile-grid">
+    <div class="lec-grid">
       
-      <!--Thng tin cá nhân-->
-      <div class="info-card">
-        <div class="card-title">
-          <span class="material-symbols-outlined">badge</span>
-          Thông tin cá nhân
-        </div>
-        <div class="info-row"><span class="info-label">Mã giảng viên</span>
-          <span class="info-value" id="lbl-lecturer-code">...</span></div>
-
-        <div class="info-row"><span class="info-label">Email</span>
-          <span class="info-value" id="lbl-email">...</span></div>
-
-        <div class="info-row"><span class="info-label">Điện thoại</span>
-          <span class="info-value" id="lbl-phone">...</span></div>
-
-        <div class="info-row"><span class="info-label">CMND/CCCD</span>
-          <span class="info-value" id="lbl-national-id">...</span></div>
+      <div class="lec-col-left">
         
-        <div class="info-row"><span class="info-label">Ngày vào làm</span>
-          <span class="info-value" id="lbl-start-date">...</span></div>
-        
-        <div class="info-row"><span class="info-label">Địa chỉ</span>
-          <span class="info-value" id="lbl-address">...</span></div>
-      </div>
-
-      <!--Hoạt động đào tạo-->
-      <div class="info-card">
-        <div class="card-title">
-          <span class="material-symbols-outlined">school</span>
-          Hoạt động đào tạo
-        </div>
-
-        <div id="training-activities">
-          <!--Render dynamic-->
-          <!--Example item-->
-          <!-- <div class="activity-item">
-            <span class="activity-label">check_circle</span>
-            Thương mại điện tử
-        </div>
-      -->  </div>
-      </div>
-
-      <!--Thành tựu + Liên hệ-->
-      <div>
-
-        <!--Thành tựu-->
-        <div class="gpa-hero-card">
-          <div class="gpa-title">Thành tựu & Khen thưởng</div>
-          <div id="achievement-list">
-            <!--dynamic-->
+        <div class="info-card center-card">
+          <div class="avatar-wrapper">
+            <div class="profile-avatar" id="profile-avatar-text">
+              <span class="material-symbols-outlined" style="font-size: 55px;">person</span>
+            </div>
           </div>
+          <h2 id="lbl-fullname" class="lec-name">...</h2>
+          <p class="lec-title">Giảng viên mã: <span id="lbl-lecturer-code">...</span></p>
+          <span class="tag">Giảng viên</span>
+          
+          <div class="divider"></div>
+          
+          <div class="lec-stat-row">
+            <div class="stat-icon"><span class="material-symbols-outlined">work_history</span></div>
+            <div class="stat-text">
+              <span class="stat-label">THỜI GIAN CÔNG TÁC</span>
+              <span class="stat-value" id="lbl-years-of-service">...</span>
+            </div>
+          </div>
+          
+          <div class="lec-stat-row">
+            <div class="stat-icon"><span class="material-symbols-outlined">badge</span></div>
+            <div class="stat-text">
+              <span class="stat-label">SỐ CCCD</span>
+              <span class="stat-value" id="lbl-national-id">...</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h3 class="card-heading">LIÊN HỆ TRỰC TIẾP</h3>
+          
+          <div class="contact-row">
+            <div class="contact-info">
+              <span class="contact-label">SỐ ĐIỆN THOẠI</span>
+              <span class="contact-value" id="contact-phone">...</span>
+            </div>
+            <span class="material-symbols-outlined contact-icon">call</span>
+          </div>
+          
+          <div class="contact-row">
+            <div class="contact-info">
+              <span class="contact-label">ĐỊA CHỈ LIÊN HỆ</span>
+              <span class="contact-value" id="contact-address" style="font-size: 15px;">...</span>
+            </div>
+            <span class="material-symbols-outlined contact-icon">location_on</span>
+          </div>
+        </div>
+
       </div>
 
-      <!--Liên hệ-->
-      <h4 style="color: #718096; text-transform: uppercase; font-size: 13px; margin: 20px 0 10px;">Liên hệ trực tiếp</h4>
+      <div class="lec-col-right">
+        <div class="info-card" style="padding: 40px;">
+          
+          <div class="update-time">Cập nhật lần cuối: Hôm nay</div>
+          
+          <h3 class="section-title title-purple">HOẠT ĐỘNG ĐÀO TẠO</h3>
+          <div id="list-teaching-activities" class="teaching-grid">
+            </div>
 
-      <div class="intern-card">
-        <div class="intern-info">
-          <h4>Số điện thoại</h4>
-          <p id="contact-phone">...</p>
+          <h3 class="section-title title-blue" style="margin-top: 50px;">THÀNH TỰU & KHEN THƯỞNG</h3>
+          <div id="list-achievements" class="timeline-container">
+            </div>
+
         </div>
       </div>
 
-      <div class="intern-card">
-        <div class="intern-info">
-          <h4>Địa chỉ làm việc</h4>
-          <p id="contact-address">...</p>
-        </div>
-      </div>
     </div>
   </div>
 </div>
-

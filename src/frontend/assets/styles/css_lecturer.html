@@ -1,224 +1,295 @@
 <style>
-/* ===== CONTAINER ===== */
-.profile-container {
-  padding: 20px;
-  background: #f4f6f9;
-  min-height: 100vh;
-  font-family: 'Segoe UI', sans-serif;
-}
-
-/* ===== HEADER ===== */
-.profile-header-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #3b5bcc;
-  color: white;
-  padding: 20px 25px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.avatar-wrapper {
-  background: white;
-  padding: 4px;
-  border-radius: 50%;
-}
-
-.profile-avatar {
-  width: 70px;
-  height: 70px;
-  background: #e2e8f0;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #3b5bcc;
-  font-weight: bold;
-  font-size: 22px;
-}
-
-.header-info h1 {
-  margin: 0;
-  font-size: 22px;
-}
-
-.header-info p {
-  margin: 2px 0;
-  font-size: 14px;
-  opacity: 0.9;
-}
-
-.tag {
-  background: rgba(255,255,255,0.2);
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  display: inline-block;
-  margin-bottom: 5px;
-}
-
-.btn-update {
-  background: white;
-  color: #3b5bcc;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.btn-update:hover {
-  background: #e2e8f0;
-}
-
-/* ===== GRID ===== */
-.profile-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 20px;
-}
-
-/* ===== CARD ===== */
-.info-card {
-  background: white;
-  padding: 18px;
-  border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-}
-
-.card-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: bold;
-  margin-bottom: 15px;
-  color: #2d3748;
-}
-
-/* ===== INFO ROW ===== */
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.info-label {
-  color: #718096;
-  font-size: 13px;
-}
-
-.info-value {
-  font-weight: 500;
-  color: #2d3748;
-}
-
-/* ===== ACTIVITY ===== */
-#training-activities {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.activity-item {
-  background: #edf2f7;
-  padding: 8px 12px;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin: 5px;
-  font-size: 13px;
-}
-
-.activity-item span {
-  font-size: 16px;
-  color: #3b5bcc;
-}
-
-/* ===== ACHIEVEMENT ===== */
-.gpa-hero-card {
-  background: white;
-  padding: 18px;
-  border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-  margin-bottom: 15px;
-}
-
-.gpa-title {
-  font-weight: bold;
-  margin-bottom: 10px;
-  color: #2d3748;
-}
-
-/* timeline style */
-#achievements-list div {
-  position: relative;
-  padding-left: 15px;
-  margin-bottom: 10px;
-}
-
-#achievements-list div::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 6px;
-  width: 6px;
-  height: 6px;
-  background: #3b5bcc;
-  border-radius: 50%;
-}
-
-/* ===== CONTACT ===== */
-.intern-card {
-  background: white;
-  padding: 15px;
-  border-radius: 12px;
-  margin-bottom: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-}
-
-.intern-info h4 {
-  margin: 0;
-  font-size: 14px;
-  color: #2d3748;
-}
-
-.intern-info p {
-  margin: 5px 0 0;
-  font-size: 13px;
-  color: #718096;
-}
-
-/* ===== LOADING ===== */
-#profile-loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 300px;
-}
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 1024px) {
-  .profile-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .profile-grid {
-    grid-template-columns: 1fr;
+  /* =========================================
+     CSS ĐỘC QUYỀN CHO LECTURER PROFILE
+     ========================================= */
+  .profile-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
   }
 
-  .profile-header-card {
+  /* Grid 2 cột cho Giảng viên */
+  .lec-grid {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 25px;
+  }
+
+  /* --- CÁC THẺ CARD CHUNG --- */
+  .info-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    margin-bottom: 25px;
+  }
+
+  /* --- CỘT TRÁI: CARD CÁ NHÂN --- */
+  .center-card {
+    text-align: center;
+    display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+    align-items: center;
   }
-}
+
+  .avatar-wrapper {
+    margin-bottom: 15px;
+  }
+
+  .profile-avatar {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    background-color: #e8f0fe;
+    color: #0F57D0;
+    font-size: 50px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 4px solid #fff;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  }
+
+  .lec-name {
+    font-size: 24px;
+    color: #1e293b;
+    margin: 10px 0 5px 0;
+  }
+
+  .lec-title {
+    color: #0F57D0;
+    font-weight: 600;
+    font-size: 15px;
+    margin: 0 0 15px 0;
+  }
+
+  .tag {
+    background: #e0e7ff;
+    color: #4338ca;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-block;
+  }
+
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: #f1f5f9;
+    margin: 25px 0;
+  }
+
+  .lec-stat-row {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 15px;
+    margin-bottom: 20px;
+    text-align: left;
+  }
+
+  .lec-stat-row:last-child {
+    margin-bottom: 0;
+  }
+
+  .stat-icon {
+    background: #f8fafc;
+    color: #0F57D0;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .stat-label {
+    display: block;
+    font-size: 11px;
+    color: #64748b;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    margin-bottom: 3px;
+  }
+
+  .stat-value {
+    display: block;
+    color: #1e293b;
+    font-weight: 600;
+    font-size: 15px;
+  }
+
+  /* --- CỘT TRÁI: CARD LIÊN HỆ --- */
+  .card-heading {
+    font-size: 15px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0 0 25px 0;
+  }
+
+  .contact-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 25px;
+  }
+
+  .contact-row:last-child {
+    margin-bottom: 0;
+  }
+
+  .contact-info .contact-label {
+    display: block;
+    font-size: 11px;
+    color: #64748b;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+  }
+
+  .contact-info .contact-value {
+    display: block;
+    color: #1e293b;
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 1.4;
+  }
+
+  .contact-icon {
+    color: #475569;
+    font-size: 24px;
+    opacity: 0.8;
+  }
+
+  /* --- CỘT PHẢI: CHI TIẾT ĐÀO TẠO & THÀNH TỰU --- */
+  .update-time {
+    text-align: right;
+    font-size: 13px;
+    color: #94a3b8;
+    margin-bottom: 20px;
+  }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    font-weight: bold;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+  }
+
+  .section-title::before {
+    content: '';
+    display: block;
+    width: 5px;
+    height: 20px;
+    border-radius: 4px;
+    margin-right: 12px;
+  }
+
+  .title-purple::before { background: #6366f1; }
+  .title-blue::before { background: #3b82f6; }
+
+  /* Lưới Hoạt động đào tạo (Pills) */
+  .teaching-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 40px;
+  }
+
+  .teaching-item {
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .teaching-item .material-symbols-outlined {
+    color: #0F57D0;
+    background: #e8f0fe;
+    border-radius: 50%;
+    padding: 2px;
+    font-size: 20px;
+  }
+
+  .teaching-item .t-content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .teaching-item .t-title {
+    color: #1e293b;
+    font-weight: bold;
+    font-size: 15px;
+  }
+
+  /* Timeline Thành tựu */
+  .timeline-container {
+    border-left: 2px solid #e2e8f0;
+    margin-left: 10px;
+    padding-left: 25px;
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 25px;
+  }
+
+  .timeline-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: #64748b;
+    border-radius: 50%;
+    left: -32px;
+    top: 4px;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 1px #e2e8f0;
+  }
+
+  .timeline-item .t-year {
+    color: #4338ca;
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+
+  .timeline-item .t-detail {
+    color: #1e293b;
+    font-weight: 500;
+    font-size: 15px;
+  }
+
+  /* --- LOADING --- */
+  #profile-loading {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    min-height: 400px;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .lec-grid { grid-template-columns: 1fr; }
+    .teaching-grid { grid-template-columns: 1fr; }
+  }
 </style>
