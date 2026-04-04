@@ -1,6 +1,97 @@
-<!DOCTYPE html>
-<html>
-  <body>
-    <h1>Đây là trang Giảng viên</h1>
-    </body>
-</html>
+<div class="profile-container">
+  <div id="profile-loading">
+    <?!= include('frontend/components/loading_spinner'); ?>
+  </div>
+  <div id="profile-content" style="display: none;">
+    
+    <!--Header-->
+    <div class="profile-header-card">
+      <div class="header-left">
+        <div class="avatar-wrapper">
+          <div class="profile-avatar" id="profile-avatar-text">?</div>
+        </div>
+        <div class="header-info">
+          <span class="tag">HỒ SƠ GIẢNG VIÊN</span>
+          <h1 id="lbl-fullname">...</h1> 
+          <p>Trường Đại học Công nghệ Kỹ Thuật TP.HCM</p>
+        </div>
+      </div>
+      <button class="btn-update" onclick="showNotification('Tính năng đang phát triển!', 'info')">Cập nhật thông tin</button>
+    </div>
+
+    <!--Grid-->
+    <div class="profile-grid">
+      
+      <!--Thng tin cá nhân-->
+      <div class="info-card">
+        <div class="card-title">
+          <span class="material-symbols-outlined">badge</span>
+          Thông tin cá nhân
+        </div>
+        <div class="info-row"><span class="info-label">Mã giảng viên</span>
+          <span class="info-value" id="lbl-lecturer-code">...</span></div>
+
+        <div class="info-row"><span class="info-label">Email</span>
+          <span class="info-value" id="lbl-email">...</span></div>
+
+        <div class="info-row"><span class="info-label">Điện thoại</span>
+          <span class="info-value" id="lbl-phone">...</span></div>
+
+        <div class="info-row"><span class="info-label">CMND/CCCD</span>
+          <span class="info-value" id="lbl-national-id">...</span></div>
+        
+        <div class="info-row"><span class="info-label">Ngày vào làm</span>
+          <span class="info-value" id="lbl-start-date">...</span></div>
+        
+        <div class="info-row"><span class="info-label">Địa chỉ</span>
+          <span class="info-value" id="lbl-address">...</span></div>
+      </div>
+
+      <!--Hoạt động đào tạo-->
+      <div class="info-card">
+        <div class="card-title">
+          <span class="material-symbols-outlined">school</span>
+          Hoạt động đào tạo
+        </div>
+
+        <div id="training-activities">
+          <!--Render dynamic-->
+          <!--Example item-->
+          <!-- <div class="activity-item">
+            <span class="activity-label">check_circle</span>
+            Thương mại điện tử
+        </div>
+      -->  </div>
+      </div>
+
+      <!--Thành tựu + Liên hệ-->
+      <div>
+
+        <!--Thành tựu-->
+        <div class="gpa-hero-card">
+          <div class="gpa-title">Thành tựu & Khen thưởng</div>
+          <div id="achievement-list">
+            <!--dynamic-->
+          </div>
+      </div>
+
+      <!--Liên hệ-->
+      <h4 style="color: #718096; text-transform: uppercase; font-size: 13px; margin: 20px 0 10px;">Liên hệ trực tiếp</h4>
+
+      <div class="intern-card">
+        <div class="intern-info">
+          <h4>Số điện thoại</h4>
+          <p id="contact-phone">...</p>
+        </div>
+      </div>
+
+      <div class="intern-card">
+        <div class="intern-info">
+          <h4>Địa chỉ làm việc</h4>
+          <p id="contact-address">...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

@@ -1,0 +1,95 @@
+<script>
+  // Khởi tạo vùng nhớ đệm dữ liệu (Data Cache)
+  window.DataCache = window.DataCache || {};
+
+  // Hàm được Router gọi tự động
+  window.initLecturerProfile = function() {
+    const currentAccountId = window.currentUserData.id;
+    const cacheKey = 'profile_data_' + currentAccountId;
+
+    const loadingEl = document.getElementById('profile-loading');
+    const contentEl = document.getElementById('profile-content');
+
+    if(loadingEl) loadingEl.style.display = 'flex';
+    if(contentEl) contentEl.style.display = 'none';
+    const renderProfile = (data) => {
+      const formatData = (val) => (val === undefined || val === null || val === '') ? "--" : val;
+      const formatDate = (dateStr) => {
+        if (!dateStr) return "--";
+        try {
+          const d = new Date(dateStr);
+          return isNaN(d.getTime()) ? dateStr : d.toLocaleDateString('vi-VN');
+        } catch(e) { return dateStr; }
+      };
+
+      if (data.fullName) {
+        const nameParts = data.fullName.trim().split(' ');
+        const firstName = nameParts[nameParts.length - 1]; 
+        const avatarEl = document.getElementById('profile-avatar-text');
+        if (avatarEl) avatarEl.textContent = firstName.charAt(0).toUpperCase();
+      }
+
+      document.getElementById('lbl-fullname').textContent = formatData(data.fullName);
+      document.getElementById('lbl-lecturer-code').textContent = formatData(data.lecturerId);
+      document.getElementById('lbl-dob').textContent = formatDate(data.dob);
+      document.getElementById('lbl-degree').textContent = formatData(data.degree);
+      document.getElementById('lbl-degree-2').textContent = formatData(data.degree);
+      document.getElementById('lbl-national-id').textContent = formatData(data.nationalId);
+      document.getElementById('lbl-specialization').textContent = formatData(data.specialization);
+      
+      document.getElementById('lbl-email').textContent = formatData(data.email);
+      document.getElementById('lbl-phone').textContent = formatData(data.phoneNumber);
+      document.getElementById('lbl-address').textContent = formatData(data.address);
+      document.getElementById('lbl-start-date').textContent = formatData(data.startDate);
+
+      const contactPhoneEl = document.getElementById('contact-phone');
+      if (contactPhoneEl) contactPhoneEl.textContent = formatData(data.phoneNumber);
+      const contactAddressEl = document.getElementById('contact-address');
+      if (contactAddressEl) contactAddressEl.textContent = formatData(data.address);
+
+      const renderList = (items, containerId, emptyText) => {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.innerHTML = '';
+        if (!Array.isArray(items) || items.length === 0) {
+          container.innerHTML = '<div class="empty-state">' + emptyText + '</div>';
+          return;
+        }
+
+        items.forEach(function(item) {
+          const text = typeof item === 'string' ? item : (item.label || item.name || String(item));
+          const div = document.createElement('div');
+          div.className = 'activity-item';
+          div.innerHTML = '<span class="activity-label material-symbols-outlined">check_circle</span>' + text;
+          container.appendChild(div);
+        });
+      };
+
+      renderList(data.teachingActivities, 'training-activities', 'Chưa có hoạt động đào tạo.');
+      renderList(data.achievements, 'achievement-list', 'Chưa có thành tựu.');
+      
+      loadingEl.style.display = 'none';
+      contentEl.style.display = 'block';
+    };
+
+    if (window.DataCache[cacheKey]) {
+      renderProfile(window.DataCache[cacheKey]);
+    } else {
+      google.script.run
+        .withSuccessHandler(function(responseString) {
+          const response = JSON.parse(responseString);
+          if (response.success) {
+            window.DataCache[cacheKey] = response.data;
+            renderProfile(response.data);
+          } else {
+            alert("Lỗi tải hồ sơ: " + response.error);
+            loadingEl.innerHTML = '<span style="color: red;">Lỗi tải dữ liệu.</span>';
+          }
+        })
+        .withFailureHandler(function(error) {
+          alert("Lỗi kết nối máy chủ! Vui lòng kiểm tra lại mạng.");
+        })
+        .api_lec_getLecturerByAccountId(currentAccountId);
+    }
+  };
+</script>

@@ -1,3 +1,224 @@
 <style>
-    
+/* ===== CONTAINER ===== */
+.profile-container {
+  padding: 20px;
+  background: #f4f6f9;
+  min-height: 100vh;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* ===== HEADER ===== */
+.profile-header-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #3b5bcc;
+  color: white;
+  padding: 20px 25px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.avatar-wrapper {
+  background: white;
+  padding: 4px;
+  border-radius: 50%;
+}
+
+.profile-avatar {
+  width: 70px;
+  height: 70px;
+  background: #e2e8f0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #3b5bcc;
+  font-weight: bold;
+  font-size: 22px;
+}
+
+.header-info h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.header-info p {
+  margin: 2px 0;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.tag {
+  background: rgba(255,255,255,0.2);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  display: inline-block;
+  margin-bottom: 5px;
+}
+
+.btn-update {
+  background: white;
+  color: #3b5bcc;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn-update:hover {
+  background: #e2e8f0;
+}
+
+/* ===== GRID ===== */
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+}
+
+/* ===== CARD ===== */
+.info-card {
+  background: white;
+  padding: 18px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #2d3748;
+}
+
+/* ===== INFO ROW ===== */
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.info-label {
+  color: #718096;
+  font-size: 13px;
+}
+
+.info-value {
+  font-weight: 500;
+  color: #2d3748;
+}
+
+/* ===== ACTIVITY ===== */
+#training-activities {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.activity-item {
+  background: #edf2f7;
+  padding: 8px 12px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 5px;
+  font-size: 13px;
+}
+
+.activity-item span {
+  font-size: 16px;
+  color: #3b5bcc;
+}
+
+/* ===== ACHIEVEMENT ===== */
+.gpa-hero-card {
+  background: white;
+  padding: 18px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  margin-bottom: 15px;
+}
+
+.gpa-title {
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #2d3748;
+}
+
+/* timeline style */
+#achievements-list div {
+  position: relative;
+  padding-left: 15px;
+  margin-bottom: 10px;
+}
+
+#achievements-list div::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 6px;
+  height: 6px;
+  background: #3b5bcc;
+  border-radius: 50%;
+}
+
+/* ===== CONTACT ===== */
+.intern-card {
+  background: white;
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.intern-info h4 {
+  margin: 0;
+  font-size: 14px;
+  color: #2d3748;
+}
+
+.intern-info p {
+  margin: 5px 0 0;
+  font-size: 13px;
+  color: #718096;
+}
+
+/* ===== LOADING ===== */
+#profile-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .profile-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-header-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}
 </style>
