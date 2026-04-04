@@ -112,6 +112,7 @@
       const firstName = nameParts[nameParts.length - 1];
       const avatarEl = document.getElementById(avatarElementId);
       if (avatarEl) {
+        avatarEl.innerHTML = '';
         avatarEl.textContent = firstName.charAt(0).toUpperCase();
       }
     }

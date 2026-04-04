@@ -1,7 +1,7 @@
 <script>
   /**
    * Xử lý quá trình đăng nhập của người dùng từ giao diện Frontend.
-   * * @param {Event} event - Sự kiện submit của form đăng nhập.
+   * @param {Event} event - Sự kiện submit của form đăng nhập.
    */
   function handleLogin(event) {
     event.preventDefault();
@@ -57,33 +57,27 @@
         if (response.success) {
           const sidebar = document.querySelector('.layout-sidebar');
           const header = document.querySelector('.layout-header');
-          const footer = document.querySelector('.layout-footer');
           const appContent = document.getElementById('app-content');
 
           if(sidebar) sidebar.style.display = '';
           if(header) header.style.display = '';
-          if(footer) footer.style.display = '';
           if(appContent) appContent.style.width = '100%';
 
           window.currentUserData = response.userData;
 
-          const sideName = document.getElementById('side-user-name');
-          const sideEmail = document.getElementById('side-user-email');
+          safeSetText('side-user-name', window.currentUserData.fullName);
+          safeSetText('side-user-email', window.currentUserData.email);
 
-          if (sideName) sideName.textContent = window.currentUserData.fullName;
-          if (sideEmail) sideEmail.textContent = window.currentUserData.email;
+          updateAvatarFromName(window.currentUserData.fullName, 'profile-avatar-text');
 
-          loadMenuByRole(response.userData.role);
-          
-          const avatarText = document.getElementById('avatarText');
+          // Cập nhật tooltip (tiêu đề khi trỏ chuột vào avatar)
           const avatarBtn = document.getElementById('userAvatarBtn');
-          if(avatarText) {
-            avatarText.textContent = response.userData.fullName.charAt(0).toUpperCase();
-          }
           if(avatarBtn) {
             avatarBtn.title = response.userData.fullName + ' (' + response.userData.email + ')';
           }
 
+          loadMenuByRole(response.userData.role);
+          
           if(appContent) appContent.innerHTML = '';
           
           if (response.userData.role === 'LECTURER') {
@@ -109,7 +103,6 @@
 
   /**
    * Hàm xử lý tính năng Ẩn/Hiện mật khẩu (Toggle Password Visibility).
-   * * @returns {void}
    */
   function togglePasswordVisibility() {
     const passInput = document.getElementById('login-password');
@@ -136,12 +129,10 @@
 
     const sidebar = document.querySelector('.layout-sidebar');
     const header = document.querySelector('.layout-header');
-    const footer = document.querySelector('.layout-footer');
     const appContent = document.getElementById('app-content');
 
     if(sidebar) sidebar.style.display = 'none';
     if(header) header.style.display = 'none';
-    if(footer) footer.style.display = 'none';
     if(appContent) appContent.innerHTML = '';
     
     navigate('frontend/views/auth/view_login');
@@ -149,18 +140,15 @@
 
   /**
    * Bộ bảo vệ trạng thái ban đầu (Auth Guard - Initializer).
-   * Tự động chạy ngay khi người dùng vừa tải trang (F5).
-   * Mặc định khóa toàn bộ Layout và ép hiển thị giao diện Login để đảm bảo bảo mật.
+   * Mặc định khóa toàn bộ Layout và ép hiển thị giao diện Login.
    */
   function initializePage() {
     const sidebar = document.querySelector('.layout-sidebar');
     const header = document.querySelector('.layout-header');
-    const footer = document.querySelector('.layout-footer');
     const appContent = document.getElementById('app-content');
 
     if(sidebar) sidebar.style.display = 'none';
     if(header) header.style.display = 'none';
-    if(footer) footer.style.display = 'none';
     if(appContent) appContent.innerHTML = '';
 
     navigate('frontend/views/auth/view_login');
@@ -170,7 +158,7 @@
 
   /**
    * Tải và nhúng động (inject) các nút Menu vào Sidebar dựa trên chức vụ.
-   * * @param {string} role - Chức vụ của người dùng (VD: 'LECTURER', 'STUDENT').
+   * @param {string} role - Chức vụ của người dùng (VD: 'LECTURER', 'STUDENT').
    */
   function loadMenuByRole(role) {
     const menuContainer = document.getElementById('sidebar-menu-container');
@@ -184,7 +172,6 @@
     }
 
     if (window.ViewCache && window.ViewCache[fileName]) {
-
       const fragment = document.createDocumentFragment();
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = window.ViewCache[fileName];
