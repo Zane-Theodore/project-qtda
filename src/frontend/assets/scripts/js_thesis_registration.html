@@ -3,7 +3,7 @@
    * Khởi tạo tính năng Đăng ký đề tài khi load trang.
    * Yêu cầu: Router gọi hàm này.
    */
-  window.initThesisRegistration = function() {
+  window.initThesisRegistration = function () {
     // 1. Kiểm tra Quyền
     if (!window.currentUserData || window.currentUserData.role !== 'STUDENT') {
       showNotification('Bạn không có quyền truy cập trang này!', 'error');
@@ -12,9 +12,9 @@
 
     const loadingEl = document.getElementById('thesis-reg-loading');
     const contentEl = document.getElementById('thesis-reg-content');
-    
-    if(loadingEl) loadingEl.style.display = 'flex';
-    if(contentEl) contentEl.style.display = 'none';
+
+    if (loadingEl) loadingEl.style.display = 'flex';
+    if (contentEl) contentEl.style.display = 'none';
 
     // Lấy thông tin user hiện tại
     const currentAccountId = window.currentUserData.id;
@@ -40,14 +40,14 @@
       apiCompleteCount++;
       if (apiCompleteCount >= totalApis) {
         _renderThesisPage(lecturerList, existingThesis);
-        if(loadingEl) loadingEl.style.display = 'none';
-        if(contentEl) contentEl.style.display = 'block';
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (contentEl) contentEl.style.display = 'block';
       }
     }
 
     // GỌI API 1: Lấy danh sách Giảng viên
     google.script.run
-      .withSuccessHandler(function(responseString) {
+      .withSuccessHandler(function (responseString) {
         const response = JSON.parse(responseString);
         if (response.success) {
           lecturerList = response.data;
@@ -56,7 +56,7 @@
         }
         checkAllApisComplete();
       })
-      .withFailureHandler(function(err) {
+      .withFailureHandler(function (err) {
         console.error("Lỗi kết nối API:", err);
         checkAllApisComplete();
       })
@@ -67,20 +67,20 @@
     window._thesisAccountId = currentAccountId;
 
     google.script.run
-        .withSuccessHandler(function(responseString) {
-          const response = JSON.parse(responseString);
-          if (response.success) {
-            existingThesis = response.data; // trả về null nếu chưa đăng ký
-          } else {
-            console.error("Lỗi kiểm tra đề tài:", response.error);
-          }
-          checkAllApisComplete();
-        })
-        .withFailureHandler(function(err) {
-          console.error("Lỗi kết nối API lấy đề tài:", err);
-          checkAllApisComplete();
-        })
-        .api_st_getStudentThesis(currentAccountId);
+      .withSuccessHandler(function (responseString) {
+        const response = JSON.parse(responseString);
+        if (response.success) {
+          existingThesis = response.data; // trả về null nếu chưa đăng ký
+        } else {
+          console.error("Lỗi kiểm tra đề tài:", response.error);
+        }
+        checkAllApisComplete();
+      })
+      .withFailureHandler(function (err) {
+        console.error("Lỗi kết nối API lấy đề tài:", err);
+        checkAllApisComplete();
+      })
+      .api_st_getStudentThesis(currentAccountId);
 
   };
 
@@ -89,7 +89,7 @@
    */
   function _renderThesisPage(lecturers, thesis) {
     const supervisorSelect = document.getElementById('thesis-input-supervisor');
-    
+
     // Đổ danh sách dropdown
     if (supervisorSelect && lecturers) {
       // Giữ option đầu
@@ -113,21 +113,21 @@
       if (registeredSection) registeredSection.style.display = 'block';
 
       if (statusIcon) {
-         statusIcon.innerHTML = '<span class="material-symbols-outlined" style="font-size: 28px; color: #27ae60;">check_circle</span>';
-         statusIcon.style.background = '#e8f5e9';
+        statusIcon.innerHTML = '<span class="material-symbols-outlined" style="font-size: 28px; color: #27ae60;">check_circle</span>';
+        statusIcon.style.background = '#e8f5e9';
       }
       if (statusText) statusText.style.color = '#27ae60';
 
       // 1. Chuẩn hóa trạng thái để tương thích với dữ liệu có thể trượt gõ tay tiếng Việt
       const rawStatus = String(thesis.status || '').toUpperCase().trim();
       let normalizedStatus = 'REJECTED'; // Mặc định nếu không match
-      
+
       if (rawStatus === 'PENDING' || rawStatus === 'CHỜ DUYỆT' || rawStatus.includes('CHỜ') || rawStatus === 'ĐANG CHỜ PHÊ DUYỆT') {
-          normalizedStatus = 'PENDING';
+        normalizedStatus = 'PENDING';
       } else if (rawStatus === 'APPROVED' || rawStatus === 'ĐÃ DUYỆT' || rawStatus === 'ĐÃ PHÊ DUYỆT' || rawStatus === 'DUYỆT') {
-          normalizedStatus = 'APPROVED';
+        normalizedStatus = 'APPROVED';
       } else if (rawStatus === 'REJECTED' || rawStatus === 'TỪ CHỐI' || rawStatus === 'BỊ TỪ CHỐI') {
-          normalizedStatus = 'REJECTED';
+        normalizedStatus = 'REJECTED';
       }
 
       const statusTextMap = {
@@ -135,6 +135,10 @@
         'APPROVED': 'Đã duyệt',
         'REJECTED': 'Từ chối'
       };
+
+      if (statusText) {
+        statusText.textContent = 'Trạng thái: ' + (statusTextMap[normalizedStatus] || thesis.status);
+      }
 
       const statusIconMap = {
         'PENDING': 'pending_actions',
@@ -145,17 +149,17 @@
       document.getElementById('thesis-view-title').textContent = thesis.title || '--';
       document.getElementById('thesis-view-format').textContent = thesis.format || '--';
       document.getElementById('thesis-view-supervisor').textContent = thesis.supervisorName || '--';
-      
+
       const statusBadge = document.getElementById('thesis-view-status');
       if (statusBadge) {
-          statusBadge.innerHTML = '<span class="material-symbols-outlined" style="font-size: 16px;">' + 
-                                  (statusIconMap[normalizedStatus] || 'help') + '</span>' + 
-                                  '<span>' + (statusTextMap[normalizedStatus] || thesis.status) + '</span>';
-          
-          statusBadge.className = 'badge-status-pill';
-          if (normalizedStatus === 'PENDING') statusBadge.classList.add('badge-pending');
-          else if (normalizedStatus === 'APPROVED') statusBadge.classList.add('badge-approved');
-          else statusBadge.classList.add('badge-rejected');
+        statusBadge.innerHTML = '<span class="material-symbols-outlined" style="font-size: 16px;">' +
+          (statusIconMap[normalizedStatus] || 'help') + '</span>' +
+          '<span>' + (statusTextMap[normalizedStatus] || thesis.status) + '</span>';
+
+        statusBadge.className = 'badge-status-pill';
+        if (normalizedStatus === 'PENDING') statusBadge.classList.add('badge-pending');
+        else if (normalizedStatus === 'APPROVED') statusBadge.classList.add('badge-approved');
+        else statusBadge.classList.add('badge-rejected');
       }
 
       // Cập nhật thẻ Ghi chú
@@ -168,20 +172,20 @@
         infoCard.className = 'registered-info-card'; // reset
 
         if (normalizedStatus === 'PENDING') {
-           infoCard.classList.add('info-pending');
-           infoIcon.innerHTML = '<span class="material-symbols-outlined">info</span>';
-           infoTitle.textContent = "Hướng dẫn phê duyệt";
-           infoDesc.textContent = "Đề tài của bạn đang được Bộ môn xem xét. Kết quả sẽ được cập nhật trong vòng 3-5 ngày làm việc. Vui lòng thường xuyên kiểm tra thông báo từ hệ thống.";
+          infoCard.classList.add('info-pending');
+          infoIcon.innerHTML = '<span class="material-symbols-outlined">info</span>';
+          infoTitle.textContent = "Hướng dẫn phê duyệt";
+          infoDesc.textContent = "Đề tài của bạn đang được Bộ môn xem xét. Kết quả sẽ được cập nhật trong vòng 3-5 ngày làm việc. Vui lòng thường xuyên kiểm tra thông báo từ hệ thống.";
         } else if (normalizedStatus === 'APPROVED') {
-           infoCard.classList.add('info-approved');
-           infoIcon.innerHTML = '<span class="material-symbols-outlined">check_circle</span>';
-           infoTitle.textContent = "Đã phê duyệt";
-           infoDesc.textContent = "Đề tài của bạn đã chính thức được phê duyệt. Hãy liên hệ với Giảng viên hướng dẫn để bắt tay vào thực hiện khóa luận đúng tiến độ.";
+          infoCard.classList.add('info-approved');
+          infoIcon.innerHTML = '<span class="material-symbols-outlined">check_circle</span>';
+          infoTitle.textContent = "Đã phê duyệt";
+          infoDesc.textContent = "Đề tài của bạn đã chính thức được phê duyệt. Hãy liên hệ với Giảng viên hướng dẫn để bắt tay vào thực hiện khóa luận đúng tiến độ.";
         } else {
-           infoCard.classList.add('info-rejected');
-           infoIcon.innerHTML = '<span class="material-symbols-outlined">cancel</span>';
-           infoTitle.textContent = "Đề tài bị từ chối";
-           infoDesc.textContent = "Rất tiếc, đề tài của bạn không được thông qua. Vui lòng xem phản hồi từ Giáo vụ khoa hoặc Giảng viên, sau đó đăng ký lại đề tài mới.";
+          infoCard.classList.add('info-rejected');
+          infoIcon.innerHTML = '<span class="material-symbols-outlined">cancel</span>';
+          infoTitle.textContent = "Đề tài bị từ chối";
+          infoDesc.textContent = "Rất tiếc, đề tài của bạn không được thông qua. Vui lòng xem phản hồi từ Giáo vụ khoa hoặc Giảng viên, sau đó đăng ký lại đề tài mới.";
         }
       }
 
@@ -190,12 +194,12 @@
       if (formSection) formSection.style.display = 'block';
       if (registeredSection) registeredSection.style.display = 'none';
       if (statusIcon) {
-         statusIcon.innerHTML = '<span class="material-symbols-outlined" style="font-size: 28px; color: #e74c3c;">error</span>';
-         statusIcon.style.background = '#fceceb';
+        statusIcon.innerHTML = '<span class="material-symbols-outlined" style="font-size: 28px; color: #e74c3c;">error</span>';
+        statusIcon.style.background = '#fceceb';
       }
       if (statusText) {
-          statusText.textContent = 'Sinh viên chưa đăng ký đề tài KLTN';
-          statusText.style.color = '#e74c3c';
+        statusText.textContent = 'Sinh viên chưa đăng ký đề tài KLTN';
+        statusText.style.color = '#e74c3c';
       }
     }
   }
@@ -203,7 +207,7 @@
   /**
    * Submit form đăng ký.
    */
-  window.handleThesisSubmit = function() {
+  window.handleThesisSubmit = function () {
     const title = document.getElementById('thesis-input-title').value.trim();
     const desc = document.getElementById('thesis-input-description').value.trim();
     const format = document.getElementById('thesis-input-format').value;
@@ -215,8 +219,8 @@
     if (!supervisor) { showNotification('Vui lòng chọn GVHD!', 'error'); return; }
 
     if (!window._thesisAccountId) {
-       showNotification('Lỗi không lấy được ID tài khoản, vui lòng F5 lại!', 'error'); 
-       return; 
+      showNotification('Lỗi không lấy được ID tài khoản, vui lòng F5 lại!', 'error');
+      return;
     }
 
     if (!confirm('Bạn có chắc muốn gửi đăng ký đề tài? Hành động này không thể hoàn tác.')) {
@@ -238,7 +242,7 @@
     }
 
     google.script.run
-      .withSuccessHandler(function(resString) {
+      .withSuccessHandler(function (resString) {
         if (btnSubmit) {
           btnSubmit.innerHTML = 'Đăng ký';
           btnSubmit.disabled = false;
@@ -249,13 +253,13 @@
           showNotification(res.message, 'success');
           // Reload view sau khi đăng ký
           setTimeout(() => {
-              navigate('frontend/views/student/view_thesis_registration', 'initThesisRegistration');
+            navigate('frontend/views/student/view_thesis_registration', 'initThesisRegistration');
           }, 1000);
         } else {
           showNotification('Lỗi đăng ký: ' + res.error, 'error');
         }
       })
-      .withFailureHandler(function(err) {
+      .withFailureHandler(function (err) {
         if (btnSubmit) {
           btnSubmit.innerHTML = 'Đăng ký';
           btnSubmit.disabled = false;
@@ -265,7 +269,7 @@
       .api_st_registerThesis(payload);
   };
 
-  window.handleThesisCancel = function() {
+  window.handleThesisCancel = function () {
     document.getElementById('thesis-input-title').value = '';
     document.getElementById('thesis-input-description').value = '';
     document.getElementById('thesis-input-format').value = '';
