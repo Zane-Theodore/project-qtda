@@ -78,3 +78,16 @@ function api_lec_getLecturerByAccountId(accountId) {
         return JSON.stringify({ success: false, error: error.message });
     }
 }
+
+function getCurrentUser() {
+  const email = Session.getActiveUser().getEmail();
+
+  var user = db_findRecordByColumn(CONFIG.TABLES.ACCOUNT, "email", email);
+
+  return {
+    id: user.id,
+    fullName: user.fullName,
+    role: user.role,          // student / lecturer
+    position: user.position   // gvhd, tbm...
+  };
+}

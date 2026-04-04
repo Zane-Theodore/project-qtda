@@ -63,10 +63,32 @@
           if(header) header.style.display = '';
           if(appContent) appContent.style.width = '100%';
 
-          window.currentUserData = response.userData;
+          window.currentUserData = response.userData || {};
+          window.currentUserData.role = (window.currentUserData.role || '').toString().toUpperCase();
+          window.currentUserData.position = (window.currentUserData.position || '').toString().toLowerCase();
+
+          console.log('Login successful - role:', window.currentUserData.role, ', position:', window.currentUserData.position);
 
           safeSetText('side-user-name', window.currentUserData.fullName);
           safeSetText('side-user-email', window.currentUserData.email);
+
+          // Hiển thị position nếu là lecturer
+          if (window.currentUserData.role === 'LECTURER' && window.currentUserData.position) {
+            const positionLabels = {
+              'gvhd': 'Giảng viên hướng dẫn',
+              'tbm': 'Trưởng bộ môn',
+              'gvpb': 'Giảng viên phản biện',
+              'tkhd': 'Thư ký hội đồng',
+              'tvhd': 'Thành viên hội đồng',
+              'cthd': 'Chủ tịch hội đồng'
+            };
+            const positionText = positionLabels[window.currentUserData.position] || window.currentUserData.position;
+            const positionEl = document.getElementById('side-user-position');
+            if (positionEl) {
+              positionEl.textContent = positionText;
+              positionEl.style.display = 'block';
+            }
+          }
 
           updateAvatarFromName(window.currentUserData.fullName, 'profile-avatar-text');
 
@@ -80,7 +102,7 @@
           
           if(appContent) appContent.innerHTML = '';
           
-          if (response.userData.role === 'LECTURER') {
+          if (window.currentUserData.role === 'LECTURER') {
             navigate('frontend/views/lecturer/view_lecturer_profile', 'initLecturerProfile');
           } else {
             navigate('frontend/views/student/view_student_profile', 'initStudentProfile');
@@ -156,6 +178,48 @@
 
   window.addEventListener('load', initializePage);
 
+
+
+  /**
+   * Render menu cho lecturer dựa vào vị trí (position)
+   */
+  function renderLecturerMenu(position) {
+    const menuList = document.getElementById('lecturer-menu-list');
+    if (!menuList) {
+      console.warn('❌ Menu list element not found for lecturer');
+      return;
+    }
+
+    const normalizedPosition = (position || '').toString().toLowerCase();
+    const menuItems = LecturerPositionMenu[normalizedPosition] || LecturerPositionMenu.default;
+    console.log('✅ Rendering menu for position:', normalizedPosition, 'with', menuItems.length, 'items');
+    
+    menuList.innerHTML = menuItems.map(item => `
+      <li>
+        <button class="menu-btn" onclick="handleLecturerAction('${item.id}')">
+          <span class="material-symbols-outlined">${item.icon}</span>
+          <span>${item.label}</span>
+        </button>
+      </li>
+    `).join('');
+  }
+
+  /**
+   * Xử lý các action của lecturer menu
+   */
+  function handleLecturerAction(actionId) {
+    const position = (window.currentUserData?.position || 'default').toString().toLowerCase();
+    const menuItem = LecturerPositionMenu[position]?.find(m => m.id === actionId);
+    
+    console.log('📌 Action clicked:', actionId, 'for position:', position);
+    
+    if (menuItem && menuItem.action) {
+      menuItem.action();
+    } else {
+      console.warn('❌ Action not found:', actionId, 'for position:', position);
+    }
+  }
+
   /**
    * Tải và nhúng động (inject) các nút Menu vào Sidebar dựa trên chức vụ.
    * @param {string} role - Chức vụ của người dùng (VD: 'LECTURER', 'STUDENT').
@@ -164,8 +228,9 @@
     const menuContainer = document.getElementById('sidebar-menu-container');
     if (!menuContainer) return;
 
+    const normalizedRole = (role || '').toString().toUpperCase();
     let fileName = '';
-    if (role === 'LECTURER') {
+    if (normalizedRole === 'LECTURER') {
       fileName = 'frontend/components/sidebars/sidebar_lecturer';
     } else {
       fileName = 'frontend/components/sidebars/sidebar_student';
@@ -176,12 +241,37 @@
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = window.ViewCache[fileName];
 
+      // Execute scripts in the loaded HTML
+      const scripts = tempDiv.querySelectorAll('script');
+      scripts.forEach(script => {
+        if (script.textContent) {
+          try {
+            eval(script.textContent);
+            console.log('✅ Script executed successfully');
+          } catch (e) {
+            console.error('❌ Error executing script:', e);
+          }
+        }
+      });
+
       while (tempDiv.firstChild) {
         fragment.appendChild(tempDiv.firstChild);
       }
       
       menuContainer.innerHTML = '';
       menuContainer.appendChild(fragment);
+      
+      // Render lecturer menu dựa vào position
+      if (normalizedRole === 'LECTURER' && window.currentUserData && window.currentUserData.position) {
+        setTimeout(() => {
+          console.log('🔍 Checking LecturerPositionMenu availability:', typeof LecturerPositionMenu);
+          if (typeof LecturerPositionMenu !== 'undefined') {
+            renderLecturerMenu(window.currentUserData.position);
+          } else {
+            console.error('❌ LecturerPositionMenu is not defined');
+          }
+        }, 100);
+      }
       return; 
     }
 
@@ -199,12 +289,37 @@
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = htmlContent;
         
+        // Execute scripts in the loaded HTML
+        const scripts = tempDiv.querySelectorAll('script');
+        scripts.forEach(script => {
+          if (script.textContent) {
+            try {
+              eval(script.textContent);
+              console.log('✅ Script executed successfully from server');
+            } catch (e) {
+              console.error('❌ Error executing script from server:', e);
+            }
+          }
+        });
+        
         while (tempDiv.firstChild) {
           fragment.appendChild(tempDiv.firstChild);
         }
         
         menuContainer.innerHTML = '';
         menuContainer.appendChild(fragment);
+        
+        // Render lecturer menu dựa vào position
+        if (normalizedRole === 'LECTURER' && window.currentUserData && window.currentUserData.position) {
+          setTimeout(() => {
+            console.log('🔍 Checking LecturerPositionMenu availability from server:', typeof LecturerPositionMenu);
+            if (typeof LecturerPositionMenu !== 'undefined') {
+              renderLecturerMenu(window.currentUserData.position);
+            } else {
+              console.error('❌ LecturerPositionMenu is not defined from server load');
+            }
+          }, 100);
+        }
       })
       .withFailureHandler(function(error) {
         menuContainer.innerHTML = '<div style="color: #e74c3c; text-align: center; padding: 20px;">Lỗi kết nối máy chủ!</div>';

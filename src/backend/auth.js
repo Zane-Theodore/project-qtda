@@ -23,6 +23,7 @@ function verifyLogin(account) {
                     email: user.email,
                     fullName: user.fullName,
                     role: user.role,
+                    position: user.position || ''
                 }
             };
         } 

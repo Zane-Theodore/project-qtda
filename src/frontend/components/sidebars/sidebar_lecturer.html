@@ -1,14 +1,55 @@
-<ul style="list-style: none; padding: 0; margin: 0;">
-    <li>
-      <button class="menu-btn" onclick="showNotification('Tính năng đang phát triển!', 'info')">
-        <span class="material-symbols-outlined">school</span>
-        <span>Thông tin cá nhân</span>
-      </button>
-    </li>
-    
-    <li>
-      <button class="menu-btn" onclick="showNotification('Tính năng đang phát triển!', 'info')">
-        <span class="material-symbols-outlined">notifications</span>
-        <span>Thông báo</span>
-      </button>
-    </li>
+<ul id="lecturer-menu-list" style="list-style: none; padding: 0; margin: 0;">
+  <!-- Menu items sẽ được render động dựa vào vị trí (position) của giảng viên -->
+  <!-- gvhd: Duyệt đề tài, Theo dõi tiến độ, Nhập điểm -->
+  <!-- tbm: Duyệt đề tài, Phân công, Danh sách -->
+  <!-- gvpb: Chấm điểm đề tài -->
+  <!-- tkhd: Tổng kết đề tài -->
+  <!-- tvhd: Chấm điểm đề tài -->
+  <!-- cthd: Danh sách -->
+</ul>
+
+<!-- Cấu hình Menu cho các vị trí của Lecturer -->
+<script>
+const LecturerPositionMenu = {
+    gvhd: [
+      { id: 'info', icon: 'person', label: 'Thông tin giảng viên', action: () => navigate('frontend/views/lecturer/view_lecturer_profile', 'initLecturerProfile') },
+      { id: 'notification', icon: 'notifications', label: 'Thông báo', action: () => showNotification('Tính năng đang phát triển!', 'info') },
+      { id: 'approve_topic', icon: 'task', label: 'Duyệt đề tài', action: () => showNotification('Tính năng Duyệt đề tài đang phát triển!', 'info') },
+      { id: 'manage_topic', icon: 'assignment', label: 'Quản lý đề tài', action: () => showNotification('Tính năng Quản lý đề tài đang phát triển!', 'info') },
+      { id: 'progress', icon: 'timeline', label: 'Theo dõi tiến độ', action: () => showNotification('Tính năng Theo dõi tiến độ đang phát triển!', 'info') },
+      { id: 'grade', icon: 'grading', label: 'Nhập điểm', action: () => showNotification('Tính năng Nhập điểm đang phát triển!', 'info') }
+    ],
+    tbm: [
+      { id: 'info', icon: 'person', label: 'Thông tin giảng viên', action: () => navigate('frontend/views/lecturer/view_lecturer_profile', 'initLecturerProfile') },
+      { id: 'notification', icon: 'notifications', label: 'Thông báo', action: () => showNotification('Tính năng đang phát triển!', 'info') },
+      { id: 'approve_topic', icon: 'task', label: 'Duyệt đề tài', action: () => showNotification('Tính năng Duyệt đề tài đang phát triển!', 'info') },
+      { id: 'assign', icon: 'groups', label: 'Phân công đề tài', action: () => showNotification('Tính năng Phân công đang phát triển!', 'info') },
+      { id: 'list', icon: 'list', label: 'Danh sách', action: () => showNotification('Tính năng Danh sách đang phát triển!', 'info') }
+    ],
+    gvpb: [
+      { id: 'info', icon: 'person', label: 'Thông tin giảng viên', action: () => navigate('frontend/views/lecturer/view_lecturer_profile', 'initLecturerProfile') },
+      { id: 'notification', icon: 'notifications', label: 'Thông báo', action: () => showNotification('Tính năng đang phát triển!', 'info') },
+      { id: 'review', icon: 'grading', label: 'Chấm điểm đề tài', action: () => showNotification('Tính năng Chấm điểm đề tài đang phát triển!', 'info') }
+    ],
+    tkhd: [
+      { id: 'info', icon: 'person', label: 'Thông tin giảng viên', action: () => navigate('frontend/views/lecturer/view_lecturer_profile', 'initLecturerProfile') },
+      { id: 'notification', icon: 'notifications', label: 'Thông báo', action: () => showNotification('Tính năng đang phát triển!', 'info') },
+      { id: 'grade', icon: 'grading', label: 'Tổng kết đề tài', action: () => showNotification('Tính năng Tổng kết đề tài đang phát triển!', 'info') }
+    ],
+    tvhd: [
+      { id: 'info', icon: 'person', label: 'Thông tin giảng viên', action: () => navigate('frontend/views/lecturer/view_lecturer_profile', 'initLecturerProfile') },
+      { id: 'notification', icon: 'notifications', label: 'Thông báo', action: () => showNotification('Tính năng đang phát triển!', 'info') },
+      { id: 'grade', icon: 'grading', label: 'Chấm điểm đề tài', action: () => showNotification('Tính năng Chấm điểm đề tài đang phát triển!', 'info') }
+    ],
+    cthd: [
+      { id: 'info', icon: 'person', label: 'Thông tin giảng viên', action: () => navigate('frontend/views/lecturer/view_lecturer_profile', 'initLecturerProfile') },
+      { id: 'notification', icon: 'notifications', label: 'Thông báo', action: () => showNotification('Tính năng đang phát triển!', 'info') },
+      { id: 'list', icon: 'list', label: 'Danh sách', action: () => showNotification('Tính năng đang phát triển!', 'info') }
+    ],
+    default: [
+      { id: 'info', icon: 'person', label: 'Thông tin giảng viên', action: () => navigate('frontend/views/lecturer/view_lecturer_profile', 'initLecturerProfile') },
+      { id: 'notification', icon: 'notifications', label: 'Thông báo', action: () => showNotification('Tính năng đang phát triển!', 'info') }
+    ]
+  };
+  </script>
+
