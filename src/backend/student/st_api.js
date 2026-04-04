@@ -1,10 +1,10 @@
 // File: src/backend/student/st_api.js
 
 /**
- * @description Đọc thông tin chi tiết của một Sinh viên dựa vào STUDENTID.
- * Hàm này tự động JOIN với bảng ACCOUNT để lấy thêm thông tin liên lạc (Email, Số điện thoại).
- * * @param {string} studentId - Mã sinh viên cần tìm kiếm.
- * @returns {string} Chuỗi JSON chứa trạng thái `success` và `data` (Object chi tiết Sinh viên), hoặc `error` nếu thất bại.
+ * Lấy thông tin chi tiết sinh viên theo mã sinh viên
+ * @param {string} studentId - Mã sinh viên cần tìm kiếm
+ * @returns {string} JSON string chứa {success, data} hoặc {success, error}
+ * @description Tự động JOIN với bảng ACCOUNT để lấy thông tin liên hệ
  */
 function api_st_getStudentById(studentId) {
     try {
@@ -34,11 +34,10 @@ function api_st_getStudentById(studentId) {
 }
 
 /**
- * @description Đọc thông tin chi tiết của một Sinh viên dựa vào ACCOUNTId.
- * Được gọi từ Frontend sau khi đăng nhập để lấy dữ liệu hồ sơ sinh viên.
- * Hàm này tự động JOIN với bảng ACCOUNT để lấy thêm thông tin liên lạc.
- * * @param {string} accountId - ID tài khoản (User ID) từ bảng ACCOUNT.
- * @returns {string} Chuỗi JSON chứa trạng thái `success` và `data` (Object chi tiết Sinh viên), hoặc `error` nếu thất bại.
+ * Lấy thông tin hồ sơ sinh viên theo mã tài khoản
+ * @param {string} accountId - ID tài khoản (truyền từ Frontend sau khi đăng nhập)
+ * @returns {string} JSON string chứa {success, data} hoặc {success, error}
+ * @description Được gọi từ Frontend để lấy dữ liệu hồ sơ, tự động JOIN với bảng ACCOUNT
  */
 function api_st_getStudentByAccountId(accountId) {
     try {
@@ -51,7 +50,6 @@ function api_st_getStudentByAccountId(accountId) {
         if (!userInfo) throw new Error("Tài khoản không tồn tại: " + accountId);
 
         var result = {
-            // Account Info
             email: userInfo.email,
             fullName: userInfo.fullName,
             dob: userInfo.dob,
@@ -59,7 +57,6 @@ function api_st_getStudentByAccountId(accountId) {
             nationalId: userInfo.nationalId,
             address: userInfo.address,
 
-            // Student Info
             studentId: studentInfo.studentCode,
             gpa: studentInfo.gpa,
             classId: studentInfo.classId,
@@ -80,9 +77,9 @@ function api_st_getStudentByAccountId(accountId) {
 }
 
 /**
- * @description Lấy danh sách toàn bộ Sinh viên có trên hệ thống.
- * Sử dụng kỹ thuật Hash Map (Từ điển) để JOIN siêu tốc với bảng ACCOUNT, đảm bảo hiệu suất O(N) khi dữ liệu lớn.
- * * @returns {string} Chuỗi JSON chứa trạng thái `success` và `data` (Mảng các Object Sinh viên).
+ * Lấy danh sách toàn bộ sinh viên trong hệ thống
+ * @returns {string} JSON string chứa {success, data} hoặc {success, error}
+ * @description Sử dụng HashMap để JOIN O(N) khi dữ liệu lớn, tránh vòng lặp lồng nhau
  */
 function api_st_getAllStudents() {
     try {
@@ -93,7 +90,6 @@ function api_st_getAllStudents() {
             return JSON.stringify({ success: true, data: [] });
         }
 
-        // Tạo Hash Map cho Account để truy xuất O(1)
         var accountDictionary = {};
         for (var i = 0; i < allAccounts.length; i++) {
             var acc = allAccounts[i];
@@ -110,7 +106,6 @@ function api_st_getAllStudents() {
                 cohort: studentInfo.cohort,
                 programType: studentInfo.programType,
                 
-                // Dữ liệu từ bảng Account
                 fullName: userInfo ? userInfo.fullName : "Chưa cập nhật",
                 email: userInfo ? userInfo.email : "Chưa cập nhật",
                 number: userInfo ? userInfo.number : "Chưa cập nhật",
@@ -127,10 +122,10 @@ function api_st_getAllStudents() {
 }
 
 /**
- * @description Thêm mới một Sinh viên vào hệ thống.
- * Sẽ tạo một bản ghi trên bảng ACCOUNT trước, sau đó dùng `accountId` để tạo bản ghi bên bảng STUDENT.
- * * @param {Object} studentData - Object chứa thông tin sinh viên mới. Yêu cầu bắt buộc phải có `fullName` và `classId`.
- * @returns {string} Chuỗi JSON chứa trạng thái `success`, `message`.
+ * Thêm mới sinh viên vào hệ thống
+ * @param {Object} studentData - {fullName*, classId*, email, number, nationalId, address, studentId, accountId, password}
+ * @returns {string} JSON string chứa {success, message} hoặc {success, error}
+ * @description Tạo bản ghi ACCOUNT trước, rồi tạo bản ghi STUDENT. Yêu cầu fullName và classId bắt buộc
  */
 function api_st_createStudent(studentData) {
     try {
@@ -140,7 +135,6 @@ function api_st_createStudent(studentData) {
 
         var currentAccountId = studentData.accountId;
 
-        // TẠO TÀI KHOẢN (BẢNG ACCOUNT)
         if (!currentAccountId || currentAccountId.trim() === "") {
             currentAccountId = "ACC_" + new Date().getTime();
             
@@ -151,13 +145,12 @@ function api_st_createStudent(studentData) {
                 number: studentData.number || "",
                 nationalId: studentData.nationalId || "",
                 address: studentData.address || "",
-                password: studentData.password || "123", // Mật khẩu mặc định
-                roleId: "STUDENT" // Hoặc truyền ID (vd: 1) tùy vào quy định của bảng Role
+                password: studentData.password || "123",
+                roleId: "STUDENT"
             };
             db_insert(CONFIG.TABLES.ACCOUNT, newAccountObject);
         }
 
-        // TẠO THÔNG TIN HỌC VỤ (BẢNG STUDENT)
         var newStudentId = studentData.studentId || ("ST_" + new Date().getTime());
 
         var newStudentObject = {
@@ -182,11 +175,11 @@ function api_st_createStudent(studentData) {
 }
 
 /**
- * @description Cập nhật thông tin của một Sinh viên.
- * Hàm sẽ bóc tách dữ liệu để tự động cập nhật vào đúng bảng (ACCOUNT hoặc STUDENT).
- * * @param {string} studentId - Mã sinh viên cần cập nhật.
- * @param {Object} updateData - Object chứa các trường cần thay đổi.
- * @returns {string} Chuỗi JSON chứa trạng thái `success` và `message`.
+ * Cập nhật thông tin sinh viên
+ * @param {string} studentId - Mã sinh viên cần cập nhật
+ * @param {Object} updateData - Các trường cần cập nhật
+ * @returns {string} JSON string chứa {success, message} hoặc {success, error}
+ * @description Tự động phân vân dữ liệu: cập nhật ACCOUNT hoặc STUDENT tùy theo trường
  */
 function api_st_updateStudent(studentId, updateData) {
     try {
