@@ -1,0 +1,274 @@
+<script>
+  /**
+   * Khởi tạo tính năng Đăng ký đề tài khi load trang.
+   * Yêu cầu: Router gọi hàm này.
+   */
+  window.initThesisRegistration = function() {
+    // 1. Kiểm tra Quyền
+    if (!window.currentUserData || window.currentUserData.role !== 'STUDENT') {
+      showNotification('Bạn không có quyền truy cập trang này!', 'error');
+      return;
+    }
+
+    const loadingEl = document.getElementById('thesis-reg-loading');
+    const contentEl = document.getElementById('thesis-reg-content');
+    
+    if(loadingEl) loadingEl.style.display = 'flex';
+    if(contentEl) contentEl.style.display = 'none';
+
+    // Lấy thông tin user hiện tại
+    const currentAccountId = window.currentUserData.id;
+    const profileCacheKey = 'profile_data_' + currentAccountId;
+    const profileData = window.DataCache[profileCacheKey];
+
+    // Cập nhật Niên Khóa từ Data Cache nếu có
+    if (profileData && profileData.cohort) {
+      const cohortStr = 'Năm học ' + profileData.cohort;
+      const valEl = document.getElementById('thesis-cohort-value');
+      const viewEl = document.getElementById('thesis-view-cohort');
+      if (valEl) valEl.textContent = cohortStr;
+      if (viewEl) viewEl.textContent = cohortStr.toUpperCase();
+    }
+
+    let apiCompleteCount = 0;
+    const totalApis = 2;
+    let lecturerList = [];
+    let existingThesis = null;
+
+    // CallBack sau khi API chạy xong
+    function checkAllApisComplete() {
+      apiCompleteCount++;
+      if (apiCompleteCount >= totalApis) {
+        _renderThesisPage(lecturerList, existingThesis);
+        if(loadingEl) loadingEl.style.display = 'none';
+        if(contentEl) contentEl.style.display = 'block';
+      }
+    }
+
+    // GỌI API 1: Lấy danh sách Giảng viên
+    google.script.run
+      .withSuccessHandler(function(responseString) {
+        const response = JSON.parse(responseString);
+        if (response.success) {
+          lecturerList = response.data;
+        } else {
+          console.error("Lỗi lấy danh sách GV:", response.error);
+        }
+        checkAllApisComplete();
+      })
+      .withFailureHandler(function(err) {
+        console.error("Lỗi kết nối API:", err);
+        checkAllApisComplete();
+      })
+      .api_st_getLecturers();
+
+    // GỌI API 2: Lấy thông tin đề tài của sinh viên
+    // Ta truy vấn trực tiếp bằng accountId 
+    window._thesisAccountId = currentAccountId;
+
+    google.script.run
+        .withSuccessHandler(function(responseString) {
+          const response = JSON.parse(responseString);
+          if (response.success) {
+            existingThesis = response.data; // trả về null nếu chưa đăng ký
+          } else {
+            console.error("Lỗi kiểm tra đề tài:", response.error);
+          }
+          checkAllApisComplete();
+        })
+        .withFailureHandler(function(err) {
+          console.error("Lỗi kết nối API lấy đề tài:", err);
+          checkAllApisComplete();
+        })
+        .api_st_getStudentThesis(currentAccountId);
+
+  };
+
+  /**
+   * Render giao diện. Toggles trạng thái.
+   */
+  function _renderThesisPage(lecturers, thesis) {
+    const supervisorSelect = document.getElementById('thesis-input-supervisor');
+    
+    // Đổ danh sách dropdown
+    if (supervisorSelect && lecturers) {
+      // Giữ option đầu
+      supervisorSelect.innerHTML = '<option value="">Vui lòng chọn GVHD...</option>';
+      lecturers.forEach(l => {
+        const option = document.createElement('option');
+        option.value = l.lecturerId; // Đây là FK để lưu vào Thesis.
+        option.textContent = l.fullName + (l.lecturerCode ? ' (' + l.lecturerCode + ')' : '');
+        supervisorSelect.appendChild(option);
+      });
+    }
+
+    const formSection = document.getElementById('thesis-form-section');
+    const registeredSection = document.getElementById('thesis-registered-section');
+    const statusIcon = document.getElementById('thesis-status-icon');
+    const statusText = document.getElementById('thesis-status-text');
+
+    if (thesis) {
+      // SV đã đăng ký
+      if (formSection) formSection.style.display = 'none';
+      if (registeredSection) registeredSection.style.display = 'block';
+
+      if (statusIcon) {
+         statusIcon.innerHTML = '<span class="material-symbols-outlined" style="font-size: 28px; color: #27ae60;">check_circle</span>';
+         statusIcon.style.background = '#e8f5e9';
+      }
+      if (statusText) statusText.style.color = '#27ae60';
+
+      // 1. Chuẩn hóa trạng thái để tương thích với dữ liệu có thể trượt gõ tay tiếng Việt
+      const rawStatus = String(thesis.status || '').toUpperCase().trim();
+      let normalizedStatus = 'REJECTED'; // Mặc định nếu không match
+      
+      if (rawStatus === 'PENDING' || rawStatus === 'CHỜ DUYỆT' || rawStatus.includes('CHỜ') || rawStatus === 'ĐANG CHỜ PHÊ DUYỆT') {
+          normalizedStatus = 'PENDING';
+      } else if (rawStatus === 'APPROVED' || rawStatus === 'ĐÃ DUYỆT' || rawStatus === 'ĐÃ PHÊ DUYỆT' || rawStatus === 'DUYỆT') {
+          normalizedStatus = 'APPROVED';
+      } else if (rawStatus === 'REJECTED' || rawStatus === 'TỪ CHỐI' || rawStatus === 'BỊ TỪ CHỐI') {
+          normalizedStatus = 'REJECTED';
+      }
+
+      const statusTextMap = {
+        'PENDING': 'Đang chờ phê duyệt',
+        'APPROVED': 'Đã duyệt',
+        'REJECTED': 'Từ chối'
+      };
+
+      const statusIconMap = {
+        'PENDING': 'pending_actions',
+        'APPROVED': 'check_circle',
+        'REJECTED': 'cancel'
+      };
+
+      document.getElementById('thesis-view-title').textContent = thesis.title || '--';
+      document.getElementById('thesis-view-format').textContent = thesis.format || '--';
+      document.getElementById('thesis-view-supervisor').textContent = thesis.supervisorName || '--';
+      
+      const statusBadge = document.getElementById('thesis-view-status');
+      if (statusBadge) {
+          statusBadge.innerHTML = '<span class="material-symbols-outlined" style="font-size: 16px;">' + 
+                                  (statusIconMap[normalizedStatus] || 'help') + '</span>' + 
+                                  '<span>' + (statusTextMap[normalizedStatus] || thesis.status) + '</span>';
+          
+          statusBadge.className = 'badge-status-pill';
+          if (normalizedStatus === 'PENDING') statusBadge.classList.add('badge-pending');
+          else if (normalizedStatus === 'APPROVED') statusBadge.classList.add('badge-approved');
+          else statusBadge.classList.add('badge-rejected');
+      }
+
+      // Cập nhật thẻ Ghi chú
+      const infoCard = document.getElementById('thesis-info-card');
+      const infoIcon = document.getElementById('thesis-info-icon');
+      const infoTitle = document.getElementById('thesis-info-title');
+      const infoDesc = document.getElementById('thesis-view-description');
+
+      if (infoCard && infoIcon && infoTitle && infoDesc) {
+        infoCard.className = 'registered-info-card'; // reset
+
+        if (normalizedStatus === 'PENDING') {
+           infoCard.classList.add('info-pending');
+           infoIcon.innerHTML = '<span class="material-symbols-outlined">info</span>';
+           infoTitle.textContent = "Hướng dẫn phê duyệt";
+           infoDesc.textContent = "Đề tài của bạn đang được Bộ môn xem xét. Kết quả sẽ được cập nhật trong vòng 3-5 ngày làm việc. Vui lòng thường xuyên kiểm tra thông báo từ hệ thống.";
+        } else if (normalizedStatus === 'APPROVED') {
+           infoCard.classList.add('info-approved');
+           infoIcon.innerHTML = '<span class="material-symbols-outlined">check_circle</span>';
+           infoTitle.textContent = "Đã phê duyệt";
+           infoDesc.textContent = "Đề tài của bạn đã chính thức được phê duyệt. Hãy liên hệ với Giảng viên hướng dẫn để bắt tay vào thực hiện khóa luận đúng tiến độ.";
+        } else {
+           infoCard.classList.add('info-rejected');
+           infoIcon.innerHTML = '<span class="material-symbols-outlined">cancel</span>';
+           infoTitle.textContent = "Đề tài bị từ chối";
+           infoDesc.textContent = "Rất tiếc, đề tài của bạn không được thông qua. Vui lòng xem phản hồi từ Giáo vụ khoa hoặc Giảng viên, sau đó đăng ký lại đề tài mới.";
+        }
+      }
+
+    } else {
+      // SV Chưa đăng ký
+      if (formSection) formSection.style.display = 'block';
+      if (registeredSection) registeredSection.style.display = 'none';
+      if (statusIcon) {
+         statusIcon.innerHTML = '<span class="material-symbols-outlined" style="font-size: 28px; color: #e74c3c;">error</span>';
+         statusIcon.style.background = '#fceceb';
+      }
+      if (statusText) {
+          statusText.textContent = 'Sinh viên chưa đăng ký đề tài KLTN';
+          statusText.style.color = '#e74c3c';
+      }
+    }
+  }
+
+  /**
+   * Submit form đăng ký.
+   */
+  window.handleThesisSubmit = function() {
+    const title = document.getElementById('thesis-input-title').value.trim();
+    const desc = document.getElementById('thesis-input-description').value.trim();
+    const format = document.getElementById('thesis-input-format').value;
+    const supervisor = document.getElementById('thesis-input-supervisor').value;
+
+    if (!title) { showNotification('Vui lòng nhập tên đề tài!', 'error'); return; }
+    if (!desc) { showNotification('Vui lòng nhập mô tả!', 'error'); return; }
+    if (!format) { showNotification('Vui lòng chọn hình thức!', 'error'); return; }
+    if (!supervisor) { showNotification('Vui lòng chọn GVHD!', 'error'); return; }
+
+    if (!window._thesisAccountId) {
+       showNotification('Lỗi không lấy được ID tài khoản, vui lòng F5 lại!', 'error'); 
+       return; 
+    }
+
+    if (!confirm('Bạn có chắc muốn gửi đăng ký đề tài? Hành động này không thể hoàn tác.')) {
+      return;
+    }
+
+    const payload = {
+      title: title,
+      description: desc,
+      format: format,
+      supervisorId: supervisor,
+      accountId: window._thesisAccountId
+    };
+
+    const btnSubmit = document.getElementById('btn-thesis-submit');
+    if (btnSubmit) {
+      btnSubmit.innerHTML = 'Đang xử lý...';
+      btnSubmit.disabled = true;
+    }
+
+    google.script.run
+      .withSuccessHandler(function(resString) {
+        if (btnSubmit) {
+          btnSubmit.innerHTML = 'Đăng ký';
+          btnSubmit.disabled = false;
+        }
+
+        const res = JSON.parse(resString);
+        if (res.success) {
+          showNotification(res.message, 'success');
+          // Reload view sau khi đăng ký
+          setTimeout(() => {
+              navigate('frontend/views/student/view_thesis_registration', 'initThesisRegistration');
+          }, 1000);
+        } else {
+          showNotification('Lỗi đăng ký: ' + res.error, 'error');
+        }
+      })
+      .withFailureHandler(function(err) {
+        if (btnSubmit) {
+          btnSubmit.innerHTML = 'Đăng ký';
+          btnSubmit.disabled = false;
+        }
+        showNotification('Lỗi kết nối máy chủ.', 'error');
+      })
+      .api_st_registerThesis(payload);
+  };
+
+  window.handleThesisCancel = function() {
+    document.getElementById('thesis-input-title').value = '';
+    document.getElementById('thesis-input-description').value = '';
+    document.getElementById('thesis-input-format').value = '';
+    document.getElementById('thesis-input-supervisor').value = '';
+  };
+</script>
