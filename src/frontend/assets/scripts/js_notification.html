@@ -1,0 +1,145 @@
+<script>
+  window.initStudentNotification = function() {
+    var accountId = window.currentUserData && window.currentUserData.id;
+
+    var loadingEl = document.getElementById('notification-loading');
+    var contentEl = document.getElementById('notification-content');
+
+    if (loadingEl) loadingEl.style.display = 'flex';
+    if (contentEl) contentEl.style.display = 'none';
+
+    google.script.run
+      .withSuccessHandler(function(responseString) {
+        var response = JSON.parse(responseString);
+
+        if (!response.success) {
+          renderNotificationError(response.error || 'Không tải được thông báo');
+          return;
+        }
+
+        renderNotificationList(response.data || []);
+
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (contentEl) contentEl.style.display = 'block';
+      })
+      .withFailureHandler(function(error) {
+        renderNotificationError(error && error.message ? error.message : 'Lỗi kết nối máy chủ');
+      })
+      .api_st_getMyNotifications(accountId);
+  };
+
+  function renderNotificationList(list) {
+    var container = document.getElementById('notification-list');
+    if (!container) return;
+
+    if (!list || list.length === 0) {
+      container.innerHTML = '<div class="notification-empty">Không có thông báo nào.</div>';
+      return;
+    }
+
+    container.innerHTML = list.map(function(item) {
+      var isRead = normalizeReadState(item.isRead);
+      var cardClass = isRead ? 'read' : 'unread';
+
+      return ''
+        + '<div class="notification-card ' + cardClass + '" onclick="handleNotificationClick(\'' + escapeAttr(item.id) + '\', this)">'
+        + '  <div class="notification-card__title-row">'
+        + '    <span class="notification-card__dot"></span>'
+        + '    <h3 class="notification-card__title">' + escapeHtml(item.title || '') + '</h3>'
+        + '  </div>'
+        + '  <div class="notification-card__meta">'
+        + '    <span class="notification-card__meta-item">'
+        + '      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12c2.761 0 5-2.239 5-5S14.761 2 12 2 7 4.239 7 7s2.239 5 5 5zm0 2c-3.866 0-7 3.134-7 7h2a5 5 0 0 1 10 0h2c0-3.866-3.134-7-7-7z"/></svg>'
+        + '      <span>' + escapeHtml(item.senderDisplay || item.senderId || '--') + '</span>'
+        + '    </span>'
+        + '    <span class="notification-card__meta-item">'
+        + '      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 15H5V10h14v9zm0-11H5V6h14v2z"/></svg>'
+        + '      <span>' + escapeHtml(formatDisplayDate(item.createdAt)) + '</span>'
+        + '    </span>'
+        + '  </div>'
+        + '  <p class="notification-card__content">' + escapeHtml(item.content || '') + '</p>'
+        + '</div>';
+    }).join('');
+  }
+
+  function handleNotificationClick(notificationId, cardEl) {
+    if (!notificationId || !cardEl) return;
+
+    if (cardEl.classList.contains('read')) {
+      return;
+    }
+
+    cardEl.classList.remove('unread');
+    cardEl.classList.add('read');
+
+    google.script.run
+      .withSuccessHandler(function(responseString) {
+        var response = JSON.parse(responseString);
+
+        if (!response.success) {
+          cardEl.classList.remove('read');
+          cardEl.classList.add('unread');
+          showNotification('Cập nhật trạng thái thất bại: ' + response.error, 'error');
+        }
+      })
+      .withFailureHandler(function(error) {
+        cardEl.classList.remove('read');
+        cardEl.classList.add('unread');
+        showNotification('Lỗi kết nối khi cập nhật trạng thái đã đọc', 'error');
+        console.error(error);
+      })
+      .api_st_markNotificationAsRead(notificationId);
+  }
+
+  function renderNotificationError(message) {
+    var loadingEl = document.getElementById('notification-loading');
+    var contentEl = document.getElementById('notification-content');
+    var container = document.getElementById('notification-list');
+
+    if (loadingEl) loadingEl.style.display = 'none';
+    if (contentEl) contentEl.style.display = 'block';
+
+    if (container) {
+      container.innerHTML = '<div class="notification-empty">Lỗi: ' + escapeHtml(message || 'Không xác định') + '</div>';
+    }
+  }
+
+  function normalizeReadState(value) {
+    if (value === true) return true;
+    if (value === false) return false;
+    return String(value || '').trim().toUpperCase() === 'TRUE';
+  }
+
+  function formatDisplayDate(dateStr) {
+    if (!dateStr) return '';
+
+    var str = String(dateStr).trim();
+    var parts = str.split('/');
+
+    if (parts.length === 3) {
+      return parts[0] + '/' + parts[1] + '/' + parts[2];
+    }
+
+    var d = new Date(str);
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleDateString('vi-VN');
+    }
+
+    return str;
+  }
+
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function escapeAttr(value) {
+    return String(value == null ? '' : value)
+      .replace(/\\/g, '\\\\')
+      .replace(/'/g, "\\'");
+  }
+</script>
