@@ -19,14 +19,13 @@ function verifyLogin(account) {
             return {
                 success: true,
                 userData: {
-                    id: user.id,
-                    email: user.email,
-                    fullName: user.fullName,
-                    role: user.role,
-                    position: user.position || ''
-                }
-            };
-        } 
+                id: user.id,
+                email: user.email,
+                fullName: user.fullName,
+                role: user.role // "LECTURER", "HOD", "SECRETARY", "CHAIRMAN"
+            }
+        };
+    }
         else {
             return { success: false, message: "Tài khoản hoặc mật khẩu không chính xác." };
         }

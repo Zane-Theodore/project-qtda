@@ -9,7 +9,7 @@
 function api_lec_getLecturerById(lecturerId) {
     try {
         var lecturerInfo = db_findRecordByColumn(CONFIG.TABLES.LECTURER, "lecturerId", lecturerId);
-        if (!lecturerInfo) throw new Error("Không tìm thấy hồ sơ giảng viên!");
+        if (!lecturerInfo) throw new Error("Không tìm thấy hồ sơ giảng viên cho tài khoản: " + accountId);
 
         var userInfo = db_findRecordByColumn(CONFIG.TABLES.ACCOUNT, "id", lecturerInfo.accountId);
         if (!userInfo) throw new Error("Tài khoản không tồn tại!");
@@ -42,7 +42,7 @@ function api_lec_getLecturerById(lecturerId) {
 function api_lec_getLecturerByAccountId(accountId) {
     try {
         var lecturerInfo = db_findRecordByColumn(CONFIG.TABLES.LECTURER, "accountId", accountId);
-        if (!lecturerInfo) throw new Error("Không tìm thấy hồ sơ giảng viên!");
+        if (!lecturerInfo) throw new Error("Không tìm thấy hồ sơ giảng viên cho tài khoản: " + accountId);
 
         var userInfo = db_findRecordByColumn(CONFIG.TABLES.ACCOUNT, "id", accountId);
         if (!userInfo) throw new Error("Tài khoản không tồn tại!");
@@ -87,7 +87,6 @@ function getCurrentUser() {
   return {
     id: user.id,
     fullName: user.fullName,
-    role: user.role,          // student / lecturer
-    position: user.position   // gvhd, tbm...
+    role: user.role         // student / lecturer
   };
 }
