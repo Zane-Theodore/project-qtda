@@ -14,7 +14,7 @@ window.LecturerRoleMenu = {
     lecturer: [
       { id: 'info', icon: 'person', label: 'Thông tin giảng viên', action: () => navigate('frontend/views/lecturer/view_lecturer_profile', 'initLecturerProfile') },
       { id: 'notification', icon: 'notifications', label: 'Thông báo', action: () => showNotification('Tính năng đang phát triển!', 'info') },
-      { id: 'approve_topic', icon: 'task', label: 'Duyệt đề tài', action: () => showNotification('Tính năng Duyệt đề tài đang phát triển!', 'info') },
+      { id: 'approve_topic', icon: 'task', label: 'Duyệt đề tài', action: () => navigate('frontend/views/lecturer/view_lec_approve_thesis', 'initLecApproveThesis') },
       { id: 'manage_topic', icon: 'assignment', label: 'Quản lý đề tài', action: () => showNotification('Tính năng Quản lý đề tài đang phát triển!', 'info') },
       { id: 'progress', icon: 'timeline', label: 'Theo dõi tiến độ đề tài', action: () => showNotification('Tính năng Theo dõi tiến độ đang phát triển!', 'info') },
       { id: 'grade', icon: 'grading', label: 'Nhập điểm', action: () => showNotification('Tính năng Nhập điểm đang phát triển!', 'info') }
@@ -23,9 +23,9 @@ window.LecturerRoleMenu = {
     hod: [
       { id: 'info', icon: 'person', label: 'Thông tin giảng viên', action: () => navigate('frontend/views/lecturer/view_lecturer_profile', 'initLecturerProfile') },
       { id: 'notification', icon: 'notifications', label: 'Thông báo', action: () => showNotification('Tính năng đang phát triển!', 'info') },
-      { id: 'approve_topic', icon: 'task', label: 'Duyệt đề tài', action: () => showNotification('Tính năng Duyệt đề tài đang phát triển!', 'info') },
-      { id: 'assign', icon: 'groups', label: 'Phân công đề tài', action: () => showNotification('Tính năng Phân công đang phát triển!', 'info') },
-      { id: 'list', icon: 'list', label: 'Danh sách', action: () => showNotification('Tính năng Danh sách đang phát triển!', 'info') }
+      { id: 'approve_topic', icon: 'task', label: 'Duyệt đề tài', action: () => navigate('frontend/views/lecturer/view_hod_approve_thesis', 'initHODApproveThesis') },
+      { id: 'assign', icon: 'groups', label: 'Phân công đề tài', action: () => navigate('frontend/views/lecturer/view_hod_council_assignment', 'initHodCouncilAssignment') },
+      { id: 'list', icon: 'list', label: 'Danh sách', action: () => navigate('frontend/views/lecturer/view_hod_thesis_list', 'initHodThesisList') }
     ],
     // SECRETARY: Tổng kết đề tài
     secretary: [
