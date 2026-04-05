@@ -191,7 +191,7 @@
     }
 
     const normalizedPosition = (position || '').toString().toLowerCase();
-    const menuItems = LecturerPositionMenu[normalizedPosition] || LecturerPositionMenu.default;
+    const menuItems = window.LecturerPositionMenu[normalizedPosition] || window.LecturerPositionMenu.default;
     console.log('✅ Rendering menu for position:', normalizedPosition, 'with', menuItems.length, 'items');
     
     menuList.innerHTML = menuItems.map(item => `
@@ -209,7 +209,7 @@
    */
   function handleLecturerAction(actionId) {
     const position = (window.currentUserData?.position || 'default').toString().toLowerCase();
-    const menuItem = LecturerPositionMenu[position]?.find(m => m.id === actionId);
+    const menuItem = window.LecturerPositionMenu[position]?.find(m => m.id === actionId);
     
     console.log('📌 Action clicked:', actionId, 'for position:', position);
     
@@ -262,11 +262,12 @@
       menuContainer.appendChild(fragment);
       
       // Render lecturer menu dựa vào position
-      if (normalizedRole === 'LECTURER' && window.currentUserData && window.currentUserData.position) {
+      if (normalizedRole === 'LECTURER' && window.currentUserData) {
         setTimeout(() => {
-          console.log('🔍 Checking LecturerPositionMenu availability:', typeof LecturerPositionMenu);
-          if (typeof LecturerPositionMenu !== 'undefined') {
-            renderLecturerMenu(window.currentUserData.position);
+          const position = (window.currentUserData.position || 'default').toString().toLowerCase();
+          console.log('🔍 Checking LecturerPositionMenu availability:', typeof window.LecturerPositionMenu, 'position:', position);
+          if (typeof window.LecturerPositionMenu !== 'undefined') {
+            renderLecturerMenu(position);
           } else {
             console.error('❌ LecturerPositionMenu is not defined');
           }
@@ -310,11 +311,12 @@
         menuContainer.appendChild(fragment);
         
         // Render lecturer menu dựa vào position
-        if (normalizedRole === 'LECTURER' && window.currentUserData && window.currentUserData.position) {
+        if (normalizedRole === 'LECTURER' && window.currentUserData) {
           setTimeout(() => {
-            console.log('🔍 Checking LecturerPositionMenu availability from server:', typeof LecturerPositionMenu);
-            if (typeof LecturerPositionMenu !== 'undefined') {
-              renderLecturerMenu(window.currentUserData.position);
+            const position = (window.currentUserData.position || 'default').toString().toLowerCase();
+            console.log('🔍 Checking LecturerPositionMenu availability from server:', typeof window.LecturerPositionMenu, 'position:', position);
+            if (typeof window.LecturerPositionMenu !== 'undefined') {
+              renderLecturerMenu(position);
             } else {
               console.error('❌ LecturerPositionMenu is not defined from server load');
             }
