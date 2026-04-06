@@ -137,13 +137,13 @@ function _hodBckltnStatusFromSubmission(sub) {
     if (!sub || _hodIsBlankCell(sub.pdfFile)) {
         return "CHƯA NỘP";
     }
-    if (_hodSheetIsFalse(sub.presidentApproved) || _hodSheetIsFalse(sub.headOfDeptApproved)) {
+    if (_hodSheetIsFalse(sub.presidentApproved) || _hodSheetIsFalse(sub.lectureApproved)) {
         return "TỪ CHỐI";
     }
-    if (_hodSheetIsTrue(sub.presidentApproved) && _hodSheetIsTrue(sub.headOfDeptApproved)) {
+    if (_hodSheetIsTrue(sub.presidentApproved) && _hodSheetIsTrue(sub.lectureApproved)) {
         return "ĐÃ DUYỆT";
     }
-    if (_hodSheetIsTrue(sub.presidentApproved) && _hodIsBlankCell(sub.headOfDeptApproved)) {
+    if (_hodSheetIsTrue(sub.presidentApproved) && _hodIsBlankCell(sub.lectureApproved)) {
         return "CHỜ DUYỆT";
     }
     return "CHỜ DUYỆT";
@@ -151,7 +151,7 @@ function _hodBckltnStatusFromSubmission(sub) {
 
 function _hodIsFinalSubmissionType(t) {
     var s = String(t || "").trim().toLowerCase();
-    return s === "final" || s === "cuoiky";
+    return s === "final";
 }
 
 function _hodPickFinalSubmission(rowsForThesis) {

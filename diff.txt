@@ -1,0 +1,15 @@
+﻿src/backend/auth.js
+src/backend/lecturer/le_api.js
+src/doc/04_DATABASE_STRUCTURE.md
+src/frontend/assets/scripts/js_auth.html
+src/frontend/assets/scripts/js_hod_approve.html
+src/frontend/assets/scripts/js_hod_council_assignment.html
+src/frontend/assets/scripts/js_hod_thesis_list.html
+src/frontend/assets/scripts/js_lec_approve.html
+src/frontend/assets/styles/css_lecturer.html
+src/frontend/components/sidebars/sidebar_lecturer.html
+src/frontend/layout.html
+src/frontend/views/lecturer/view_hod_approve_thesis.html
+src/frontend/views/lecturer/view_hod_council_assignment.html
+src/frontend/views/lecturer/view_hod_thesis_list.html
+src/frontend/views/lecturer/view_lec_approve_thesis.html
