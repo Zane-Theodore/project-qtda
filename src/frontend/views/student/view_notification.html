@@ -1,0 +1,208 @@
+<div class="notification-page">
+
+  <div class="notification-page__header">
+    <div class="notification-page__title-box">
+      <h2>Thông báo</h2>
+    </div>
+
+    <div class="notification-page__tab-row">
+      <div class="notification-page__tab">Thông Báo Chung</div>
+    </div>
+
+    <div class="notification-page__divider"></div>
+  </div>
+
+  <div id="notification-loading" class="notification-loading">
+    <?!= include('frontend/components/loading_spinner'); ?>
+  </div>
+
+  <div id="notification-content" class="notification-content" style="display:none;">
+    <div id="notification-list" class="notification-list"></div>
+  </div>
+
+</div>
+
+<style>
+  .notification-page {
+    padding: 24px 36px 32px;
+    background: #f3f4f6;
+    min-height: 100%;
+    box-sizing: border-box;
+  }
+
+  .notification-page__header {
+    margin-bottom: 20px;
+  }
+
+  .notification-page__title-box {
+    display: inline-block;
+    background: #2f56a6;
+    padding: 10px 42px;
+    border-radius: 2px;
+    position: relative;
+    margin-bottom: 10px;
+  }
+
+  .notification-page__title-box::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: -18px;
+    width: 0;
+    height: 0;
+    border-top: 23px solid transparent;
+    border-bottom: 23px solid transparent;
+    border-left: 18px solid #d9d9d9;
+  }
+
+  .notification-page__title-box h2 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .notification-page__tab-row {
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  .notification-page__tab {
+    display: inline-block;
+    color: #d94b43;
+    font-size: 18px;
+    font-weight: 700;
+    padding-bottom: 6px;
+    border-bottom: 3px solid #d94b43;
+  }
+
+  .notification-page__divider {
+    width: 100%;
+    height: 1px;
+    background: #c9ccd3;
+  }
+
+  .notification-loading {
+    min-height: 160px;
+  }
+
+  .notification-list {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .notification-card {
+    border-radius: 18px;
+    padding: 24px 24px 18px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  .notification-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.14);
+  }
+
+  .notification-card.unread {
+    background: #ffffff;
+  }
+
+  .notification-card.read {
+    background: #ececec;
+  }
+
+  .notification-card__title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+
+  .notification-card__dot {
+    width: 9px;
+    height: 9px;
+    min-width: 9px;
+    border-radius: 50%;
+    background: #2563eb;
+    display: inline-block;
+  }
+
+  .notification-card.read .notification-card__dot {
+    visibility: hidden;
+  }
+
+  .notification-card__title {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 700;
+    color: #2f343b;
+    line-height: 1.45;
+  }
+
+  .notification-card__meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 22px;
+    margin: 0 0 10px 21px;
+    color: #6b7280;
+    font-size: 14px;
+  }
+
+  .notification-card__meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .notification-card__meta svg {
+    width: 14px;
+    height: 14px;
+    fill: #6b7280;
+    flex-shrink: 0;
+  }
+
+  .notification-card__content {
+    margin: 0 0 0 21px;
+    font-size: 15px;
+    line-height: 1.7;
+    color: #5a5f67;
+  }
+
+  .notification-empty {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 28px;
+    text-align: center;
+    color: #6b7280;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  }
+
+  @media (max-width: 768px) {
+    .notification-page {
+      padding: 18px 16px 24px;
+    }
+
+    .notification-page__title-box {
+      padding: 10px 20px;
+    }
+
+    .notification-page__title-box::after {
+      right: -14px;
+      border-top: 21px solid transparent;
+      border-bottom: 21px solid transparent;
+      border-left: 14px solid #d9d9d9;
+    }
+
+    .notification-card {
+      padding: 18px 16px 16px;
+    }
+
+    .notification-card__meta,
+    .notification-card__content {
+      margin-left: 0;
+    }
+  }
+</style>

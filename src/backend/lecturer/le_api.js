@@ -9,7 +9,7 @@
 function api_lec_getLecturerById(lecturerId) {
     try {
         var lecturerInfo = db_findRecordByColumn(CONFIG.TABLES.LECTURER, "lecturerId", lecturerId);
-        if (!lecturerInfo) throw new Error("Không tìm thấy hồ sơ giảng viên cho tài khoản: " + accountId);
+        if (!lecturerInfo) throw new Error("Không tìm thấy hồ sơ giảng viên cho mã: " + lecturerId);
 
         var userInfo = db_findRecordByColumn(CONFIG.TABLES.ACCOUNT, "id", lecturerInfo.accountId);
         if (!userInfo) throw new Error("Tài khoản không tồn tại!");
