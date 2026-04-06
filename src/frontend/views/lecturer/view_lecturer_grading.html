@@ -1,0 +1,113 @@
+<div class="grading-container">
+  <div class="grading-header-top">
+    <div class="grading-title">
+      <span class="title-text">Nhập điểm</span>
+    </div>
+    <div class="grading-actions">
+      <button class="btn btn-outline-custom">
+        <span class="material-symbols-outlined">download</span> Xuất bảng điểm (Excel)
+      </button>
+      <button class="btn btn-primary-custom">
+        <span class="material-symbols-outlined">save</span> Lưu tất cả
+      </button>
+    </div>
+  </div>
+
+  <div class="grading-table-wrapper">
+    <table class="grading-table">
+      <thead>
+        <tr>
+          <th width="8%">STT</th>
+          <th width="20%">SINH VIÊN</th>
+          <th width="35%">TÊN ĐỀ TÀI</th>
+          <th width="12%">ĐIỂM</th>
+          <th width="15%">VAI TRÒ</th>
+          <th width="10%">THAO TÁC</th>
+        </tr>
+      </thead>
+      <tbody id="grading-table-body">
+        <!-- JS will render mock data here -->
+      </tbody>
+    </table>
+  </div>
+
+  <div class="role-legend-grid">
+    <div class="legend-card">
+      <div class="legend-icon role-gvhd">
+        <span class="material-symbols-outlined">person_search</span>
+      </div>
+      <div class="legend-info">
+        <h4>GVHD</h4>
+        <p>Giảng viên hướng dẫn trực tiếp theo sát quá trình thực hiện đề tài.</p>
+      </div>
+    </div>
+    <div class="legend-card">
+      <div class="legend-icon role-gvpb">
+        <span class="material-symbols-outlined">fact_check</span>
+      </div>
+      <div class="legend-info">
+        <h4>GVPB</h4>
+        <p>Giảng viên phản biện đánh giá khách quan kết quả cuối cùng.</p>
+      </div>
+    </div>
+    <div class="legend-card">
+      <div class="legend-icon role-tvhd">
+        <span class="material-symbols-outlined">groups</span>
+      </div>
+      <div class="legend-info">
+        <h4>TVHĐ</h4>
+        <p>Thành viên hội đồng chấm điểm trong buổi bảo vệ chính thức.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Chấm điểm -->
+<div id="grading-modal" class="modal-overlay hidden">
+  <div class="modal-content grading-modal-box">
+    <div class="modal-header">
+      <h3 class="modal-title">Chấm điểm Đề tài</h3>
+      <button class="btn-close-modal" onclick="closeGradingModal()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="thesis-info-section">
+        <div class="field-label">TÊN ĐỀ TÀI</div>
+        <div class="thesis-title-text" id="modal-thesis-title">--</div>
+      </div>
+      
+      <div class="grading-row">
+        <div class="grading-col">
+          <div class="field-label">TỆP ĐÍNH KÈM</div>
+          <div class="file-attachment-box">
+            <div class="file-icon-wrapper">
+              <span class="material-symbols-outlined pdf-icon">picture_as_pdf</span>
+            </div>
+            <div class="file-details">
+              <span class="file-name" id="modal-file-name">Bao_cao_cuoi_ki.pdf</span>
+              <span class="file-size" id="modal-file-size">8.4 MB</span>
+            </div>
+            <button class="btn-view-file">Xem</button>
+          </div>
+        </div>
+        <div class="grading-col">
+          <div class="field-label">NHẬP ĐIỂM</div>
+          <div class="score-input-wrapper">
+            <input type="number" id="modal-score-input" class="score-input" min="0" max="10" step="0.1" placeholder="0.0" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Dynamic Area based on Role -->
+      <div class="dynamic-role-section" id="modal-dynamic-area">
+        <!-- Injected via JS -->
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-primary-custom" onclick="saveGrading()">Lưu điểm</button>
+    </div>
+  </div>
+</div>

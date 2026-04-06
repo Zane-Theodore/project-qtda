@@ -99,4 +99,205 @@
 
     container.innerHTML = html;
   }
+  /* =========================================
+     LOGIC CHO TRANG NHẬP ĐIỂM (GRADING)
+     ========================================= */
+
+  // Cache for grading list
+  window.GradingDataCache = [];
+
+  window.initLecturerGrading = function() {
+    const currentAccountId = window.currentUserData.id;
+    
+    // Show loading
+    const tbody = document.getElementById('grading-table-body');
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px;">Đang tải dữ liệu...</td></tr>';
+    }
+
+    google.script.run
+      .withSuccessHandler(function(responseString) {
+        const response = JSON.parse(responseString);
+        if (response.success) {
+          window.GradingDataCache = response.data;
+          renderGradingTable(window.GradingDataCache);
+        } else {
+          alert("Lỗi tải danh sách chấm điểm: " + response.error);
+          if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">Lỗi tải dữ liệu.</td></tr>';
+        }
+      })
+      .withFailureHandler(function(error) {
+        alert("Lỗi kết nối máy chủ!");
+        if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">Lỗi kết nối.</td></tr>';
+      })
+      .api_lec_getGradingList(currentAccountId);
+  };
+
+  function renderGradingTable(data) {
+    const tbody = document.getElementById('grading-table-body');
+    if (!tbody) return;
+
+    if (!data || data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px; color: #64748b;">Chưa có đề tài nào cần chấm điểm.</td></tr>';
+      return;
+    }
+
+    let html = '';
+    data.forEach(item => {
+      const scoreStr = item.score !== null ? item.score.toFixed(1) : '--';
+      const scoreClass = item.score !== null ? '' : 'empty';
+      const roleClass = item.role === 'GVHD' ? 'tag-gvhd' : item.role === 'GVPB' ? 'tag-gvpb' : 'tag-tvhd';
+
+      html += `
+        <tr>
+          <td style="color: #64748b; font-weight: 600;">${item.stt}</td>
+          <td>
+            <span class="student-name">${item.stName}</span>
+            <span class="student-mssv">MSSV: ${item.stMssv}</span>
+          </td>
+          <td><span class="thesis-title">${item.title}</span></td>
+          <td><span class="score-display ${scoreClass}">${scoreStr}</span></td>
+          <td><span class="role-tag ${roleClass}">${item.role}</span></td>
+          <td>
+            <button class="action-btn" onclick="openGradingModal('${item.id}', '${item.role}')">
+              <span class="material-symbols-outlined">edit</span>
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+
+    tbody.innerHTML = html;
+  }
+
+  window.openGradingModal = function(id, role) {
+    const item = window.GradingDataCache.find(d => d.id === id);
+    if (!item) return;
+
+    // Save active item ID to be accessed by saveGrading
+    document.getElementById('grading-modal').dataset.activeId = id;
+
+    // Populate modal
+    document.getElementById('modal-thesis-title').innerText = item.title;
+    document.getElementById('modal-score-input').value = item.score !== null ? item.score : '';
+    
+    // Xử lý vùng xuất hiện Tệp đính kèm
+    const fileBox = document.querySelector('.file-attachment-box');
+    const inputElement = document.getElementById('modal-score-input');
+    if (fileBox) {
+      if (item.fileName) {
+        inputElement.disabled = false;
+        fileBox.innerHTML = `
+          <div class="file-icon-wrapper">
+            <span class="material-symbols-outlined pdf-icon">picture_as_pdf</span>
+          </div>
+          <div class="file-details">
+            <span class="file-name" id="modal-file-name">${item.fileName}</span>
+            <span class="file-size" id="modal-file-size">${item.fileSize || ''}</span>
+          </div>
+          <button class="btn-view-file">Xem</button>
+        `;
+      } else {
+        inputElement.disabled = true; // Chặn nhập điểm
+        fileBox.innerHTML = `<span style="font-style: italic; color: #94a3b8; padding: 10px 0;">Sinh viên chưa nộp báo cáo.</span>`;
+      }
+    }
+
+    const dynamicArea = document.getElementById('modal-dynamic-area');
+    let dynamicHtml = '';
+
+    if (role === 'GVHD') {
+      dynamicHtml = `
+        <div class="field-label">TỆP TURNITIN</div>
+        <div class="upload-area">
+          <div class="upload-icon">
+            <span class="material-symbols-outlined" style="font-size: 24px;">upload_file</span>
+          </div>
+          <div class="upload-title">Tải lên báo cáo Turnitin</div>
+          <div class="upload-subtitle">Định dạng PDF, tối đa 10MB</div>
+        </div>
+      `;
+    } else if (role === 'GVPB') {
+      dynamicHtml = `
+        <div class="field-label">CÂU HỎI PHẢN BIỆN</div>
+        <textarea id="modal-comment-input" class="feedback-textarea" placeholder="Nhập câu hỏi để hướng dẫn sinh viên hoàn thiện báo cáo...">${item.comment || ""}</textarea>
+      `;
+    } else if (role === 'TVHĐ') {
+      dynamicHtml = `
+        <div class="field-label">NHẬN XÉT CỦA THÀNH VIÊN HỘI ĐỒNG</div>
+        <textarea id="modal-comment-input" class="feedback-textarea" placeholder="Nhập tóm tắt đánh giá và nhận xét hội đồng...">${item.comment || ""}</textarea>
+      `;
+    }
+
+    dynamicArea.innerHTML = dynamicHtml;
+
+    // Show modal
+    document.getElementById('grading-modal').classList.add('show');
+  };
+
+  window.closeGradingModal = function() {
+    document.getElementById('grading-modal').classList.remove('show');
+    document.getElementById('grading-modal').dataset.activeId = "";
+  };
+
+  window.saveGrading = function() {
+    const activeId = document.getElementById('grading-modal').dataset.activeId;
+    if (!activeId) return;
+
+    const item = window.GradingDataCache.find(d => d.id === activeId);
+    if (!item) return;
+
+    if (!item.fileName) {
+      alert("Học viên chưa nộp báo cáo cuối kì, bạn chưa thể chấm điểm ở thời điểm này!");
+      return;
+    }
+
+    const currentAccountId = window.currentUserData.id;
+    const scoreValText = document.getElementById('modal-score-input').value;
+    const scoreValue = parseFloat(scoreValText);
+    
+    if (isNaN(scoreValue) || scoreValue < 0 || scoreValue > 10) {
+      alert("Vui lòng nhập điểm hợp lệ từ 0 đến 10.");
+      return;
+    }
+
+    let comment = "";
+    const commentInput = document.getElementById('modal-comment-input');
+    if (commentInput) {
+      comment = commentInput.value;
+    }
+
+    // Disable button or show loading
+    const saveBtn = document.querySelector('.modal-footer .btn-primary-custom');
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.innerText = "Đang lưu...";
+    }
+
+    google.script.run
+      .withSuccessHandler(function(responseString) {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.innerText = "Lưu điểm";
+        }
+        
+        const response = JSON.parse(responseString);
+        if (response.success) {
+          showNotification("Đã lưu điểm thành công!", 'success');
+          closeGradingModal();
+          // Reload list to get updated score
+          initLecturerGrading(); 
+        } else {
+          alert("Lỗi lưu điểm: " + response.error);
+        }
+      })
+      .withFailureHandler(function(error) {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.innerText = "Lưu điểm";
+        }
+        alert("Lỗi kết nối máy chủ khi lưu điểm!");
+      })
+      .api_lec_saveGrade(currentAccountId, item.coreThesisId, item.scoreTypeLog, scoreValue, comment);
+  };
 </script>
