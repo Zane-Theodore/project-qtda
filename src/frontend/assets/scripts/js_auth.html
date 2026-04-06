@@ -63,10 +63,13 @@
           if(header) header.style.display = '';
           if(appContent) appContent.style.width = '100%';
 
-          window.currentUserData = response.userData;
+          window.currentUserData = response.userData || {};
+          window.currentUserData.role = (window.currentUserData.role || '').toString().toUpperCase()
+
+          console.log('Login successful - role:', window.currentUserData.role);
 
           safeSetText('side-user-name', window.currentUserData.fullName);
-          safeSetText('side-user-email', window.currentUserData.email);
+          safeSetText('side-user-email', window.currentUserData.email)
 
           updateAvatarFromName(window.currentUserData.fullName, 'profile-avatar-text');
 
@@ -80,7 +83,9 @@
           
           if(appContent) appContent.innerHTML = '';
           
-          if (response.userData.role === 'LECTURER') {
+          const role = window.currentUserData.role;
+
+          if (['LECTURER', 'HOD', 'SECRETARY', 'CHAIRMAN'].includes(role)) {
             navigate('frontend/views/lecturer/view_lecturer_profile', 'initLecturerProfile');
           } else {
             navigate('frontend/views/student/view_student_profile', 'initStudentProfile');
@@ -156,6 +161,74 @@
 
   window.addEventListener('load', initializePage);
 
+
+
+  function getLecturerMenuKey(role, position) {
+    const r = (role || 'LECTURER').toUpperCase();
+    const p = (position || 'lecturer').toLowerCase();
+    if (r === 'HOD') return 'hod';
+    switch (p) {
+      case 'chairman': return 'chairman';
+      case 'secretary': return 'secretary';
+      case 'reviewer': return 'reviewer';
+      case 'member': return 'member';
+      case 'hod': return 'hod';
+      default: return 'supervisor';
+    }
+  }
+
+  function updateActiveMenu(actionId) {
+    const buttons = document.querySelectorAll('#lecturer-menu-list .menu-btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
+    const activeBtn = document.getElementById('menu-btn-' + actionId);
+    if (activeBtn) activeBtn.classList.add('active');
+  }
+
+  /**
+   * Render menu cho lecturer
+   */
+  function renderLecturerMenu() {
+    const menuList = document.getElementById('lecturer-menu-list');
+    if (!menuList) return;
+
+    const role = window.currentUserData?.role;
+    const position = window.currentUserData?.position;
+    const menuKey = getLecturerMenuKey(role, position);
+
+    console.log('✅ Render menu key:', menuKey);
+
+    const menuItems = window.LecturerRoleMenu[menuKey] || window.LecturerRoleMenu.default;
+
+    menuList.innerHTML = menuItems.map(item => `
+      <li>
+        <button id="menu-btn-${item.id}" class="menu-btn" onclick="handleLecturerAction('${item.id}')">
+          <span class="material-symbols-outlined">${item.icon}</span>
+          <span>${item.label}</span>
+        </button>
+      </li>
+    `).join('');
+  }
+
+  /**
+   * Xử lý các action của lecturer menu
+   */
+  function handleLecturerAction(actionId) {
+    const role = window.currentUserData?.role;
+    const position = window.currentUserData?.position;
+    
+    const menuKey = getLecturerMenuKey(role, position);
+    const menuItem = window.LecturerRoleMenu[menuKey]?.find(m => m.id === actionId);
+
+    console.log('📌 Action:', actionId, 'menuKey:', menuKey);
+
+    if (menuItem && menuItem.action) {
+      updateActiveMenu(actionId);
+      menuItem.action();
+    } else {
+      console.warn('❌ Action not found:', actionId);
+    }
+  }
+
   /**
    * Tải và nhúng động (inject) các nút Menu vào Sidebar dựa trên chức vụ.
    * @param {string} role - Chức vụ của người dùng (VD: 'LECTURER', 'STUDENT').
@@ -164,8 +237,9 @@
     const menuContainer = document.getElementById('sidebar-menu-container');
     if (!menuContainer) return;
 
+    const normalizedRole = (role || '').toString().toUpperCase();
     let fileName = '';
-    if (role === 'LECTURER') {
+    if (['LECTURER', 'HOD', 'SECRETARY', 'CHAIRMAN'].includes(normalizedRole)) {
       fileName = 'frontend/components/sidebars/sidebar_lecturer';
     } else {
       fileName = 'frontend/components/sidebars/sidebar_student';
@@ -176,12 +250,37 @@
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = window.ViewCache[fileName];
 
+      // Execute scripts in the loaded HTML
+      const scripts = tempDiv.querySelectorAll('script');
+      scripts.forEach(script => {
+        if (script.textContent) {
+          try {
+            eval(script.textContent);
+            console.log('✅ Script executed successfully');
+          } catch (e) {
+            console.error('❌ Error executing script:', e);
+          }
+        }
+      });
+
       while (tempDiv.firstChild) {
         fragment.appendChild(tempDiv.firstChild);
       }
       
       menuContainer.innerHTML = '';
       menuContainer.appendChild(fragment);
+      
+      // Render lecturer menu
+      if (['LECTURER', 'HOD', 'SECRETARY', 'CHAIRMAN'].includes(normalizedRole) && window.currentUserData) {
+        setTimeout(() => {
+          console.log('🔍 Checking LecturerRoleMenu availability:', typeof window.LecturerRoleMenu);
+          if (typeof window.LecturerRoleMenu !== 'undefined') {
+            renderLecturerMenu();
+          } else {
+            console.error('❌ LecturerRoleMenu is not defined');
+          }
+        }, 100);
+      }
       return; 
     }
 
@@ -199,12 +298,37 @@
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = htmlContent;
         
+        // Execute scripts in the loaded HTML
+        const scripts = tempDiv.querySelectorAll('script');
+        scripts.forEach(script => {
+          if (script.textContent) {
+            try {
+              eval(script.textContent);
+              console.log('✅ Script executed successfully from server');
+            } catch (e) {
+              console.error('❌ Error executing script from server:', e);
+            }
+          }
+        });
+        
         while (tempDiv.firstChild) {
           fragment.appendChild(tempDiv.firstChild);
         }
         
         menuContainer.innerHTML = '';
         menuContainer.appendChild(fragment);
+        
+        // Render lecturer menu
+        if (['LECTURER', 'HOD', 'SECRETARY', 'CHAIRMAN'].includes(normalizedRole) && window.currentUserData) {
+          setTimeout(() => {
+            console.log('🔍 Checking LecturerRoleMenu availability from server:', typeof window.LecturerRoleMenu);
+            if (typeof window.LecturerRoleMenu !== 'undefined') {
+              renderLecturerMenu();
+            } else {
+              console.error('❌ LecturerRoleMenu is not defined from server load');
+            }
+          }, 100);
+        }
       })
       .withFailureHandler(function(error) {
         menuContainer.innerHTML = '<div style="color: #e74c3c; text-align: center; padding: 20px;">Lỗi kết nối máy chủ!</div>';
