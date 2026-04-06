@@ -99,4 +99,476 @@
 
     container.innerHTML = html;
   }
+
+  // ==========================================
+  // LOGIC TÍNH NĂNG THEO DÕI TIẾN ĐỘ GVHD
+  // ==========================================
+  window.initLecturerThesisProgress = function() {
+    const currentAccountId = window.currentUserData.id;
+    window.LecturerProgressState = {
+        data: null,
+        selectedThesisId: null,
+        editSubmissionId: null // Dùng khi sửa bài / phản hồi
+    };
+
+    const container = document.getElementById('student-progress-list');
+    if (container) container.innerHTML = '<div class="loading-state">Đang tải dữ liệu...</div>';
+
+    // 1. Data Loader
+    const loadData = () => {
+        google.script.run
+            .withSuccessHandler(function(responseString) {
+                try {
+                    const response = JSON.parse(responseString);
+                    if (response.success) {
+                        window.LecturerProgressState.data = response.data;
+                        renderOverview(response.data.overview);
+                        renderStudentList(response.data.theses);
+                        
+                        if (response.data.theses.length > 0) {
+                            const idToSelect = window.LecturerProgressState.selectedThesisId || response.data.theses[0].thesisId;
+                            window.selectStudent(idToSelect);
+                        } else {
+                            document.getElementById('student-detail-panel').style.display = 'none';
+                            document.getElementById('student-detail-empty').style.display = 'block';
+                            container.innerHTML = '<div style="padding: 20px; text-align: center; color: #64748b;">Bạn chưa hướng dẫn sinh viên nào.</div>';
+                        }
+                        
+                        updateTaskSelectDropdown(response.data.theses);
+                    } else {
+                        showNotification('Lỗi: ' + response.error, 'error');
+                        container.innerHTML = '<div class="loading-state">Lỗi tải dữ liệu</div>';
+                    }
+                } catch(e) {
+                    showNotification('Lỗi parse data', 'error');
+                }
+            })
+            .api_le_getThesesProgress(currentAccountId);
+    };
+
+    // 2. Render Functions
+    const renderOverview = (overview) => {
+        safeSetText('overview-total-theses', overview.total + ' Đề tài');
+        safeSetText('overview-submitted', overview.submitted < 10 ? '0'+overview.submitted : overview.submitted);
+        safeSetText('overview-in-progress', overview.inProgress < 10 ? '0'+overview.inProgress : overview.inProgress);
+        safeSetText('overview-overdue', overview.overdue < 10 ? '0'+overview.overdue : overview.overdue);
+    };
+
+    const getTimelineInfoHtml = (thesis) => {
+        let html = '<div class="horizontal-track">';
+        const steps = [
+             { key: 'Duyet', label: 'Duyệt đề tài', status: 'completed' },
+             { key: 'TienDo1', label: 'Lần 1', status: 'pending' },
+             { key: 'TienDo2', label: 'Lần 2', status: 'pending' },
+             { key: 'CuoiKy', label: 'Nộp KLTN', status: 'pending' }
+        ];
+
+        let pendingTaskText = '';
+        const now = new Date();
+
+        steps.forEach(step => {
+             if (step.key !== 'Duyet') {
+                 // Sort submissions descending by submitted date or ID to get latest if duplicates exist
+                 const subs = thesis.submissions.filter(s => s.submissionType === step.key);
+                 const sub = subs.length > 0 ? subs[subs.length - 1] : null;
+
+                 if (sub) {
+                     if (sub.pdfFile && sub.pdfFile.trim() !== '') {
+                         step.status = 'completed';
+                     } else {
+                         step.status = 'pending';
+                         if (pendingTaskText === '') {
+                             const deadline = sub.deadline ? new Date(sub.deadline) : null;
+                             if (deadline && deadline < now) {
+                                  const diffDays = Math.ceil((now - deadline)/(1000*60*60*24));
+                                  pendingTaskText = `<span class="due-text danger">Trễ hạn ${step.label} (${diffDays} ngày)</span>`;
+                             } else if (deadline) {
+                                  let diffDays = Math.ceil((deadline - now)/(1000*60*60*24));
+                                  if (diffDays === 0) diffDays = "Hôm nay";
+                                  else diffDays = diffDays + " ngày";
+                                  pendingTaskText = `<span class="due-text">Hạn chót: Còn ${diffDays}</span>`;
+                             } else {
+                                  pendingTaskText = `<span class="due-text">Đã giao (${step.label}) - Chưa nộp</span>`;
+                             }
+                         }
+                     }
+                 }
+             }
+             
+             html += `
+               <div class="track-step">
+                   <div class="step-dot ${step.status === 'completed' ? 'completed' : ''}">${step.status === 'completed' ? '✓' : ''}</div>
+                   <div class="step-label">${step.label}</div>
+               </div>
+             `;
+        });
+        html += '</div>';
+        
+        if (pendingTaskText === '') {
+             pendingTaskText = `<span class="due-text" style="color:#166534"><i class="fas fa-check-circle"></i> Tiến độ đúng hạn</span>`;
+        }
+
+        html += `<div class="progress-footer">
+            <div>${pendingTaskText}</div>
+            <button class="btn-detail" onclick="event.stopPropagation(); window.selectStudent('${thesis.thesisId}')">Xem chi tiết</button>
+        </div>`;
+
+        return html;
+    };
+
+    const renderStudentList = (theses) => {
+        const container = document.getElementById('student-progress-list');
+        if (!theses || theses.length === 0) return;
+
+        container.innerHTML = theses.map(thesis => {
+            const parts = thesis.studentFullName.split(' ');
+            const shortName = parts.length > 1 ? parts[0][0] + parts[parts.length-1][0] : parts[0].substring(0,2);
+            
+            let badgeClass = thesis.status === 'Đã nộp' ? 'success' : 'warning';
+            let badgeText = thesis.status || 'ĐANG THỰC HIỆN';
+            if (thesis.status !== 'Đã nộp' && thesis.isOverdue) {
+                badgeClass = 'danger';
+                badgeText = 'TRỄ HẠN';
+            }
+            
+            const activeClass = window.LecturerProgressState.selectedThesisId === thesis.thesisId ? 'active' : '';
+
+            return `
+            <div class="student-card ${activeClass}" id="card-thesis-${thesis.thesisId}" onclick="window.selectStudent('${thesis.thesisId}')">
+                <div class="student-card-header">
+                    <div class="student-info">
+                        <div class="student-avatar">${shortName.toUpperCase()}</div>
+                        <div>
+                            <p class="student-name">${thesis.studentFullName}</p>
+                            <p class="student-thesis" title="${thesis.thesisTitle}">${thesis.thesisTitle}</p>
+                        </div>
+                    </div>
+                    <div class="status-badge ${badgeClass}">${badgeText}</div>
+                </div>
+                ${getTimelineInfoHtml(thesis)}
+            </div>
+            `;
+        }).join('');
+    };
+
+    const renderDetailPanel = (thesis) => {
+        document.getElementById('student-detail-empty').style.display = 'none';
+        document.getElementById('student-detail-panel').style.display = 'block';
+
+        safeSetText('detail-student-name', `(${thesis.studentFullName})`);
+        const container = document.getElementById('detail-timeline-container');
+        
+        const formatDateTime = (dtStr) => {
+            if(!dtStr) return '';
+            try { 
+                const d = new Date(dtStr);
+                if (isNaN(d)) return dtStr;
+                return d.toLocaleDateString('vi-VN') + ' ' + d.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}); 
+            } catch(e) { return dtStr; }
+        };
+
+        const renderStep = (sub, title) => {
+            if (!sub) return ''; 
+
+            const isDone = sub.pdfFile && sub.pdfFile.trim() !== '';
+            const statusText = isDone ? '<span class="status-done">HOÀN THÀNH</span>' : '<span style="color:#4338ca">ĐANG THỰC HIỆN</span>';
+            const stepClass = isDone ? '' : 'active';
+            
+            let extraHtml = '';
+            if (isDone) {
+                const commentHtml = sub.comment ? `<p style="color:#166534"><i class="fas fa-comment-dots"></i> Nhận xét: ${sub.comment}</p>` : '';
+                extraHtml = `<div class="v-step-date">Đã nộp: ${formatDateTime(sub.submittedAt)}</div>
+                              <div class="active-task-box">
+                                ${sub.description ? `<p>${sub.description}</p>` : ''}
+                                ${commentHtml}
+                                <div class="file-link"><i class="fas fa-file-pdf"></i> ${sub.pdfFile}</div>
+                                <div class="task-actions">
+                                    <button class="btn-secondary" onclick="window.open('${sub.pdfFile}', '_blank')">Xem bài nộp</button>
+                                    <button class="btn-primary" onclick="window.openFeedbackModal('${sub.id}')">Phản hồi</button>
+                                </div>
+                              </div>`;
+            } else {
+                extraHtml = `<div class="active-task-box">
+                                <div class="deadline"><i class="far fa-clock"></i> Hạn chót: ${formatDateTime(sub.deadline)}</div>
+                                ${sub.description ? `<p>${sub.description}</p>` : ''}
+                                <p style="color: #64748b; font-style: italic;">Sinh viên chưa nộp bài</p>
+                                <button class="btn-secondary" style="margin-top: 10px" onclick="window.editTaskModal('${sub.id}')">Chỉnh sửa bài tập</button>
+                            </div>`;
+            }
+
+            return `
+            <div class="v-step ${stepClass}">
+                <div class="v-step-header">
+                    <p class="v-step-title">${title || sub.title}</p>
+                    <span class="v-step-status">${statusText}</span>
+                </div>
+                ${extraHtml}
+            </div>
+            `;
+        };
+
+        let html = '<div class="timeline-vertical">';
+        
+        html += `
+            <div class="v-step">
+                <div class="v-step-header">
+                    <p class="v-step-title">Duyệt đề tài</p>
+                    <span class="v-step-status status-done">HOÀN THÀNH</span>
+                </div>
+            </div>
+        `;
+
+        const mapSub = {
+            'TienDo1': 'Tiến độ 1 (Lần 1)',
+            'TienDo2': 'Tiến độ 2 (Lần 2)',
+            'CuoiKy': 'Nộp KLTN'
+        };
+
+        ['TienDo1', 'TienDo2', 'CuoiKy'].forEach(type => {
+            const subs = thesis.submissions.filter(s => s.submissionType === type);
+            subs.forEach(s => html += renderStep(s, s.title || mapSub[type]));
+        });
+
+        // Báo cáo Final
+        const finalSub = thesis.submissions.find(s => s.submissionType === 'Final');
+        if (finalSub && finalSub.pdfFile) {
+            const isApproved = finalSub.lectureApproved === 'TRUE' || finalSub.lectureApproved === true;
+            html += `
+             <div class="v-step ${isApproved ? '' : 'active'}">
+                <div class="v-step-header">
+                    <p class="v-step-title">Duyệt Báo cáo KLTN hoàn chỉnh</p>
+                    <span class="v-step-status" style="color: ${isApproved ? '#166534' : '#4338ca'}">${isApproved ? 'ĐÃ DUYỆT' : 'ĐANG CHỜ'}</span>
+                </div>
+                <div class="active-task-box">
+                    <div class="file-link"><i class="fas fa-file-pdf"></i> ${finalSub.pdfFile}</div>
+                    <div class="task-actions">
+                        <button class="btn-secondary" onclick="window.open('${finalSub.pdfFile}', '_blank')">Xem bài nộp</button>
+                        ${!isApproved ? `<button class="btn-primary" onclick="window.openApproveFinalModal('${finalSub.id}')">Duyệt KLTN</button>` : `<button class="btn-primary" style="background:#dc2626" onclick="window.openApproveFinalModal('${finalSub.id}')">Hủy duyệt</button>`}
+                    </div>
+                </div>
+            </div>`;
+        } else if (finalSub && !finalSub.pdfFile) {
+            html += renderStep(finalSub, finalSub.title || 'Duyệt Báo cáo KLTN');
+        } else {
+             html += `
+             <div class="v-step pending">
+                <div class="v-step-header">
+                    <p class="v-step-title" style="color:#94a3b8">Duyệt Báo cáo KLTN hoàn chỉnh</p>
+                </div>
+            </div>`;
+        }
+
+        html += '</div>';
+        container.innerHTML = html;
+    };
+
+    const updateTaskSelectDropdown = (theses) => {
+        const sel = document.getElementById('task-student-select');
+        if (!sel) return;
+        let html = '<option value="">Chọn sinh viên</option>';
+        theses.forEach(t => {
+             html += `<option value="${t.thesisId}">${t.studentFullName} - ${t.thesisTitle}</option>`;
+        });
+        sel.innerHTML = html;
+    };
+
+    // 3. Global Actions for DOM 
+    window.selectStudent = function(thesisId) {
+        window.LecturerProgressState.selectedThesisId = thesisId;
+        document.querySelectorAll('.student-card').forEach(el => el.classList.remove('active'));
+        const card = document.getElementById('card-thesis-' + thesisId);
+        if (card) card.classList.add('active');
+
+        const thesis = window.LecturerProgressState.data.theses.find(t => t.thesisId === thesisId);
+        if (thesis) renderDetailPanel(thesis);
+    };
+
+    window.openFeedbackModal = function(submissionId) {
+        window.LecturerProgressState.editSubmissionId = submissionId;
+        document.getElementById('feedback-submission-id').value = submissionId;
+        
+        // Find existing comment
+        let found = false;
+        const theses = window.LecturerProgressState.data.theses;
+        for(let t of theses) {
+            const sub = t.submissions.find(s => s.id === submissionId);
+            if (sub) {
+                document.getElementById('feedback-content').value = sub.comment || '';
+                found = true;
+                break;
+            }
+        }
+        
+        document.getElementById('modal-feedback').style.display = 'flex';
+    };
+
+    window.openApproveFinalModal = function(submissionId) {
+        window.LecturerProgressState.editSubmissionId = submissionId;
+        document.getElementById('approve-submission-id').value = submissionId;
+        document.getElementById('modal-approve-final').style.display = 'flex';
+    };
+
+    window.editTaskModal = function(submissionId) {
+        window.LecturerProgressState.editSubmissionId = submissionId;
+        
+        let targetSub = null;
+        for(let t of window.LecturerProgressState.data.theses) {
+            const sub = t.submissions.find(s => s.id === submissionId);
+            if (sub) {
+                targetSub = sub; break;
+            }
+        }
+        if (!targetSub) return;
+
+        document.querySelector('#modal-add-task h3').textContent = 'Chỉnh sửa bài tập';
+        document.getElementById('task-title').value = targetSub.title;
+        document.getElementById('task-desc').value = targetSub.description;
+        document.getElementById('task-student-select').value = targetSub.thesisId;
+        document.getElementById('task-type-select').value = targetSub.submissionType;
+        
+        // Disabled student and type select during edit
+        document.getElementById('task-student-select').disabled = true;
+        document.getElementById('task-type-select').disabled = true;
+
+        if (targetSub.deadline) {
+            const d = new Date(targetSub.deadline);
+            if (!isNaN(d)) {
+                document.getElementById('task-due-date').value = d.toISOString().split('T')[0];
+                document.getElementById('task-due-time').value = d.toTimeString().substring(0,5);
+            }
+        } else {
+            document.getElementById('task-due-date').value = '';
+            document.getElementById('task-due-time').value = '23:59';
+        }
+
+        document.getElementById('btn-submit-task').textContent = 'Lưu thay đổi';
+        document.getElementById('modal-add-task').style.display = 'flex';
+    };
+
+    // 4. Setup Events
+    const setupEvents = () => {
+        // Modal Add Task
+        const btnOpenAdd = document.getElementById('btn-open-add-task');
+        if(btnOpenAdd) {
+            btnOpenAdd.onclick = () => {
+                window.LecturerProgressState.editSubmissionId = null;
+                document.querySelector('#modal-add-task h3').textContent = 'Thêm bài tập';
+                document.getElementById('task-title').value = '';
+                document.getElementById('task-desc').value = '';
+                document.getElementById('task-student-select').value = window.LecturerProgressState.selectedThesisId || '';
+                document.getElementById('task-type-select').value = 'TienDo1';
+                document.getElementById('task-due-date').value = '';
+                
+                document.getElementById('task-student-select').disabled = false;
+                document.getElementById('task-type-select').disabled = false;
+                document.getElementById('btn-submit-task').textContent = 'Giao bài tập';
+                document.getElementById('modal-add-task').style.display = 'flex';
+            };
+        }
+
+        const closeAdd = document.getElementById('btn-close-add-task');
+        if(closeAdd) closeAdd.onclick = () => document.getElementById('modal-add-task').style.display = 'none';
+
+        // Add/Update Task Submit
+        const btnSubmitTask = document.getElementById('btn-submit-task');
+        if(btnSubmitTask) {
+            btnSubmitTask.onclick = () => {
+                const title = document.getElementById('task-title').value;
+                const desc = document.getElementById('task-desc').value;
+                const thesisId = document.getElementById('task-student-select').value;
+                const subType = document.getElementById('task-type-select').value;
+                const dDate = document.getElementById('task-due-date').value;
+                const dTime = document.getElementById('task-due-time').value;
+
+                if (!title || !thesisId || !dDate) {
+                    showNotification('Vui lòng điền đủ Tiêu đề, Sinh viên và Ngày hết hạn', 'warning');
+                    return;
+                }
+
+                const deadline = new Date(`${dDate}T${dTime || '23:59'}:00`).toISOString();
+                const payload = { thesisId, title, description: desc, submissionType: subType, deadline };
+                
+                const editId = window.LecturerProgressState.editSubmissionId;
+                const btnOriginalText = btnSubmitTask.textContent;
+                btnSubmitTask.textContent = 'Đang lưu...';
+                btnSubmitTask.disabled = true;
+
+                if (editId) {
+                    google.script.run.withSuccessHandler((resStr) => {
+                        btnSubmitTask.textContent = btnOriginalText;
+                        btnSubmitTask.disabled = false;
+                        const res = JSON.parse(resStr);
+                        if(res.success) {
+                            showNotification('Cập nhật thành công', 'success');
+                            document.getElementById('modal-add-task').style.display = 'none';
+                            loadData(); // Rerender
+                        } else showNotification(res.error, 'error');
+                    }).api_le_updateSubmissionTask(editId, payload);
+                } else {
+                    google.script.run.withSuccessHandler((resStr) => {
+                        btnSubmitTask.textContent = btnOriginalText;
+                        btnSubmitTask.disabled = false;
+                        const res = JSON.parse(resStr);
+                        if(res.success) {
+                            showNotification('Giao bài tập thành công', 'success');
+                            document.getElementById('modal-add-task').style.display = 'none';
+                            loadData(); // Rerender
+                        } else showNotification(res.error, 'error');
+                    }).api_le_addSubmissionTask(payload);
+                }
+            };
+        }
+
+        // Modal Feedback
+        const closeFd = document.getElementById('btn-close-feedback');
+        if(closeFd) closeFd.onclick = () => document.getElementById('modal-feedback').style.display = 'none';
+
+        const btnSubmitFd = document.getElementById('btn-submit-feedback');
+        if(btnSubmitFd) {
+            btnSubmitFd.onclick = () => {
+                const cmt = document.getElementById('feedback-content').value;
+                const subId = document.getElementById('feedback-submission-id').value;
+                
+                btnSubmitFd.disabled = true;
+                btnSubmitFd.textContent = 'Đang gửi...';
+
+                google.script.run.withSuccessHandler((resStr) => {
+                    btnSubmitFd.disabled = false;
+                    btnSubmitFd.textContent = 'Gửi phản hồi';
+                    const res = JSON.parse(resStr);
+                    if(res.success) {
+                        showNotification('Đã phản hồi', 'success');
+                        document.getElementById('modal-feedback').style.display = 'none';
+                        loadData();
+                    } else showNotification(res.error, 'error');
+                }).api_le_feedbackSubmission(subId, cmt);
+            };
+        }
+
+        // Modal Approve Final
+        const closeAp = document.getElementById('btn-close-approve-final');
+        if(closeAp) closeAp.onclick = () => document.getElementById('modal-approve-final').style.display = 'none';
+
+        const handleApprove = (isApproved) => {
+            const subId = document.getElementById('approve-submission-id').value;
+            google.script.run.withSuccessHandler((resStr) => {
+                const res = JSON.parse(resStr);
+                if(res.success) {
+                    showNotification('Đã lưu kết quả duyệt', 'success');
+                    document.getElementById('modal-approve-final').style.display = 'none';
+                    loadData();
+                } else showNotification(res.error, 'error');
+            }).api_le_approveFinalSubmission(subId, isApproved);
+        };
+
+        const btnAccept = document.getElementById('btn-accept-final');
+        const btnReject = document.getElementById('btn-reject-final');
+        if(btnAccept) btnAccept.onclick = () => { btnAccept.textContent = 'Đang xử lý...'; handleApprove(true); };
+        if(btnReject) btnReject.onclick = () => { btnReject.textContent = 'Đang xử lý...'; handleApprove(false); };
+    };
+
+    // Initialize
+    loadData();
+    setupEvents();
+  };
 </script>
