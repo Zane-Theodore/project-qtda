@@ -1,5 +1,5 @@
 <script>
-  window.initStudentNotification = function() {
+  window.initNotification = function () {
     var accountId = window.currentUserData && window.currentUserData.id;
 
     var loadingEl = document.getElementById('notification-loading');
@@ -9,7 +9,7 @@
     if (contentEl) contentEl.style.display = 'none';
 
     google.script.run
-      .withSuccessHandler(function(responseString) {
+      .withSuccessHandler(function (responseString) {
         var response = JSON.parse(responseString);
 
         if (!response.success) {
@@ -22,7 +22,7 @@
         if (loadingEl) loadingEl.style.display = 'none';
         if (contentEl) contentEl.style.display = 'block';
       })
-      .withFailureHandler(function(error) {
+      .withFailureHandler(function (error) {
         renderNotificationError(error && error.message ? error.message : 'Lỗi kết nối máy chủ');
       })
       .api_st_getMyNotifications(accountId);
@@ -37,7 +37,7 @@
       return;
     }
 
-    container.innerHTML = list.map(function(item) {
+    container.innerHTML = list.map(function (item) {
       var isRead = normalizeReadState(item.isRead);
       var cardClass = isRead ? 'read' : 'unread';
 
@@ -73,7 +73,7 @@
     cardEl.classList.add('read');
 
     google.script.run
-      .withSuccessHandler(function(responseString) {
+      .withSuccessHandler(function (responseString) {
         var response = JSON.parse(responseString);
 
         if (!response.success) {
@@ -82,7 +82,7 @@
           showNotification('Cập nhật trạng thái thất bại: ' + response.error, 'error');
         }
       })
-      .withFailureHandler(function(error) {
+      .withFailureHandler(function (error) {
         cardEl.classList.remove('read');
         cardEl.classList.add('unread');
         showNotification('Lỗi kết nối khi cập nhật trạng thái đã đọc', 'error');
