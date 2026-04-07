@@ -42,7 +42,7 @@
     var theses = window.LecState.theses;
     
     var total = theses.length;
-    var approved = theses.filter(t => t.status === 'Đã duyệt' || t.status === 'Đã đồng ý' || t.status === 'Hoàn thành' || t.status === 'Đã hoàn thành').length;
+    var approved = theses.filter(t => t.status === 'Đã duyệt' || t.status === 'Đã nộp' || t.status === 'Đang thực hiện' || t.status === 'Đã hoàn thành').length;
     var pending = theses.filter(t => t.status === 'Chờ duyệt').length;
 
     safeSetText('lec-total-theses', formatNumberWithZero(total));
@@ -77,7 +77,7 @@
       var badgeClass = 'status-default';
       if (t.status === 'Chờ duyệt') badgeClass = 'status-pending';
       else if (t.status === 'Đã duyệt' || t.status === 'Đã đồng ý') badgeClass = 'status-approved';
-      else if (t.status === 'Từ chối') badgeClass = 'status-rejected';
+      else if (t.status === 'Từ chối' || t.status === 'GVHD từ chối') badgeClass = 'status-rejected';
       else if (t.status === 'Đang thực hiện') badgeClass = 'status-inprogress';
       else if (t.status === 'Đã hoàn thành' || t.status === 'Hoàn thành') badgeClass = 'status-completed';
 
@@ -185,6 +185,9 @@
     var titleInput = document.getElementById('mdl-lec-thesis-title');
     var newTitle = titleInput ? titleInput.value.trim() : thesis.title;
 
+    var reasonInput = document.getElementById('lec-comment-input');
+    var comment = reasonInput ? reasonInput.value.trim() : '';
+
     showLoading();
     google.script.run
       .withSuccessHandler(function(respStr) {
@@ -198,7 +201,7 @@
             hideLoading();
         }
       })
-      .api_lec_approveThesis(thesis.id, newTitle);
+      .api_lec_approveThesis(thesis.id, newTitle, comment);
   }
 
   window.handleLecBtnComment = function() {
@@ -212,5 +215,33 @@
             document.getElementById('lec-comment-input').focus();
         }
     }
+  }
+
+  window.submitLecComment = function() {
+    var thesis = window.LecState.currentThesisModal;
+    if (!thesis) return;
+
+    var reasonInput = document.getElementById('lec-comment-input');
+    var comment = reasonInput ? reasonInput.value.trim() : '';
+    if (!comment) {
+      showNotification('Vui lòng nhập nội dung nhận xét!', 'error');
+      return;
+    }
+
+    showLoading();
+    google.script.run
+      .withSuccessHandler(function(respStr) {
+        var resp = JSON.parse(respStr);
+        hideLoading();
+        if (resp.success) {
+          showNotification(resp.message, 'success');
+          if (reasonInput) reasonInput.value = '';
+          var sec = document.getElementById('lec-comment-section');
+          if (sec) sec.style.display = 'none';
+        } else {
+          showNotification('Lỗi: ' + resp.error, 'error');
+        }
+      })
+      .api_lec_addComment(thesis.id, comment);
   }
 </script>

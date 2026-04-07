@@ -43,7 +43,7 @@
     var theses = window.HODState.theses;
     
     var total = theses.length;
-    var approved = theses.filter(t => t.status === 'Đã duyệt' || t.status === 'Đã đồng ý' || t.status === 'Hoàn thành' || t.status === 'Đã hoàn thành').length;
+    var approved = theses.filter(t => t.status === 'Đã duyệt' || t.status === 'Đã nộp' || t.status === 'Đang thực hiện' || t.status === 'Đã hoàn thành').length;
     var pending = theses.filter(t => t.status === 'Chờ duyệt').length;
 
     safeSetText('hod-total-theses', formatNumberWithZero(total));
@@ -83,7 +83,7 @@
       var badgeClass = 'status-default';
       if (t.status === 'Chờ duyệt') badgeClass = 'status-pending';
       else if (t.status === 'Đã duyệt' || t.status === 'Đã đồng ý') badgeClass = 'status-approved';
-      else if (t.status === 'Từ chối') badgeClass = 'status-rejected';
+      else if (t.status === 'Từ chối' || t.status === 'GVHD từ chối') badgeClass = 'status-rejected';
       else if (t.status === 'Đang thực hiện') badgeClass = 'status-inprogress';
       else if (t.status === 'Đã hoàn thành' || t.status === 'Hoàn thành') badgeClass = 'status-completed';
 
@@ -199,6 +199,9 @@
     var select = document.getElementById('mdl-thesis-assign-gv');
     var selectedSupervisorId = select ? select.value : '';
 
+    var reasonInput = document.getElementById('hod-comment-input');
+    var comment = reasonInput ? reasonInput.value.trim() : '';
+
     showLoading();
     google.script.run
       .withSuccessHandler(function(respStr) {
@@ -212,7 +215,7 @@
             hideLoading();
         }
       })
-      .api_hod_approveThesis(thesis.id, selectedSupervisorId);
+      .api_hod_approveThesis(thesis.id, selectedSupervisorId, comment);
   }
 
   window.handleBtnComment = function() {
@@ -226,6 +229,34 @@
             document.getElementById('hod-comment-input').focus();
         }
     }
+  }
+
+  window.submitHodComment = function() {
+    var thesis = window.HODState.currentThesisModal;
+    if (!thesis) return;
+
+    var reasonInput = document.getElementById('hod-comment-input');
+    var comment = reasonInput ? reasonInput.value.trim() : '';
+    if (!comment) {
+      showNotification('Vui lòng nhập nội dung nhận xét!', 'error');
+      return;
+    }
+
+    showLoading();
+    google.script.run
+      .withSuccessHandler(function(respStr) {
+        var resp = JSON.parse(respStr);
+        hideLoading();
+        if (resp.success) {
+          showNotification(resp.message, 'success');
+          if (reasonInput) reasonInput.value = '';
+          var sec = document.getElementById('hod-comment-section');
+          if (sec) sec.style.display = 'none';
+        } else {
+          showNotification('Lỗi: ' + resp.error, 'error');
+        }
+      })
+      .api_hod_addComment(thesis.id, comment);
   }
 
   // Utility to be used inside frontend logic
