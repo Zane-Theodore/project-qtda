@@ -164,15 +164,24 @@
 
 
   function getLecturerMenuKey(role, position) {
-    const r = (role || 'LECTURER').toUpperCase();
-    const p = (position || 'lecturer').toLowerCase();
+    const r = (role || 'LECTURER').toString().trim().toUpperCase();
+    const p = (position || '').toString().trim().toLowerCase();
+    
     if (r === 'HOD') return 'hod';
+    
     switch (p) {
+      case 'chủ tịch hội đồng':
       case 'chairman': return 'chairman';
+      case 'thư ký hội đồng':
       case 'secretary': return 'secretary';
+      case 'giảng viên phản biện':
       case 'reviewer': return 'reviewer';
+      case 'thành viên hội đồng':
       case 'member': return 'member';
+      case 'trưởng bộ môn':
       case 'hod': return 'hod';
+      case 'giảng viên hướng dẫn':
+      case 'supervisor': return 'supervisor';
       default: return 'supervisor';
     }
   }

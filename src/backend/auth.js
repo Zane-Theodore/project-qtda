@@ -28,7 +28,8 @@ function verifyLogin(account) {
         );
 
         if (councilMember) {
-            position = mapCouncilRoleToPosition(councilMember.role);
+            var val = councilMember.position || councilMember.Position || councilMember.role || councilMember.Role || "";
+            position = mapCouncilRoleToPosition(val);
         } else {
             position = "supervisor";
         }
