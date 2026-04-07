@@ -5,7 +5,7 @@
    * Khởi tạo và hiển thị hồ sơ giảng viên
    * Tự động gọi từ Router, lấy dữ liệu hồ sơ từ backend và cập nhật UI
    */
-  window.initLecturerProfile = function() {
+  window.initLecturerProfile = function () {
     const currentAccountId = window.currentUserData.id;
     const cacheKey = 'profile_data_' + currentAccountId;
 
@@ -37,7 +37,7 @@
       renderProfile(window.DataCache[cacheKey]);
     } else {
       google.script.run
-        .withSuccessHandler(function(responseString) {
+        .withSuccessHandler(function (responseString) {
           const response = JSON.parse(responseString);
           if (response.success) {
             window.DataCache[cacheKey] = response.data;
@@ -48,7 +48,7 @@
             handleProfileLoadError(errorMsg);
           }
         })
-        .withFailureHandler(function(error) {
+        .withFailureHandler(function (error) {
           alert("Lỗi kết nối máy chủ! Vui lòng kiểm tra lại mạng.");
           handleProfileLoadError('Lỗi kết nối máy chủ');
         })
@@ -69,6 +69,8 @@
         <span class="material-symbols-outlined">check_circle</span>
         <div class="t-content">
           <span class="t-title">${item.content}</span>
+          ${item.type ? `<span class="t-subtitle">${item.type}</span>` : ''}
+          ${item.description ? `<span class="t-desc">${item.description}</span>` : ''}
         </div>
       </div>
     `, 'Chưa có dữ liệu hoạt động.');
