@@ -1,0 +1,74 @@
+// Mở popup khi người dùng nhấn vào nút "Thao tác"
+function openPopup() {
+  document.getElementById('fileUploadPopup').style.display = 'block';
+}
+
+// Đóng popup khi nhấn vào nút đóng
+function closePopup() {
+  document.getElementById('fileUploadPopup').style.display = 'none';
+}
+
+// Xử lý tải file PDF lên Google Drive
+function uploadFile() {
+  const fileInput = document.getElementById('fileInput');
+  const file = fileInput.files[0];
+  if (file && file.type === 'application/pdf') {
+    console.log("File PDF đã được chọn:", file.name);
+    uploadFileToDrive(file);
+  } else {
+    alert("Vui lòng chọn file PDF!");
+  }
+}
+
+// Hàm tải file lên Google Drive
+function uploadFileToDrive(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  fetch('https://script.google.com/macros/s/1GKexscZUd1sEhtDUnArtI4AlGbyKwYZT3QXf-sQ0OU6XyrBe_J0CwTlF/exec', {  // Sử dụng ID script của bạn
+    method: 'POST',
+    body: formData,
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log("Tải lên thành công:", data);
+    alert("File đã được tải lên!");
+    // Lấy link và hiển thị nó hoặc lưu vào database
+  })
+  .catch(error => {
+    console.error("Lỗi tải lên:", error);
+    alert("Có lỗi xảy ra khi tải lên!");
+  });
+}
+
+// Hàm gọi API lấy dữ liệu từ Google Sheets
+function fetchData() {
+  google.script.run
+    .withSuccessHandler(displayData)
+    .getLecturerSummaryData();
+}
+
+// Hiển thị dữ liệu lên bảng
+function displayData(data) {
+  const tableBody = document.querySelector("#summaryTable tbody");
+  tableBody.innerHTML = '';
+  data.forEach((row, index) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${row.studentName}</td>
+      <td>${row.studentCode}</td>
+      <td>${row.thesisTitle}</td>
+      <td>${row.scoreGVHD}</td>
+      <td>${row.scoreGVPB}</td>
+      <td>${row.scoreTVHD1}</td>
+      <td>${row.scoreTVHD2}</td>
+      <td>${row.avgScore}</td>
+      <td><button onclick="openPopup()">Thao tác</button></td>
+    `;
+    tableBody.appendChild(tr);
+  });
+}
+
+// Gọi API để lấy dữ liệu khi trang load
+window.onload = fetchData;
