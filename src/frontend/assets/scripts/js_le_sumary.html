@@ -1,74 +1,299 @@
-// Mở popup khi người dùng nhấn vào nút "Thao tác"
-function openPopup() {
-  document.getElementById('fileUploadPopup').style.display = 'block';
-}
+<script>
+  window.initLecturerSummary = function() {
+    let state = {
+      theses: [],
+      editMode: false,
+      scoresLocked: false,
+      currentPopupThesis: null,
+      selectedFile: null
+    };
 
-// Đóng popup khi nhấn vào nút đóng
-function closePopup() {
-  document.getElementById('fileUploadPopup').style.display = 'none';
-}
+    window.leSummaryState = state;
 
-// Xử lý tải file PDF lên Google Drive
-function uploadFile() {
-  const fileInput = document.getElementById('fileInput');
-  const file = fileInput.files[0];
-  if (file && file.type === 'application/pdf') {
-    console.log("File PDF đã được chọn:", file.name);
-    uploadFileToDrive(file);
-  } else {
-    alert("Vui lòng chọn file PDF!");
+    loadThesisData();
+  };
+
+  function loadThesisData() {
+    const tbody = document.getElementById("thesis-summary-tbody");
+    if(tbody) tbody.innerHTML = '<tr><td colspan="9" style="padding: 20px;">Đang tải dữ liệu...</td></tr>';
+
+    google.script.run
+      .withSuccessHandler(function(response) {
+        if (response.success) {
+          window.leSummaryState.theses = response.data;
+          renderThesisTable(response.data);
+        } else {
+          alert("Lỗi tải dữ liệu: " + response.error);
+          if(tbody) tbody.innerHTML = '<tr><td colspan="9">Lỗi tải dữ liệu</td></tr>';
+        }
+      })
+      .withFailureHandler(function(error) {
+        alert("Lỗi kết nối máy chủ");
+        if(tbody) tbody.innerHTML = '<tr><td colspan="9">Lỗi kết nối máy chủ</td></tr>';
+      })
+      .api_getThesisData();
   }
-}
 
-// Hàm tải file lên Google Drive
-function uploadFileToDrive(file) {
-  const formData = new FormData();
-  formData.append("file", file);
+  function renderThesisTable(data) {
+    const tbody = document.getElementById("thesis-summary-tbody");
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    if (data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9" style="padding: 20px; color: #666;">Chưa có dữ liệu đề tài.</td></tr>';
+      return;
+    }
 
-  fetch('https://script.google.com/macros/s/1GKexscZUd1sEhtDUnArtI4AlGbyKwYZT3QXf-sQ0OU6XyrBe_J0CwTlF/exec', {  // Sử dụng ID script của bạn
-    method: 'POST',
-    body: formData,
-  })
-  .then(response => response.json())
-  .then(data => {
-    console.log("Tải lên thành công:", data);
-    alert("File đã được tải lên!");
-    // Lấy link và hiển thị nó hoặc lưu vào database
-  })
-  .catch(error => {
-    console.error("Lỗi tải lên:", error);
-    alert("Có lỗi xảy ra khi tải lên!");
-  });
-}
+    const { editMode, scoresLocked } = window.leSummaryState;
 
-// Hàm gọi API lấy dữ liệu từ Google Sheets
-function fetchData() {
-  google.script.run
-    .withSuccessHandler(displayData)
-    .getLecturerSummaryData();
-}
+    data.forEach((row, index) => {
+      let tr = document.createElement("tr");
+      let actionBtnState = (editMode && !scoresLocked) ? '' : 'disabled';
+      
+      let avgScoreHtml = row.averageScore !== "--" 
+        ? `<span class="avg-score-badge">${row.averageScore}</span>`
+        : `<span class="avg-score-badge" style="background:#f1f5f9;color:#64748b;">--</span>`;
 
-// Hiển thị dữ liệu lên bảng
-function displayData(data) {
-  const tableBody = document.querySelector("#summaryTable tbody");
-  tableBody.innerHTML = '';
-  data.forEach((row, index) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${index + 1}</td>
-      <td>${row.studentName}</td>
-      <td>${row.studentCode}</td>
-      <td>${row.thesisTitle}</td>
-      <td>${row.scoreGVHD}</td>
-      <td>${row.scoreGVPB}</td>
-      <td>${row.scoreTVHD1}</td>
-      <td>${row.scoreTVHD2}</td>
-      <td>${row.avgScore}</td>
-      <td><button onclick="openPopup()">Thao tác</button></td>
-    `;
-    tableBody.appendChild(tr);
-  });
-}
+      tr.innerHTML = `
+        <td>${(index + 1).toString().padStart(2, '0')}</td>
+        <td class="student-name-col">
+          <span class="student-name">${row.studentName}</span>
+          <span class="student-code">MSSV: ${row.studentCode}</span>
+        </td>
+        <td class="thesis-title-col">${row.thesisTitle || 'Chưa cập nhật'}</td>
+        <td class="score-cell">${row.gvhdScore}</td>
+        <td class="score-cell">${row.gvpbScore}</td>
+        <td class="score-cell">${row.tvhd1Score}</td>
+        <td class="score-cell">${row.tvhd2Score}</td>
+        <td>${avgScoreHtml}</td>
+        <td>
+          <button class="action-btn" title="Upload biên bản" onclick="window.openUploadPopup('${row.thesisId}')" ${actionBtnState}>
+            <span class="material-symbols-outlined">visibility</span>
+          </button>
+        </td>
+      `;
 
-// Gọi API để lấy dữ liệu khi trang load
-window.onload = fetchData;
+      tbody.appendChild(tr);
+    });
+
+    updateBottomButtons();
+  }
+
+  function updateBottomButtons() {
+    const btnEdit = document.getElementById('btn-edit-mode');
+    const btnSave = document.getElementById('btn-save-changes');
+    const btnLock = document.getElementById('btn-lock-scores');
+
+    const state = window.leSummaryState;
+
+    // Reset styles
+    btnSave.classList.remove('saved', 'locked');
+    btnEdit.classList.remove('locked');
+    btnLock.classList.remove('locked');
+    btnLock.innerHTML = '<span class="material-symbols-outlined" style="font-size: 18px;">block</span> Khoá điểm';
+
+    if (state.scoresLocked) {
+      // Locked state: all dim/disabled/locked class
+      btnEdit.disabled = true;
+      btnSave.disabled = true;
+      btnLock.disabled = true;
+      
+      btnEdit.classList.add('locked');
+      btnSave.classList.add('locked');
+      btnLock.classList.add('locked');
+      btnLock.innerHTML = '<span class="material-symbols-outlined" style="font-size: 18px;">lock</span> Đã khoá';
+    } else {
+      btnEdit.disabled = false;
+      btnLock.disabled = false;
+
+      if (state.editMode) {
+        // Edit mode: Save is enabled
+        btnSave.disabled = false;
+      } else {
+        // Not in edit mode
+        btnSave.disabled = true;
+        if (state.savedOnce) {
+          btnSave.classList.add('saved');
+        }
+      }
+    }
+  }
+
+  window.toggleEditMode = function() {
+    const state = window.leSummaryState;
+    if (state.scoresLocked) return;
+    
+    state.editMode = true;
+    state.savedOnce = false;
+    renderThesisTable(state.theses);
+  };
+
+  window.saveScoresChanges = function() {
+    const state = window.leSummaryState;
+    if (state.scoresLocked || !state.editMode) return;
+
+    state.editMode = false;
+    state.savedOnce = true;
+    renderThesisTable(state.theses);
+    
+    setTimeout(() => {
+      alert("Đã lưu thay đổi!");
+    }, 100);
+  };
+
+  window.lockScores = function() {
+    const state = window.leSummaryState;
+    if (state.scoresLocked) return;
+
+    if (confirm("Chắc chắn khoá điểm? Sẽ không thể chỉnh sửa hay upload nữa.")) {
+      state.scoresLocked = true;
+      state.editMode = false;
+      renderThesisTable(state.theses);
+    }
+  };
+
+  // --- POPUP LOGIC ---
+
+  window.openUploadPopup = function(thesisId) {
+    const state = window.leSummaryState;
+    const thesis = state.theses.find(t => t.thesisId === thesisId);
+    if (!thesis) return;
+
+    state.currentPopupThesis = thesis;
+    state.selectedFile = null;
+
+    document.getElementById('popup-thesis-title').textContent = thesis.thesisTitle;
+    document.getElementById('upload-popup-overlay').style.display = 'flex';
+    document.getElementById('selected-file-name').style.display = 'none';
+    document.getElementById('file-input').value = ""; // clear
+    document.getElementById('drop-area').style.display = 'block';
+
+    const receiverNamesEl = document.getElementById('receiver-names');
+    
+    if (thesis.lecturers && thesis.lecturers.length > 0) {
+      let names = thesis.lecturers.map(l => l.fullName).join(" - ");
+      receiverNamesEl.textContent = names;
+    } else {
+      receiverNamesEl.textContent = "Không tìm thấy giảng viên chấm (Chưa có điểm)";
+    }
+  };
+
+  window.closeUploadPopup = function() {
+    document.getElementById('upload-popup-overlay').style.display = 'none';
+    window.leSummaryState.currentPopupThesis = null;
+  };
+
+  window.handleFileSelect = function(event) {
+    let file = event.target.files[0];
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      alert("Chỉ chấp nhận file định dạng PDF!");
+      event.target.value = ""; // clear
+      return;
+    }
+    
+    // Check size 10MB = 10 * 1024 * 1024 bytes
+    if (file.size > 10485760) {
+      alert("File vượt quá dung lượng tối đa 10MB!");
+      event.target.value = "";
+      return;
+    }
+
+    window.leSummaryState.selectedFile = file;
+    
+    document.getElementById('drop-area').style.display = 'none';
+    const nameEl = document.getElementById('selected-file-name');
+    nameEl.style.display = 'block';
+    nameEl.textContent = `Đã chọn: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+  };
+
+  // Drag and drop events
+  const dropArea = document.getElementById('drop-area');
+  
+  if (dropArea) {
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      dropArea.addEventListener(eventName, preventDefaults, false);
+    });
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropArea.addEventListener(eventName, () => dropArea.classList.add('drag-over'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropArea.addEventListener(eventName, () => dropArea.classList.remove('drag-over'), false);
+    });
+
+    dropArea.addEventListener('drop', (e) => {
+      let dt = e.dataTransfer;
+      let files = dt.files;
+      const fileInput = document.getElementById('file-input');
+      fileInput.files = files; // Assign files to input
+      
+      // Trigger change event
+      const event = new Event('change', { bubbles: true });
+      fileInput.dispatchEvent(event);
+    }, false);
+  }
+
+  function preventDefaults (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  window.submitUploadFile = function() {
+    const state = window.leSummaryState;
+    const file = state.selectedFile;
+    const thesis = state.currentPopupThesis;
+    const receiverIds = thesis?.lecturers ? thesis.lecturers.map(l => l.id) : [];
+    const thesisId = thesis?.thesisId;
+
+    if (!file) {
+      alert("Vui lòng tải lên một file PDF!");
+      return;
+    }
+
+    if (receiverIds.length === 0) {
+      if(!confirm("Đề tài này hiện chưa có giảng viên chấm điểm nào. Bạn có muốn tiếp tục gửi file không?")) {
+        return;
+      }
+    }
+
+    const btnSubmit = document.getElementById('btn-submit-upload');
+    const oriText = btnSubmit.innerHTML;
+    btnSubmit.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px;border-top-color:#fff;"></div> Đang tải lên...';
+    btnSubmit.disabled = true;
+
+    // Read file as bytes to send to Google Apps Script
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const bytes = new Int8Array(e.target.result);
+      const fileData = {
+        name: file.name,
+        mimeType: file.type,
+        bytes: Object.values(bytes) 
+      };
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          btnSubmit.innerHTML = oriText;
+          btnSubmit.disabled = false;
+          
+          if (response.success) {
+            alert("File đã được tải lên thành công!");
+            closeUploadPopup();
+          } else {
+            alert("Lỗi khi tải file: " + response.error);
+          }
+        })
+        .withFailureHandler(function(error) {
+          btnSubmit.innerHTML = oriText;
+          btnSubmit.disabled = false;
+          alert("Lỗi kết nối máy chủ khi upload!");
+        })
+        .api_uploadFileToDrive(fileData, thesisId, receiverIds);
+    };
+    reader.readAsArrayBuffer(file);
+  };
+</script>
