@@ -30,21 +30,39 @@ function api_st_getLecturers() {
         // 2. QUERY - Lấy tất cả Lecturer
         var allLecturers = db_getAll(CONFIG.TABLES.LECTURER);
 
+        // EXTRA: Lấy CouncilMember để lọc ra những ai là Thư ký hoặc Chủ tịch hội đồng
+        var allCouncilMembers = db_getAll(CONFIG.TABLES.COUNCIL_MEMBER);
+        var excludedLecturerIds = {};
+        
+        allCouncilMembers.forEach(function (cm) {
+            var pos = String(cm.position || cm.Position || cm.role || cm.Role || "").trim().toLowerCase();
+            if (pos === "chủ tịch hội đồng" || pos === "thư ký hội đồng" || pos === "chairman" || pos === "secretary") {
+                if (cm.lecturerId) {
+                    excludedLecturerIds[String(cm.lecturerId)] = true;
+                }
+            }
+        });
+
         // 3. Tạo Hash Map cho Lecturer theo accountId → O(1) lookup
         var lecturerMap = {};
         allLecturers.forEach(function (lec) {
-            lecturerMap[lec.accountId] = lec;
+            if (!excludedLecturerIds[String(lec.id)]) {
+                lecturerMap[lec.accountId] = lec;
+            }
         });
 
         // 4. COMBINE - Kết hợp dữ liệu Account + Lecturer
-        var result = lecturerAccounts.map(function (acc) {
+        var result = [];
+        lecturerAccounts.forEach(function (acc) {
             var lecInfo = lecturerMap[acc.id];
-            return {
-                lecturerId: lecInfo ? lecInfo.id : "",
-                lecturerCode: lecInfo ? lecInfo.lecturerCode : "",
-                fullName: acc.fullName || "Chưa cập nhật",
-                email: acc.email || ""
-            };
+            if (lecInfo) {
+                result.push({
+                    lecturerId: lecInfo.id,
+                    lecturerCode: lecInfo.lecturerCode,
+                    fullName: acc.fullName || "Chưa cập nhật",
+                    email: acc.email || ""
+                });
+            }
         });
 
         // 5. RETURN
