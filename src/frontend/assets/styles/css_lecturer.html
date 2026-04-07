@@ -210,20 +210,29 @@
   }
 
   .teaching-item {
-    background: #f8fafc;
+    background: #f5f5f7;
     border-radius: 16px;
-    padding: 16px 20px;
+    padding: 18px 22px;
     display: flex;
     align-items: center;
     gap: 15px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid #f0f0f5;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+
+  .teaching-item:hover {
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.10);
+    transform: translateY(-2px);
   }
 
   .teaching-item .material-symbols-outlined {
-    color: #0F57D0;
-    background: #e8f0fe;
+    color: #fff;
+    background: #4f46e5;
     border-radius: 50%;
-    padding: 2px;
+    padding: 5px;
     font-size: 20px;
+    flex-shrink: 0;
   }
 
   .teaching-item .t-content {
@@ -233,8 +242,15 @@
 
   .teaching-item .t-title {
     color: #1e293b;
-    font-weight: bold;
+    font-weight: 700;
     font-size: 15px;
+  }
+
+  .teaching-item .t-subtitle {
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 500;
+    margin-top: 4px;
   }
 
   /* Timeline Thành tựu */

@@ -2,8 +2,8 @@
 
 var CONFIG = {
   // ID của file Google Sheets, sửa lại khi có sheet mới
-  DB_ID: '1XGziAyboD4BHpS_ifcxrMkj43_iRkVT-BCDxYthoMGI', 
-  
+  DB_ID: '1XGziAyboD4BHpS_ifcxrMkj43_iRkVT-BCDxYthoMGI',
+
   // Tên các Tab (Bảng) trong DB
   TABLES: {
     ACCOUNT: 'Account',
@@ -20,4 +20,4 @@ var CONFIG = {
     EVALUATION_RECORD: 'EvaluationRecord',
     DEFENSE_ROOM: 'DefenseRoom',
   }
-};
+}
