@@ -17,7 +17,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
     margin-bottom: 25px;
   }
 
@@ -95,7 +95,7 @@
     background: #fff;
     border-radius: 20px;
     padding: 25px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
   }
 
   .profile-container .card-title {
@@ -137,7 +137,9 @@
     color: #2d3748;
     font-weight: 600;
     text-align: right;
-    max-width: 65%;
+    max-width: 80%;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
   }
 
   /* --- CỘT 3: HERO CARD GPA & THỰC TẬP --- */
@@ -177,7 +179,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   }
 
   .profile-container .intern-info h4 {
@@ -212,10 +214,28 @@
   }
 
   @media (max-width: 900px) {
-    .profile-grid { grid-template-columns: 1fr; }
-    .profile-header-card { flex-direction: column; text-align: center; gap: 20px; }
-    .header-left { flex-direction: column; }
-    .info-row { flex-direction: column; align-items: flex-start; gap: 5px; }
-    .info-value { text-align: left; }
+    .profile-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .profile-header-card {
+      flex-direction: column;
+      text-align: center;
+      gap: 20px;
+    }
+
+    .header-left {
+      flex-direction: column;
+    }
+
+    .info-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 5px;
+    }
+
+    .info-value {
+      text-align: left;
+    }
   }
 </style>
