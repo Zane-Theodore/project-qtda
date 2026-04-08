@@ -28,9 +28,10 @@
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 10100;
+    z-index: 99999 !important;
     align-items: center;
     justify-content: center;
+    pointer-events: auto !important;
   }
 
   .modal:not(.hidden) {
@@ -39,6 +40,25 @@
 
   .modal.hidden {
     display: none;
+  }
+
+  .modal.force-visible {
+    display: flex !important;
+    z-index: 2147483647 !important; /* Maximum z-index value */
+    pointer-events: auto !important;
+  }
+
+  .modal.force-visible .modal-dialog {
+    z-index: 2147483647 !important;
+    pointer-events: auto !important;
+  }
+
+  .modal.force-visible .modal-overlay,
+  .modal.force-visible .modal-body,
+  .modal.force-visible .modal-footer,
+  .modal.force-visible .btn,
+  .modal.force-visible .modal-close-btn {
+    pointer-events: auto !important;
   }
 
   /* Modal Overlay (Semi-transparent background) */
@@ -50,6 +70,8 @@
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.5);
     cursor: pointer;
+    z-index: 1 !important;
+    pointer-events: auto !important;
   }
 
   /* Modal Dialog Box */
@@ -63,6 +85,8 @@
     max-height: 80vh;
     overflow: auto;
     animation: modalSlideIn 0.3s ease-out;
+    pointer-events: auto !important;
+    z-index: 100000 !important;
   }
 
   @keyframes modalSlideIn {
@@ -105,6 +129,7 @@
     align-items: center;
     justify-content: center;
     transition: color 0.2s;
+    pointer-events: auto !important;
   }
 
   .modal-close-btn:hover {
@@ -116,6 +141,7 @@
     padding: 20px;
     color: #555;
     line-height: 1.6;
+    pointer-events: auto !important;
   }
 
   .modal-body p {
@@ -130,6 +156,7 @@
     padding: 20px;
     border-top: 1px solid #e8e8e8;
     background-color: #f8f9fa;
+    pointer-events: auto !important;
   }
 
   /* Button Styles */
@@ -141,6 +168,7 @@
     font-size: 14px;
     font-weight: 500;
     transition: all 0.2s;
+    pointer-events: auto !important;
   }
 
   .btn-secondary {
@@ -179,6 +207,9 @@
    */
   function showConfirmationModal(title, message, options = {}) {
     return new Promise((resolve) => {
+      // Đảm bảo không có modal nào khác đang mở
+      closeAllOtherModals();
+
       const modal = document.getElementById('confirmation-modal');
       const titleEl = document.getElementById('modal-title');
       const messageEl = document.getElementById('modal-message');
@@ -201,9 +232,95 @@
 
       // Show modal
       modal.classList.remove('hidden');
+      modal.classList.add('force-visible'); // Force visibility with maximum priority
+      modal.style.display = 'flex'; // Đảm bảo hiển thị
+      modal.style.zIndex = '2147483647'; // Maximum z-index
+      modal.style.pointerEvents = 'auto'; // Đảm bảo nhận click events
+
+      // Force pointer-events cho các element con
+      const modalDialog = modal.querySelector('.modal-dialog');
+      if (modalDialog) {
+        modalDialog.style.pointerEvents = 'auto';
+        modalDialog.style.zIndex = '2147483647';
+      }
+
+      // Force show after a short delay to ensure no conflicts
+      setTimeout(() => {
+        modal.style.display = 'flex';
+        modal.style.zIndex = '2147483647';
+        modal.style.pointerEvents = 'auto';
+        modal.classList.remove('hidden');
+        modal.classList.add('force-visible');
+
+        if (modalDialog) {
+          modalDialog.style.pointerEvents = 'auto';
+          modalDialog.style.zIndex = '2147483647';
+        }
+
+        // Force all buttons to be clickable
+        const buttons = modal.querySelectorAll('button');
+        buttons.forEach(btn => {
+          btn.style.pointerEvents = 'auto';
+          btn.style.zIndex = '2147483647';
+        });
+      }, 10);
 
       // Close modal when clicking overlay
       overlay.onclick = () => closeConfirmationModal(false);
+    });
+  }
+
+  /**
+   * Đóng tất cả modal khác trước khi hiển thị confirmation modal
+   */
+  function closeAllOtherModals() {
+    // Đóng user dropdown
+    const userDropdown = document.getElementById('userDropdown');
+    if (userDropdown) {
+      userDropdown.classList.add('hidden');
+    }
+
+    // Đóng upload modal trong thesis progress
+    const uploadModal = document.getElementById('uploadModal');
+    if (uploadModal) {
+      uploadModal.classList.remove('active');
+      uploadModal.style.display = 'none';
+    }
+
+    // Đóng bbhd overlay
+    const bbhdOverlay = document.getElementById('bbhd-overlay');
+    if (bbhdOverlay) {
+      bbhdOverlay.style.display = 'none';
+    }
+
+    // Đóng các modal cụ thể trong lecturer views
+    const modalIds = [
+      'modal-add-task',
+      'modal-feedback', 
+      'modal-approve-final',
+      'modal-lec-thesis-detail',
+      'modal-thesis-detail'
+    ];
+
+    modalIds.forEach(id => {
+      const modal = document.getElementById(id);
+      if (modal) {
+        modal.style.display = 'none';
+      }
+    });
+
+    // Đóng các hod modal
+    const hodModals = document.querySelectorAll('.hod-modal-overlay');
+    hodModals.forEach(modal => {
+      modal.style.display = 'none';
+    });
+
+    // Đóng các modal khác có thể có
+    const allModals = document.querySelectorAll('.modal-overlay');
+    allModals.forEach(modal => {
+      if (!modal.closest('#confirmation-modal')) {
+        modal.style.display = 'none';
+      }
     });
   }
 
@@ -214,7 +331,45 @@
   function closeConfirmationModal(result = false) {
     const modal = document.getElementById('confirmation-modal');
     modal.classList.add('hidden');
-    
+    modal.classList.remove('force-visible'); // Remove force visibility
+    modal.style.display = 'none'; // Đảm bảo ẩn
+    modal.style.zIndex = ''; // Reset z-index
+    modal.style.pointerEvents = ''; // Reset pointer-events
+
+    // Reset pointer-events cho modal-dialog
+    const modalDialog = modal.querySelector('.modal-dialog');
+    if (modalDialog) {
+      modalDialog.style.pointerEvents = '';
+      modalDialog.style.zIndex = '';
+    }
+
+    // Reset buttons
+    const buttons = modal.querySelectorAll('button');
+    buttons.forEach(btn => {
+      btn.style.pointerEvents = '';
+      btn.style.zIndex = '';
+    });
+
+    // Force hide after a short delay
+    setTimeout(() => {
+      modal.classList.add('hidden');
+      modal.classList.remove('force-visible');
+      modal.style.display = 'none';
+      modal.style.zIndex = '';
+      modal.style.pointerEvents = '';
+
+      if (modalDialog) {
+        modalDialog.style.pointerEvents = '';
+        modalDialog.style.zIndex = '';
+      }
+
+      // Reset buttons again
+      buttons.forEach(btn => {
+        btn.style.pointerEvents = '';
+        btn.style.zIndex = '';
+      });
+    }, 10);
+
     if (_modalCallback) {
       _modalCallback(result);
       _modalCallback = null;
