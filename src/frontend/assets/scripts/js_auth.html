@@ -32,7 +32,7 @@
     }
 
     if (!isValid) {
-      return; 
+      return;
     }
 
     emailError.style.display = 'none';
@@ -49,7 +49,7 @@
     };
 
     google.script.run
-      .withSuccessHandler(function(response) {
+      .withSuccessHandler(function (response) {
 
         btnSubmit.innerHTML = 'ĐĂNG NHẬP';
         btnSubmit.disabled = false;
@@ -59,33 +59,43 @@
           const header = document.querySelector('.layout-header');
           const appContent = document.getElementById('app-content');
 
-          if(sidebar) sidebar.style.display = '';
-          if(header) header.style.display = '';
-          if(appContent) appContent.style.width = '100%';
+          if (sidebar) sidebar.style.display = '';
+          if (header) header.style.display = '';
+          if (appContent) appContent.style.width = '100%';
 
           window.currentUserData = response.userData || {};
-          window.currentUserData.role = (window.currentUserData.role || '').toString().toUpperCase()
+          window.currentUserData.role = (window.currentUserData.role || '').toString().toUpperCase();
 
-          console.log('Login successful - role:', window.currentUserData.role);
+          console.log('Login successful - role:', window.currentUserData.role, '| positions:', window.currentUserData.positions);
 
-          safeSetText('side-user-name', window.currentUserData.fullName);
-          safeSetText('side-user-email', window.currentUserData.email)
+          if (typeof safeSetText === 'function') {
+            safeSetText('side-user-name', window.currentUserData.fullName);
+            safeSetText('side-user-email', window.currentUserData.email);
 
-          updateAvatarFromName(window.currentUserData.fullName, 'profile-avatar-text');
+            // Cập nhật ở Dropdown Header luôn (nếu có)
+            safeSetText('dropdown-user-name', window.currentUserData.fullName);
+            safeSetText('dropdown-user-email', window.currentUserData.email);
+          }
+
+          if (typeof updateAvatarFromName === 'function') {
+            updateAvatarFromName(window.currentUserData.fullName, 'profile-avatar-text');
+            updateAvatarFromName(window.currentUserData.fullName, 'avatarText'); // Cho Dropdown Avatar
+          }
 
           // Cập nhật tooltip (tiêu đề khi trỏ chuột vào avatar)
           const avatarBtn = document.getElementById('userAvatarBtn');
-          if(avatarBtn) {
+          if (avatarBtn) {
             avatarBtn.title = response.userData.fullName + ' (' + response.userData.email + ')';
           }
 
           loadMenuByRole(response.userData.role);
-          
-          if(appContent) appContent.innerHTML = '';
-          
+
+          if (appContent) appContent.innerHTML = '';
+
           const role = window.currentUserData.role;
 
-          if (['LECTURER', 'HOD', 'SECRETARY', 'CHAIRMAN'].includes(role)) {
+          // Chỉ kiểm tra LECTURER và HOD
+          if (['LECTURER', 'HOD'].includes(role)) {
             navigate('frontend/views/lecturer/view_lecturer_profile', 'initLecturerProfile');
           } else {
             navigate('frontend/views/student/view_student_profile', 'initStudentProfile');
@@ -93,12 +103,12 @@
 
         } else {
           alert(response.message);
-          
+
           document.getElementById('login-password').value = '';
           document.getElementById('login-password').focus();
         }
       })
-      .withFailureHandler(function(error) {
+      .withFailureHandler(function (error) {
         btnSubmit.innerHTML = 'ĐĂNG NHẬP';
         btnSubmit.disabled = false;
         alert("Lỗi kết nối đến máy chủ. Vui lòng thử lại!");
@@ -124,10 +134,18 @@
 
   /**
    * Xử lý quá trình đăng xuất khỏi hệ thống.
+   * Sử dụng Confirmation Modal (Async/Await).
    */
-  function handleLogout() {
-    if (!confirm("Bạn có chắc muốn đăng xuất?")) {
-      return;
+  async function handleLogout() {
+    if (typeof showConfirmationModal === 'function') {
+      const result = await showConfirmationModal(
+        'Xác nhận đăng xuất',
+        'Bạn có chắc chắn muốn đăng xuất?',
+        { confirmText: 'Đăng xuất' }
+      );
+      if (!result) return;
+    } else {
+      if (!confirm("Bạn có chắc muốn đăng xuất?")) return;
     }
 
     window.currentUserData = null;
@@ -136,10 +154,14 @@
     const header = document.querySelector('.layout-header');
     const appContent = document.getElementById('app-content');
 
-    if(sidebar) sidebar.style.display = 'none';
-    if(header) header.style.display = 'none';
-    if(appContent) appContent.innerHTML = '';
-    
+    // Đóng dropdown nếu đang mở
+    const dropdown = document.getElementById('userDropdown');
+    if (dropdown) dropdown.classList.add('hidden');
+
+    if (sidebar) sidebar.style.display = 'none';
+    if (header) header.style.display = 'none';
+    if (appContent) appContent.innerHTML = '';
+
     navigate('frontend/views/auth/view_login');
   }
 
@@ -152,56 +174,103 @@
     const header = document.querySelector('.layout-header');
     const appContent = document.getElementById('app-content');
 
-    if(sidebar) sidebar.style.display = 'none';
-    if(header) header.style.display = 'none';
-    if(appContent) appContent.innerHTML = '';
+    if (sidebar) sidebar.style.display = 'none';
+    if (header) header.style.display = 'none';
+    if (appContent) appContent.innerHTML = '';
 
     navigate('frontend/views/auth/view_login');
   }
 
   window.addEventListener('load', initializePage);
 
-
+  function updateActiveMenu(actionId) {
+    const buttons = document.querySelectorAll('#lecturer-menu-list .menu-btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
+    const activeBtn = document.getElementById('menu-btn-' + actionId);
+    if (activeBtn) activeBtn.classList.add('active');
+  }
 
   /**
-   * Render menu cho lecturer
+   * Render menu cho lecturer bằng cách gộp tất cả quyền từ mảng positions
    */
   function renderLecturerMenu() {
-  const menuList = document.getElementById('lecturer-menu-list');
-  if (!menuList) return;
+    const menuList = document.getElementById('lecturer-menu-list');
+    if (!menuList) return;
 
-  const role = (window.currentUserData?.role || 'LECTURER').toLowerCase();
+    const role = window.currentUserData?.role;
+    const positions = window.currentUserData?.positions || []; // Mảng positions
 
-  const menuItems = window.LecturerRoleMenu[role] || window.LecturerRoleMenu.default;
+    console.log('✅ Rendering menu for Role:', role, '| Positions:', positions);
 
-  console.log('✅ Render menu for role:', role);
+    let combinedMenuItems = [];
 
-  menuList.innerHTML = menuItems.map(item => `
-    <li>
-      <button class="menu-btn" onclick="handleLecturerAction('${item.id}')">
-        <span class="material-symbols-outlined">${item.icon}</span>
-        <span>${item.label}</span>
-      </button>
-    </li>
-  `).join('');
-}
+    // Hàm phụ trợ đẩy item vào mảng (nếu chưa bị trùng ID)
+    const addMenuItems = (key) => {
+      const items = window.LecturerRoleMenu[key];
+      if (items) {
+        items.forEach(newItem => {
+          if (!combinedMenuItems.find(existingItem => existingItem.id === newItem.id)) {
+            combinedMenuItems.push(newItem);
+          }
+        });
+      }
+    };
+
+    // Nạp Menu theo Role & Positions
+    if (role === 'HOD') addMenuItems('hod');
+
+    if (positions.includes('chairman')) addMenuItems('chairman');
+    if (positions.includes('secretary')) addMenuItems('secretary');
+
+    // Cả supervisor và reviewer đều dùng menu council_member
+    // Chúng được phân biệt qua supervisorId/reviewerId trong bảng Thesis
+    if (positions.includes('supervisor') || positions.includes('reviewer')) {
+      addMenuItems('council_member');
+    }
+
+    // Menu cơ bản cho lecturer (nếu không có position đặc biệt)
+    if (role === 'LECTURER' && combinedMenuItems.length === 0) {
+      addMenuItems('lecturer');
+    }
+
+    // Mặc định an toàn
+    if (combinedMenuItems.length === 0) {
+      addMenuItems('default');
+    }
+
+    window._renderedLecturerMenuItems = combinedMenuItems;
+
+    menuList.innerHTML = combinedMenuItems.map(item => `
+      <li>
+        <button id="menu-btn-${item.id}" class="menu-btn" onclick="handleLecturerAction('${item.id}')">
+          <span class="material-symbols-outlined">${item.icon}</span>
+          <span>${item.label}</span>
+        </button>
+      </li>
+    `).join('');
+  }
 
   /**
-   * Xử lý các action của lecturer menu
+   * Xử lý các action của lecturer menu bằng cách quét toàn bộ cấu hình
    */
   function handleLecturerAction(actionId) {
-  const role = (window.currentUserData?.role || 'LECTURER').toLowerCase();
+    console.log('📌 Action triggered:', actionId);
 
-  const menuItem = window.LecturerRoleMenu[role]?.find(m => m.id === actionId);
+    let foundAction = null;
+    if (window._renderedLecturerMenuItems) {
+      const item = window._renderedLecturerMenuItems.find(m => m.id === actionId);
+      if (item && item.action) {
+        foundAction = item.action;
+      }
+    }
 
-  console.log('📌 Action:', actionId, 'role:', role);
-
-  if (menuItem && menuItem.action) {
-    menuItem.action();
-  } else {
-    console.warn('❌ Action not found:', actionId);
+    if (foundAction) {
+      updateActiveMenu(actionId);
+      foundAction();
+    } else {
+      console.warn('❌ Action not found for id:', actionId);
+    }
   }
-}
 
   /**
    * Tải và nhúng động (inject) các nút Menu vào Sidebar dựa trên chức vụ.
@@ -213,7 +282,9 @@
 
     const normalizedRole = (role || '').toString().toUpperCase();
     let fileName = '';
-    if (['LECTURER', 'HOD', 'SECRETARY', 'CHAIRMAN'].includes(normalizedRole)) {
+
+    // Chỉ cần check 2 role
+    if (['LECTURER', 'HOD'].includes(normalizedRole)) {
       fileName = 'frontend/components/sidebars/sidebar_lecturer';
     } else {
       fileName = 'frontend/components/sidebars/sidebar_student';
@@ -240,14 +311,13 @@
       while (tempDiv.firstChild) {
         fragment.appendChild(tempDiv.firstChild);
       }
-      
+
       menuContainer.innerHTML = '';
       menuContainer.appendChild(fragment);
-      
+
       // Render lecturer menu
-      if (['LECTURER', 'HOD', 'SECRETARY', 'CHAIRMAN'].includes(normalizedRole) && window.currentUserData) {
+      if (['LECTURER', 'HOD'].includes(normalizedRole) && window.currentUserData) {
         setTimeout(() => {
-          console.log('🔍 Checking LecturerRoleMenu availability:', typeof window.LecturerRoleMenu);
           if (typeof window.LecturerRoleMenu !== 'undefined') {
             renderLecturerMenu();
           } else {
@@ -255,7 +325,7 @@
           }
         }, 100);
       }
-      return; 
+      return;
     }
 
     menuContainer.innerHTML = `
@@ -265,13 +335,13 @@
     `;
 
     google.script.run
-      .withSuccessHandler(function(htmlContent) {
+      .withSuccessHandler(function (htmlContent) {
         window.ViewCache[fileName] = htmlContent;
 
         const fragment = document.createDocumentFragment();
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = htmlContent;
-        
+
         // Execute scripts in the loaded HTML
         const scripts = tempDiv.querySelectorAll('script');
         scripts.forEach(script => {
@@ -284,18 +354,17 @@
             }
           }
         });
-        
+
         while (tempDiv.firstChild) {
           fragment.appendChild(tempDiv.firstChild);
         }
-        
+
         menuContainer.innerHTML = '';
         menuContainer.appendChild(fragment);
-        
+
         // Render lecturer menu
-        if (['LECTURER', 'HOD', 'SECRETARY', 'CHAIRMAN'].includes(normalizedRole) && window.currentUserData) {
+        if (['LECTURER', 'HOD'].includes(normalizedRole) && window.currentUserData) {
           setTimeout(() => {
-            console.log('🔍 Checking LecturerRoleMenu availability from server:', typeof window.LecturerRoleMenu);
             if (typeof window.LecturerRoleMenu !== 'undefined') {
               renderLecturerMenu();
             } else {
@@ -304,7 +373,7 @@
           }, 100);
         }
       })
-      .withFailureHandler(function(error) {
+      .withFailureHandler(function (error) {
         menuContainer.innerHTML = '<div style="color: #e74c3c; text-align: center; padding: 20px;">Lỗi kết nối máy chủ!</div>';
       })
       .api_loadView(fileName);

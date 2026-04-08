@@ -1,0 +1,236 @@
+<script>
+  window.HodListState = {
+    rows: [],
+    currentPage: 1,
+    pageSize: 10,
+    modalThesisId: null,
+    modalFileUrls: { bckltn: null, bbhd: null }
+  };
+
+  function hodListBadgeClass(status) {
+    if (status === "ĐÃ DUYỆT") return "status-badge status-approved";
+    if (status === "CHỜ DUYỆT") return "status-badge status-pending";
+    if (status === "TỪ CHỐI") return "status-badge status-rejected";
+    return "status-badge status-default";
+  }
+
+  window.initHodThesisList = function () {
+    var tbody = document.getElementById("hod-list-tbody");
+    if (tbody) {
+      tbody.innerHTML = "<tr><td colspan=\"5\" style=\"text-align:center;padding:24px;\">Đang tải…</td></tr>";
+    }
+
+    google.script.run
+      .withSuccessHandler(function (responseStr) {
+        var resp = JSON.parse(responseStr);
+        if (!resp.success) {
+          if (tbody) {
+            tbody.innerHTML = "<tr><td colspan=\"5\" style=\"text-align:center;color:#c5221f;\">" +
+              (resp.error || "Lỗi tải dữ liệu") + "</td></tr>";
+          }
+          return;
+        }
+        window.HodListState.rows = resp.data || [];
+        window.HodListState.currentPage = 1;
+        hodListRenderTable();
+      })
+      .withFailureHandler(function (err) {
+        if (tbody) {
+          tbody.innerHTML = "<tr><td colspan=\"5\" style=\"text-align:center;color:#c5221f;\">Lỗi kết nối</td></tr>";
+        }
+        console.error(err);
+      })
+      .api_hod_getThesisListForReview();
+  };
+
+  function hodListRenderTable() {
+    var tbody = document.getElementById("hod-list-tbody");
+    var info = document.getElementById("hod-list-pagination-info");
+    var btns = document.getElementById("hod-list-pagination-buttons");
+    if (!tbody) return;
+
+    var list = window.HodListState.rows;
+    var pageSize = window.HodListState.pageSize;
+    var page = window.HodListState.currentPage;
+    var total = list.length;
+    var totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+    if (page > totalPages) {
+      window.HodListState.currentPage = totalPages;
+      page = totalPages;
+    }
+
+    var start = (page - 1) * pageSize;
+    var slice = list.slice(start, start + pageSize);
+
+    if (slice.length === 0) {
+      tbody.innerHTML = "<tr><td colspan=\"5\" style=\"text-align:center;padding:24px;\">Chưa có đề tài</td></tr>";
+    } else {
+      tbody.innerHTML = slice.map(function (row, i) {
+        var stt = start + i + 1;
+        var sttStr = stt < 10 ? "0" + stt : String(stt);
+        var titleEsc = hodListEscapeHtml(row.title || "");
+        var nameEsc = hodListEscapeHtml(row.studentName || "");
+        var codeEsc = hodListEscapeHtml(row.studentCode || "");
+        var tid = hodListEscapeHtml(String(row.thesisId));
+
+        return (
+          "<tr class=\"hod-list-row\" data-thesis-id=\"" + tid + "\" style=\"cursor:pointer;\">" +
+          "<td class=\"hod-list-stt\">" + sttStr + "</td>" +
+          "<td class=\"hod-list-info-cell\">" +
+          "<div class=\"hod-list-thesis-title\">" + titleEsc + "</div>" +
+          "<div class=\"hod-list-thesis-meta\">" +
+          "<span class=\"material-symbols-outlined hod-list-meta-ic\">person</span> " + nameEsc +
+          " &nbsp;·&nbsp; <span class=\"material-symbols-outlined hod-list-meta-ic\">badge</span> MSSV: " + codeEsc +
+          "</div></td>" +
+          "<td class=\"hod-list-score\">" + hodListEscapeHtml(row.avgScoreDisplay || "--") + "</td>" +
+          "<td><span class=\"" + hodListBadgeClass(row.bbhdStatus) + "\">" + hodListEscapeHtml(row.bbhdStatus) + "</span></td>" +
+          "<td><span class=\"" + hodListBadgeClass(row.bckltnStatus) + "\">" + hodListEscapeHtml(row.bckltnStatus) + "</span></td>" +
+          "</tr>"
+        );
+      }).join("");
+
+      var rows = tbody.querySelectorAll("tr.hod-list-row");
+      for (var r = 0; r < rows.length; r++) {
+        rows[r].addEventListener("click", function () {
+          var id = this.getAttribute("data-thesis-id");
+          if (id) hodListOpenModal(id);
+        });
+      }
+    }
+
+    var startIdx = total === 0 ? 0 : start + 1;
+    var endIdx = total === 0 ? 0 : Math.min(start + slice.length, total);
+    if (info) {
+      info.textContent = "Hiển thị " + startIdx + " – " + endIdx + " trong số " + total + " đề tài";
+    }
+
+    if (btns) {
+      var html = "<button type=\"button\" class=\"page-btn\" " +
+        (page <= 1 ? "disabled" : "") + " onclick=\"hodListGoPage(" + (page - 1) + ")\">‹</button>";
+      for (var p = 1; p <= totalPages; p++) {
+        var act = p === page ? " active" : "";
+        html += "<button type=\"button\" class=\"page-btn" + act + "\" onclick=\"hodListGoPage(" + p + ")\">" + p + "</button>";
+      }
+      html += "<button type=\"button\" class=\"page-btn\" " +
+        (page >= totalPages ? "disabled" : "") + " onclick=\"hodListGoPage(" + (page + 1) + ")\">›</button>";
+      btns.innerHTML = html;
+    }
+  }
+
+  window.hodListGoPage = function (p) {
+    var total = window.HodListState.rows.length;
+    var totalPages = Math.max(1, Math.ceil(total / window.HodListState.pageSize));
+    if (p < 1 || p > totalPages) return;
+    window.HodListState.currentPage = p;
+    hodListRenderTable();
+  };
+
+  function hodListEscapeHtml(s) {
+    if (!s) return "";
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function hodListFindRow(thesisId) {
+    var rows = window.HodListState.rows;
+    for (var i = 0; i < rows.length; i++) {
+      if (String(rows[i].thesisId) === String(thesisId)) return rows[i];
+    }
+    return null;
+  }
+
+  window.hodListOpenModal = function (thesisId) {
+    var row = hodListFindRow(thesisId);
+    if (!row) return;
+
+    window.HodListState.modalThesisId = thesisId;
+
+    var elTitle = document.getElementById("hod-list-mdl-title");
+    var elName = document.getElementById("hod-list-mdl-student-name");
+    var elCode = document.getElementById("hod-list-mdl-student-code");
+    var elSup = document.getElementById("hod-list-mdl-supervisor");
+    var elCouncil = document.getElementById("hod-list-mdl-council");
+    var elBck = document.getElementById("hod-list-mdl-file-bckltn");
+    var elBb = document.getElementById("hod-list-mdl-file-bbhd");
+    var btnAp = document.getElementById("hod-list-btn-approve-bbhd");
+
+    if (elTitle) elTitle.textContent = row.title || "—";
+    if (elName) elName.textContent = row.studentName || "—";
+    if (elCode) elCode.textContent = row.studentCode || "—";
+    if (elSup) elSup.textContent = row.supervisorName || "—";
+    if (elCouncil) elCouncil.textContent = row.councilName || "—";
+
+    var bckUrl = row.finalSubmissionPdfFile && String(row.finalSubmissionPdfFile).trim();
+    if (elBck) elBck.textContent = bckUrl ? bckUrl : "Chưa có";
+
+    var bbUrl = row.evaluationPdfFile && String(row.evaluationPdfFile).trim();
+    if (elBb) elBb.textContent = bbUrl ? bbUrl : "Chưa có";
+
+    // Lưu URL vào state để nút tải sử dụng
+    window.HodListState.modalFileUrls = { bckltn: bckUrl || null, bbhd: bbUrl || null };
+
+    // Bật/tắt nút tải xuống
+    var btnDlBck = document.getElementById("hod-list-btn-dl-bckltn");
+    var btnDlBb = document.getElementById("hod-list-btn-dl-bbhd");
+    if (btnDlBck) btnDlBck.disabled = !bckUrl;
+    if (btnDlBb) btnDlBb.disabled = !bbUrl;
+
+    if (btnAp) {
+      btnAp.disabled = !row.hasEvaluationRecord;
+    }
+
+    var overlay = document.getElementById("hod-list-detail-modal");
+    if (overlay) overlay.style.display = "flex";
+  };
+
+  window.hodListCloseModal = function () {
+    window.HodListState.modalThesisId = null;
+    window.HodListState.modalFileUrls = { bckltn: null, bbhd: null };
+    var overlay = document.getElementById("hod-list-detail-modal");
+    if (overlay) overlay.style.display = "none";
+  };
+
+  window.hodListModalBackdrop = function (ev) {
+    if (ev.target && ev.target.id === "hod-list-detail-modal") {
+      hodListCloseModal();
+    }
+  };
+
+  window.hodListDownloadFile = function (fileKey) {
+    var url = window.HodListState.modalFileUrls[fileKey];
+    if (!url) return;
+    window.open(url, "_blank");
+  };
+
+  window.hodListApproveBbhd = function () {
+    var thesisId = window.HodListState.modalThesisId;
+    if (!thesisId) return;
+
+    var sender = window.currentUserData && window.currentUserData.id;
+
+    var btn = document.getElementById("hod-list-btn-approve-bbhd");
+    if (btn) btn.disabled = true;
+
+    google.script.run
+      .withSuccessHandler(function (responseStr) {
+        var resp = JSON.parse(responseStr);
+        if (resp.success) {
+          showNotification(resp.message || "Đã duyệt biên bản.", "success");
+          hodListCloseModal();
+          window.initHodThesisList();
+        } else {
+          showNotification(resp.error || "Lỗi", "error");
+          if (btn) btn.disabled = false;
+        }
+      })
+      .withFailureHandler(function () {
+        showNotification("Lỗi kết nối máy chủ.", "error");
+        if (btn) btn.disabled = false;
+      })
+      .api_hod_approveEvaluationMinutes(thesisId, sender);
+  };
+</script>

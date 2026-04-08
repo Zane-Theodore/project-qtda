@@ -1,18 +1,22 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Project Apps Script</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet" />
-  
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+    rel="stylesheet" />
+
   <?!= include('frontend/assets/styles/css_global'); ?>
   <?!= include('frontend/assets/styles/css_layout'); ?>
   <?!= include('frontend/assets/styles/css_login'); ?>
   <?!= include('frontend/assets/styles/css_student'); ?>
   <?!= include('frontend/assets/styles/css_lecturer'); ?>
+  <?!= include('frontend/assets/styles/css_student_result'); ?>
 </head>
+
 <body>
 
   <div class="app-layout">
@@ -22,7 +26,7 @@
     </aside>
 
     <div class="layout-right-column">
-      
+
       <header class="layout-header">
         <?!= include('frontend/components/header'); ?>
       </header>
@@ -36,6 +40,9 @@
     </div>
 
   </div>
+
+  <!-- Confirmation Modal Component (Reusable) -->
+  <?!= include('frontend/components/modal_confirmation'); ?>
 
   <template id="preload-sidebar-student">
     <?!= api_loadView('frontend/components/sidebars/sidebar_student') ?>
@@ -52,15 +59,15 @@
       lecturer: false
     };
 
-    requestAnimationFrame(function() {
+    requestAnimationFrame(function () {
       const studentTemplate = document.getElementById('preload-sidebar-student');
       const lecturerTemplate = document.getElementById('preload-sidebar-lecturer');
-      
+
       if (studentTemplate) {
         window.ViewCache['frontend/components/sidebars/sidebar_student'] = studentTemplate.innerHTML;
         window.SidebarReady.student = true;
       }
-      
+
       if (lecturerTemplate) {
         window.ViewCache['frontend/components/sidebars/sidebar_lecturer'] = lecturerTemplate.innerHTML;
         window.SidebarReady.lecturer = true;
@@ -71,8 +78,17 @@
   <?!= include('frontend/assets/scripts/js_utils'); ?>
   <?!= include('frontend/assets/scripts/js_router'); ?>
   <?!= include('frontend/assets/scripts/js_auth'); ?>
+  <?!= include('frontend/assets/scripts/js_notification'); ?>
   <?!= include('frontend/assets/scripts/js_student'); ?>
   <?!= include('frontend/assets/scripts/js_lecturer'); ?>
+  <?!= include('frontend/assets/scripts/js_chairman_thesis_list'); ?>
+  <?!= include('frontend/assets/scripts/js_thesis_registration'); ?>
+  <?!= include('frontend/assets/scripts/js_student_result'); ?>
+  <?!= include('frontend/assets/scripts/js_hod_approve'); ?>
+  <?!= include('frontend/assets/scripts/js_hod_thesis_list'); ?>
+  <?!= include('frontend/assets/scripts/js_hod_council_assignment'); ?>
+  <?!= include('frontend/assets/scripts/js_lec_approve'); ?>
 
 </body>
+
 </html>

@@ -17,7 +17,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
     margin-bottom: 25px;
   }
 
@@ -34,7 +34,7 @@
     border-radius: 50%;
     background-color: #e8f0fe;
     color: #0F57D0;
-    font-size: 36px;
+    font-size: 38px;
     font-weight: bold;
     display: flex;
     align-items: center;
@@ -50,7 +50,7 @@
     color: #0F57D0;
     padding: 5px 12px;
     border-radius: 20px;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: bold;
     display: inline-block;
     margin-bottom: 8px;
@@ -58,14 +58,14 @@
 
   .profile-container .header-info h1 {
     margin: 0 0 5px 0;
-    font-size: 26px;
+    font-size: 28px;
     color: #1a202c;
   }
 
   .profile-container .header-info p {
     margin: 0;
     color: #718096;
-    font-size: 15px;
+    font-size: 17px;
   }
 
   .profile-container .btn-update {
@@ -95,14 +95,14 @@
     background: #fff;
     border-radius: 20px;
     padding: 25px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
   }
 
   .profile-container .card-title {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 18px;
+    font-size: 20px;
     color: #1a202c;
     margin-bottom: 25px;
     font-weight: bold;
@@ -121,7 +121,7 @@
     justify-content: space-between;
     padding: 12px 0;
     border-bottom: 1px solid #edf2f7;
-    font-size: 14px;
+    font-size: 16px;
   }
 
   .profile-container .info-row:last-child {
@@ -137,7 +137,9 @@
     color: #2d3748;
     font-weight: 600;
     text-align: right;
-    max-width: 65%;
+    max-width: 80%;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
   }
 
   /* --- CỘT 3: HERO CARD GPA & THỰC TẬP --- */
@@ -151,7 +153,7 @@
   }
 
   .profile-container .gpa-title {
-    font-size: 13px;
+    font-size: 15px;
     text-transform: uppercase;
     letter-spacing: 1px;
     opacity: 0.9;
@@ -159,13 +161,13 @@
   }
 
   .profile-container .gpa-score {
-    font-size: 48px;
+    font-size: 50px;
     font-weight: bold;
     margin: 0;
   }
 
   .profile-container .gpa-max {
-    font-size: 20px;
+    font-size: 22px;
     opacity: 0.8;
   }
 
@@ -177,19 +179,19 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   }
 
   .profile-container .intern-info h4 {
     margin: 0 0 5px 0;
     color: #1a202c;
-    font-size: 15px;
+    font-size: 17px;
   }
 
   .profile-container .intern-info p {
     margin: 0;
     color: #718096;
-    font-size: 13px;
+    font-size: 15px;
   }
 
   .profile-container .intern-score {
@@ -198,7 +200,7 @@
     padding: 6px 12px;
     border-radius: 8px;
     font-weight: bold;
-    font-size: 16px;
+    font-size: 18px;
   }
 
   /* --- LOADING STATE --- */
@@ -212,10 +214,28 @@
   }
 
   @media (max-width: 900px) {
-    .profile-grid { grid-template-columns: 1fr; }
-    .profile-header-card { flex-direction: column; text-align: center; gap: 20px; }
-    .header-left { flex-direction: column; }
-    .info-row { flex-direction: column; align-items: flex-start; gap: 5px; }
-    .info-value { text-align: left; }
+    .profile-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .profile-header-card {
+      flex-direction: column;
+      text-align: center;
+      gap: 20px;
+    }
+
+    .header-left {
+      flex-direction: column;
+    }
+
+    .info-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 5px;
+    }
+
+    .info-value {
+      text-align: left;
+    }
   }
 </style>

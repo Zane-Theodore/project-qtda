@@ -3,7 +3,7 @@
 function doGet(e) {
   return HtmlService.createTemplateFromFile('frontend/layout')
       .evaluate()
-      .setTitle('Hệ thống Quản lý')
+      .setTitle('Project QTDA')
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 
