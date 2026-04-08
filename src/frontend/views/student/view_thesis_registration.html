@@ -1,0 +1,542 @@
+<div class="thesis-reg-container">
+
+  <div id="thesis-reg-loading">
+    <?!= include('frontend/components/loading_spinner'); ?>
+  </div>
+
+  <div id="thesis-reg-content" style="display: none;">
+
+    <div class="thesis-reg-header">
+      <h2>Đăng ký đề tài KLTN</h2>
+    </div>
+
+    <!-- KHU VỰC THÔNG TIN CHUNG (TRẠNG THÁI & NIÊN KHÓA) -->
+    <div class="thesis-info-grid">
+
+      <!-- TRẠNG THÁI -->
+      <div class="thesis-status-card" id="thesis-status-card">
+        <div class="status-icon" id="thesis-status-icon">
+          <span class="material-symbols-outlined" style="color: #e74c3c;">error</span>
+        </div>
+        <div class="status-content">
+          <h3>Trạng thái đăng ký</h3>
+          <p id="thesis-status-text">Sinh viên chưa đăng ký đề tài KLTN</p>
+          <span class="status-note">*Hệ thống mở đăng ký từ 15/05 đến 30/06</span>
+        </div>
+      </div>
+
+      <!-- NIÊN KHÓA -->
+      <div class="thesis-cohort-card">
+        <div class="cohort-content">
+          <div class="cohort-label">NIÊN KHÓA</div>
+          <div class="cohort-value" id="thesis-cohort-value">K23</div>
+          <div class="cohort-semester">Học kỳ 2, Năm học 2023-2024</div>
+        </div>
+        <div class="cohort-icon">
+          <span class="material-symbols-outlined" style="font-size: 80px; opacity: 0.2; color: white;">school</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- KHU VỰC FORM (HIỂN THỊ KHI CHƯA ĐĂNG KÝ) -->
+    <div class="thesis-form-section" id="thesis-form-section">
+      <div class="form-header">
+        <span class="material-symbols-outlined" style="margin-right: 8px;">subject</span>
+        Thông tin chi tiết đề tài
+      </div>
+
+      <div class="form-body">
+
+        <div class="form-group">
+          <label>TÊN ĐỀ TÀI</label>
+          <input type="text" id="thesis-input-title" placeholder="Nhập tên đề tài khóa luận của bạn..." />
+        </div>
+
+        <div class="form-group">
+          <label>MÔ TẢ ĐỀ TÀI</label>
+          <textarea id="thesis-input-description" placeholder="Thêm mô tả" rows="3"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>HÌNH THỨC</label>
+          <select id="thesis-input-format">
+            <option value="">Vui lòng chọn hình thức KLTN...</option>
+            <option value="Phát triển ứng dụng">Phát triển ứng dụng</option>
+            <option value="Nghiên cứu khoa học">Nghiên cứu khoa học</option>
+            <option value="Thiết kế hệ thống">Thiết kế hệ thống</option>
+            <option value="Khởi nghiệp">Khởi nghiệp</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>GVHD</label>
+          <select id="thesis-input-supervisor">
+            <option value="">Vui lòng chọn GVHD</option>
+            <!-- Sẽ được điền bằng JS -->
+          </select>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" onclick="handleThesisCancel()">Hủy bỏ</button>
+          <button type="button" class="btn-submit" id="btn-thesis-submit" onclick="handleThesisSubmit()">Đăng
+            ký</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- KHU VỰC THÔNG TIN ĐÃ ĐĂNG KÝ (HIỂN THỊ KHI ĐÃ ĐĂNG KÝ) -->
+    <div id="thesis-registered-section" style="display: none;">
+
+      <!-- Thẻ Thông tin đồ án -->
+      <div class="registered-hero-card">
+
+        <div class="registered-hero-top">
+          <div class="badge-semester">
+            <span class="material-symbols-outlined" style="font-size: 16px;">auto_awesome</span>
+            <span id="thesis-view-cohort">NĂM HỌC 2023-2024</span>
+          </div>
+          <div class="badge-status-pill badge-pending" id="thesis-view-status">
+            <span class="material-symbols-outlined" style="font-size: 16px;">pending_actions</span>
+            <span>Đang chờ phê duyệt</span>
+          </div>
+        </div>
+
+        <h2 class="registered-title" id="thesis-view-title">Dự án khởi nghiệp vòng tay tâm linh</h2>
+
+        <div class="registered-metadata">
+          <div class="meta-item">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: #4285F4;">person</span>
+            <span>GVHD: <strong id="thesis-view-supervisor">--</strong></span>
+          </div>
+          <div class="meta-item">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: #4285F4;">category</span>
+            <span>Loại: <strong id="thesis-view-format">--</strong></span>
+          </div>
+        </div>
+
+        <div class="hero-bg-icon">
+          <span class="material-symbols-outlined">school</span>
+        </div>
+      </div>
+
+      <!-- Thẻ Hướng dẫn -->
+      <div class="registered-info-card" id="thesis-info-card">
+        <div class="info-icon" id="thesis-info-icon">
+          <span class="material-symbols-outlined">info</span>
+        </div>
+        <div class="info-content">
+          <h3 id="thesis-info-title">Hướng dẫn phê duyệt</h3>
+          <p id="thesis-view-description">Đề tài của bạn đang được Bộ môn xem xét. Kết quả sẽ được cập nhật trong vòng
+            3-5 ngày làm việc. Vui lòng thường xuyên kiểm tra thông báo từ hệ thống.</p>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<style>
+  /* Style riêng cho trang Đăng ký KLTN */
+  .thesis-reg-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px 40px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  #thesis-reg-loading {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+  }
+
+  /* Header */
+  .thesis-reg-header h2 {
+    font-size: 24px;
+    color: #1a202c;
+    margin: 0 0 20px 0;
+    display: inline-block;
+    padding: 10px 25px;
+    background-color: #4267b2;
+    color: white;
+    border-radius: 4px;
+    position: relative;
+  }
+
+  .thesis-reg-header h2::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: -20px;
+    border-width: 24px 0 24px 20px;
+    border-style: solid;
+    border-color: transparent transparent transparent #4267b2;
+  }
+
+
+  /* Grid: Status & Cohort */
+  .thesis-info-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 25px;
+    margin-bottom: 30px;
+  }
+
+  /* Status Card */
+  .thesis-status-card {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 25px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+  }
+
+  .thesis-status-card .status-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #fceceb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .thesis-status-card .status-content h3 {
+    margin: 0 0 5px 0;
+    font-size: 18px;
+    color: #2d3748;
+  }
+
+  .thesis-status-card .status-content p {
+    margin: 0 0 5px 0;
+    font-size: 15px;
+    color: #e74c3c;
+    font-weight: 500;
+  }
+
+  .thesis-status-card .status-content .status-note {
+    font-size: 13px;
+    color: #718096;
+  }
+
+  /* Cohort Card */
+  .thesis-cohort-card {
+    background: #4285F4;
+    border-radius: 12px;
+    padding: 25px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(66, 133, 244, 0.2);
+  }
+
+  .cohort-content {
+    position: relative;
+    z-index: 2;
+  }
+
+  .cohort-label {
+    font-size: 12px;
+    opacity: 0.8;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+  }
+
+  .cohort-value {
+    font-size: 26px;
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
+
+  .cohort-semester {
+    font-size: 13px;
+    opacity: 0.9;
+  }
+
+  .cohort-icon {
+    position: absolute;
+    right: -10px;
+    bottom: -20px;
+    z-index: 1;
+  }
+
+  /* Form Section */
+  .thesis-form-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+  }
+
+  .form-header {
+    background: #4267b2;
+    color: white;
+    padding: 15px 25px;
+    font-size: 16px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+  }
+
+  .form-body {
+    padding: 30px;
+  }
+
+  .form-group {
+    display: flex;
+    margin-bottom: 25px;
+    align-items: flex-start;
+  }
+
+  .form-group label {
+    width: 200px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #4a5568;
+    padding-top: 12px;
+  }
+
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    flex: 1;
+    padding: 12px 15px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 15px;
+    color: #2d3748;
+    transition: all 0.2s;
+    background: #f8fafc;
+    font-family: inherit;
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus,
+  .form-group select:focus {
+    outline: none;
+    border-color: #4285F4;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #edf2f7;
+  }
+
+  .btn-cancel {
+    background: transparent;
+    border: none;
+    color: #0F57D0;
+    font-weight: 600;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .btn-cancel:hover {
+    background: #f8f9fa;
+  }
+
+  .btn-submit {
+    background: #4285F4;
+    color: white;
+    border: none;
+    font-weight: 600;
+    padding: 12px 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(66, 133, 244, 0.2);
+  }
+
+  .btn-submit:hover {
+    background: #3367d6;
+  }
+
+  .btn-submit:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  /* Premium Registered View Styles */
+  .registered-hero-card {
+    background: #f0f4f8;
+    /* Xanh pastel nhẹ theo chuẩn image */
+    border-radius: 16px;
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 25px;
+  }
+
+  .registered-hero-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .badge-semester {
+    background: #e2e8f0;
+    color: #0F57D0;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .badge-status-pill {
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .badge-pending {
+    background: #fff3cd;
+    color: #b7791f;
+  }
+
+  .badge-approved {
+    background: #d4edda;
+    color: #27ae60;
+  }
+
+  .badge-rejected {
+    background: #fceceb;
+    color: #e74c3c;
+  }
+
+  .registered-title {
+    font-size: 32px;
+    font-weight: 800;
+    color: #2d3748;
+    margin: 0 0 25px 0;
+    position: relative;
+    z-index: 2;
+    line-height: 1.3;
+  }
+
+  .registered-metadata {
+    display: flex;
+    gap: 30px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    color: #4a5568;
+  }
+
+  .meta-item strong {
+    color: #2d3748;
+  }
+
+  .hero-bg-icon {
+    position: absolute;
+    right: -20px;
+    bottom: -40px;
+    z-index: 1;
+  }
+
+  .hero-bg-icon .material-symbols-outlined {
+    font-size: 250px;
+    color: #e2e8f0;
+    opacity: 0.4;
+  }
+
+  .registered-info-card {
+    background: #f8f9fa;
+    border-radius: 16px;
+    padding: 30px;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+
+  .registered-info-card .info-icon {
+    background: white;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    flex-shrink: 0;
+  }
+
+  .registered-info-card .info-icon .material-symbols-outlined {
+    color: inherit;
+  }
+
+  .registered-info-card.info-pending {
+    background: #f8f9fa;
+    border-left: 4px solid #0F57D0;
+  }
+
+  .registered-info-card.info-pending .info-icon {
+    color: #0F57D0;
+  }
+
+  .registered-info-card.info-approved {
+    background: #f0fdf4;
+    border-left: 4px solid #22c55e;
+  }
+
+  .registered-info-card.info-approved .info-icon {
+    color: #22c55e;
+  }
+
+  .registered-info-card.info-rejected {
+    background: #fef2f2;
+    border-left: 4px solid #ef4444;
+  }
+
+  .registered-info-card.info-rejected .info-icon {
+    color: #ef4444;
+  }
+
+  .info-content h3 {
+    margin: 0 0 10px 0;
+    font-size: 18px;
+    color: #2d3748;
+  }
+
+  .info-content p {
+    margin: 0;
+    font-size: 15px;
+    color: #718096;
+    line-height: 1.6;
+  }
+</style>

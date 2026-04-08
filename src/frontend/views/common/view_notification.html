@@ -1,0 +1,583 @@
+<div class="notification-page">
+
+  <div class="notification-page__header">
+    <div class="notification-page__title-box">
+      <h2>Thông báo</h2>
+    </div>
+
+    <div class="notification-page__tab-row">
+      <div id="tab-notif-general" class="notification-page__tab active" onclick="switchNotificationTab('general')">Thông báo chung</div>
+    </div>
+
+    <div class="notification-page__divider"></div>
+  </div>
+
+  <div id="notification-loading" class="notification-loading">
+    <?!= include('frontend/components/loading_spinner'); ?>
+  </div>
+
+  <div id="notification-content" class="notification-content" style="display:none;">
+    <div id="notification-list-general" class="notification-list"></div>
+  </div>
+
+</div>
+
+<!-- ====== POPUP DUYỆT BIÊN BẢN HỘI ĐỒNG ====== -->
+<div id="bbhd-overlay" class="bbhd-overlay" style="display:none;" onclick="closeBBHDPopup()">
+  <div class="bbhd-popup" onclick="event.stopPropagation()">
+    <!-- Header -->
+    <div class="bbhd-popup__header">
+      <h3 class="bbhd-popup__title">DUYỆT BIÊN BẢN HỘI ĐỒNG (BBHĐ)</h3>
+      <button class="bbhd-popup__close-x" onclick="closeBBHDPopup()" title="Đóng">&times;</button>
+    </div>
+
+    <!-- Table -->
+    <div class="bbhd-popup__body">
+      <table class="bbhd-table">
+        <thead>
+          <tr>
+            <th style="width:50px">STT</th>
+            <th style="width:26%">TÊN ĐỀ TÀI</th>
+            <th style="width:16%">SINH VIÊN THỰC HIỆN</th>
+            <th style="width:18%">FILE BBHĐ</th>
+            <th style="width:16%">TRẠNG THÁI</th>
+            <th style="width:10%">HÀNH ĐỘNG</th>
+          </tr>
+        </thead>
+        <tbody id="bbhd-table-body">
+          <!-- Rows sẽ được render bằng JS -->
+        </tbody>
+      </table>
+      <div id="bbhd-empty" class="bbhd-empty" style="display:none;">Không có biên bản nào cần duyệt.</div>
+    </div>
+
+    <!-- Footer -->
+    <div class="bbhd-popup__footer">
+      <button class="bbhd-btn bbhd-btn--close" onclick="closeBBHDPopup()">Đóng</button>
+      <button class="bbhd-btn bbhd-btn--approve" onclick="approveAllBBHD()">
+        <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle">check</span>
+        DUYỆT TẤT CẢ
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .notification-page {
+    padding: 24px 36px 32px;
+    background: #f3f4f6;
+    min-height: 100%;
+    box-sizing: border-box;
+  }
+
+  .notification-page__header {
+    margin-bottom: 20px;
+  }
+
+  .notification-page__title-box {
+    display: inline-flex;
+    align-items: center;
+    background: #395bb2;
+    padding: 12px 32px;
+    position: relative;
+    margin-bottom: 20px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+  }
+
+  .notification-page__title-box::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 100%;
+    height: 100%;
+    width: 28px;
+    background: #e2e2e2;
+    clip-path: polygon(0 0, 0 100%, 100% 100%);
+  }
+
+  .notification-page__title-box h2 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.5px;
+  }
+
+  .notification-page__tab-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 12px;
+  }
+
+  .notification-page__tab {
+    display: inline-block;
+    color: #6b7280;
+    font-size: 18px;
+    font-weight: 700;
+    padding-bottom: 6px;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .notification-page__tab:hover {
+    color: #d94b43;
+  }
+
+  .notification-page__tab.active {
+    color: #d94b43;
+    border-bottom: 3px solid #d94b43;
+  }
+
+  .notification-page__divider {
+    width: 100%;
+    height: 1px;
+    background: #c9ccd3;
+  }
+
+  .notification-loading {
+    min-height: 160px;
+  }
+
+  .notification-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .notification-card {
+    border-radius: 12px;
+    padding: 20px 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    background: #ffffff;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+    border-left: 4px solid transparent;
+  }
+
+  .notification-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  .notification-card.unread {
+    border-left: 4px solid #d94b43;
+    background: #ffffff;
+  }
+
+  .notification-card.read {
+    border-left: 4px solid #cbd5e1;
+    background: #f8fafc;
+  }
+
+  .notification-card__title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .notification-card__dot {
+    width: 10px;
+    height: 10px;
+    min-width: 10px;
+    border-radius: 50%;
+    background: #d94b43;
+    display: inline-block;
+  }
+
+  .notification-card.read .notification-card__dot {
+    visibility: hidden;
+  }
+
+  .notification-card__title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.4;
+  }
+
+  .notification-card__meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin: 0 0 12px 22px;
+    color: #64748b;
+    font-size: 14px;
+  }
+
+  .notification-card__meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .notification-card__meta svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    flex-shrink: 0;
+  }
+
+  .notification-card__content {
+    margin: 0 0 0 22px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #475569;
+  }
+
+  .notification-empty {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 40px 20px;
+    text-align: center;
+    color: #94a3b8;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    font-size: 16px;
+  }
+
+  @media (max-width: 768px) {
+    .notification-page {
+      padding: 16px 12px 24px;
+    }
+
+    .notification-page__title-box {
+      padding: 8px 32px;
+    }
+
+    .notification-page__title-box h2 {
+      font-size: 20px;
+    }
+
+    .notification-page__tab {
+      font-size: 16px;
+    }
+
+    .notification-card {
+      padding: 16px;
+    }
+
+    .notification-card__meta,
+    .notification-card__content {
+      margin-left: 0;
+    }
+    
+    .notification-card__title-row {
+      margin-left: -5px;
+    }
+  }
+
+  /* ====== BBHD POPUP STYLES ====== */
+  .bbhd-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15, 23, 42, 0.6);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: bbhd-fadeIn 0.25s ease;
+  }
+
+  @keyframes bbhd-fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .bbhd-popup {
+    background: #f9fafb;
+    border-radius: 16px;
+    width: 92%;
+    max-width: 920px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: bbhd-slideUp 0.3s ease;
+  }
+
+  @keyframes bbhd-slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .bbhd-popup__header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2a4a7f 100%);
+    padding: 18px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .bbhd-popup__title {
+    margin: 0;
+    color: #ffffff;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .bbhd-popup__close-x {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 26px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 4px;
+    transition: color 0.2s;
+  }
+
+  .bbhd-popup__close-x:hover {
+    color: #ffffff;
+  }
+
+  .bbhd-popup__body {
+    padding: 16px 20px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .bbhd-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .bbhd-table thead th {
+    background: #eef1f6;
+    color: #1e3a5f;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 12px 10px;
+    text-align: left;
+    border-bottom: 2px solid #d1d5db;
+  }
+
+  .bbhd-table tbody tr {
+    border-bottom: 1px solid #e5e7eb;
+    transition: background 0.15s;
+  }
+
+  .bbhd-table tbody tr:hover {
+    background: #f1f5f9;
+  }
+
+  .bbhd-table tbody td {
+    padding: 14px 10px;
+    vertical-align: middle;
+    color: #334155;
+    line-height: 1.5;
+  }
+
+  .bbhd-table .bbhd-stt {
+    text-align: center;
+    font-weight: 700;
+    color: #64748b;
+  }
+
+  .bbhd-topic-title {
+    font-weight: 600;
+    color: #1e3a5f;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .bbhd-student-name {
+    font-weight: 600;
+    color: #334155;
+  }
+
+  .bbhd-student-mssv {
+    font-size: 13px;
+    color: #94a3b8;
+    display: block;
+    margin-top: 2px;
+  }
+
+  /* File link badge */
+  .bbhd-file-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #fce7f3;
+    color: #be185d;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .bbhd-file-link:hover {
+    background: #fbd5e8;
+  }
+
+  .bbhd-file-link svg {
+    width: 14px;
+    height: 14px;
+    fill: #be185d;
+    flex-shrink: 0;
+  }
+
+  .bbhd-file-none {
+    color: #94a3b8;
+    font-size: 13px;
+    font-style: italic;
+  }
+
+  /* Status select */
+  .bbhd-status-select {
+    padding: 6px 10px;
+    border-radius: 20px;
+    border: 2px solid #d1d5db;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s;
+    appearance: auto;
+    min-width: 120px;
+  }
+
+  .bbhd-status-select.status-cho-duyet {
+    background: #fef3c7;
+    color: #92400e;
+    border-color: #fbbf24;
+  }
+
+  .bbhd-status-select.status-dong-y {
+    background: #d1fae5;
+    color: #065f46;
+    border-color: #34d399;
+  }
+
+  .bbhd-status-select.status-tu-choi {
+    background: #fee2e2;
+    color: #991b1b;
+    border-color: #f87171;
+  }
+
+  /* Action buttons */
+  .bbhd-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .bbhd-action-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #e2e8f0;
+    color: #475569;
+  }
+
+  .bbhd-action-btn:hover {
+    background: #cbd5e1;
+    transform: scale(1.1);
+  }
+
+  .bbhd-action-btn svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+  }
+
+  /* Footer */
+  .bbhd-popup__footer {
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    border-top: 1px solid #e5e7eb;
+    background: #ffffff;
+  }
+
+  .bbhd-btn {
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+
+  .bbhd-btn--close {
+    background: #e2e8f0;
+    color: #475569;
+  }
+
+  .bbhd-btn--close:hover {
+    background: #cbd5e1;
+  }
+
+  .bbhd-btn--approve {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2a4a7f 100%);
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .bbhd-btn--approve:hover {
+    background: linear-gradient(135deg, #162d4a 0%, #1e3a5f 100%);
+    box-shadow: 0 4px 12px rgba(30, 58, 95, 0.3);
+  }
+
+  .bbhd-empty {
+    text-align: center;
+    padding: 40px;
+    color: #94a3b8;
+    font-size: 15px;
+  }
+
+  @media (max-width: 768px) {
+    .bbhd-popup {
+      width: 98%;
+      max-height: 90vh;
+      border-radius: 12px;
+    }
+
+    .bbhd-popup__header {
+      padding: 14px 16px;
+    }
+
+    .bbhd-popup__title {
+      font-size: 15px;
+    }
+
+    .bbhd-popup__body {
+      padding: 10px 8px;
+    }
+
+    .bbhd-table {
+      font-size: 12px;
+    }
+
+    .bbhd-popup__footer {
+      padding: 10px 16px;
+    }
+  }
+</style>

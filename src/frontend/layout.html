@@ -14,6 +14,7 @@
   <?!= include('frontend/assets/styles/css_login'); ?>
   <?!= include('frontend/assets/styles/css_student'); ?>
   <?!= include('frontend/assets/styles/css_lecturer'); ?>
+  <?!= include('frontend/assets/styles/css_student_result'); ?>
 </head>
 
 <body>
@@ -39,6 +40,9 @@
     </div>
 
   </div>
+
+  <!-- Confirmation Modal Component (Reusable) -->
+  <?!= include('frontend/components/modal_confirmation'); ?>
 
   <template id="preload-sidebar-student">
     <?!= api_loadView('frontend/components/sidebars/sidebar_student') ?>
@@ -77,6 +81,11 @@
   <?!= include('frontend/assets/scripts/js_student'); ?>
   <?!= include('frontend/assets/scripts/js_lecturer'); ?>
   <?!= include('frontend/assets/scripts/js_chairman_thesis_list'); ?>
+  <?!= include('frontend/assets/scripts/js_thesis_registration'); ?>
+  <?!= include('frontend/assets/scripts/js_student_result'); ?>
+  <?!= include('frontend/assets/scripts/js_notification'); ?>
+  <?!= include('frontend/assets/scripts/js_hod_approve'); ?>
+  <?!= include('frontend/assets/scripts/js_lec_approve'); ?>
 
 </body>
 

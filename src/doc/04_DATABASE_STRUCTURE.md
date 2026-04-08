@@ -168,6 +168,26 @@ Enrollment.classId → Class.classId
 
 ---
 
+### Bổ sung: Submission (duyệt BCKLTN trên Sheet)
+
+Ngoài các cột schema chuẩn (`id`, `thesisId`, `title`, `pdfFile`, `submissionType`, `submittedAt`), tab **Submission** cần có thêm (nếu dùng màn Danh sách HOD):
+
+| Cột | Mô tả |
+|-----|--------|
+| presidentApproved | TRUE / FALSE / để trống |
+| headOfDeptApproved | TRUE / FALSE / để trống |
+
+Bản ghi **cuối kỳ** được nhận diện bằng `submissionType` = `Final` hoặc `CuoiKy` (không phân biệt hoa thường). Trạng thái cột **Duyệt BCKLTN** trên UI được tính trong `api_hod_getThesisListForReview` ([le_api.js](../backend/lecturer/le_api.js)).
+
+### EvaluationRecord & màn Danh sách HOD
+
+- **Duyệt BBHĐ** trên UI dựa trên `pdfFile`, `presidentApproved`, `headOfDeptApproved` của `EvaluationRecord` (theo `thesisId`).
+- **Điểm**: trung bình `scoreValue` trong bảng `Score` theo `thesisId`.
+- API: `api_hod_getThesisListForReview`, `api_hod_approveEvaluationMinutes` (set `headOfDeptApproved` = TRUE).
+- View: `frontend/views/lecturer/view_hod_thesis_list.html`, init `initHodThesisList`, script `js_hod_thesis_list.html`.
+
+---
+
 ## 🛠️ Database Helper Functions
 
 File: `src/backend/db.js`

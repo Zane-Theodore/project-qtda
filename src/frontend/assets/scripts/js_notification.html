@@ -1,0 +1,275 @@
+<script>
+  // Khởi tạo vùng nhớ đệm dữ liệu (Data Cache)
+  window.DataCache = window.DataCache || {};
+  window.currentNotifications = [];
+  
+  // Lưu tạm ID của thông báo BBHĐ đang mở để xử lý xóa Cache khi cần
+  window.currentBBHDNotifId = null; 
+
+  function initNotification() {
+    console.log("initNotification called");
+    loadNotifications();
+  }
+
+  function loadNotifications() {
+    const accountId = window.currentUserData.id;
+    const cacheKey = 'notifications_data_' + accountId;
+
+    const listContainer = document.getElementById('notification-list-general');
+    const loading = document.getElementById('notification-loading');
+    const content = document.getElementById('notification-content');
+    
+    if (!listContainer || !loading || !content) return;
+
+    loading.style.display = 'block';
+    content.style.display = 'none';
+
+    // 1. KIỂM TRA CACHE TRƯỚC
+    if (window.DataCache[cacheKey]) {
+      console.log("⚡ Đã tải Thông báo từ Cache");
+      window.currentNotifications = window.DataCache[cacheKey];
+      renderNotifications();
+      
+      loading.style.display = 'none';
+      content.style.display = 'block';
+      return; // Kết thúc, không gọi Server
+    }
+
+    // 2. NẾU KHÔNG CÓ CACHE -> GỌI SERVER
+    console.log("⏳ Đang lấy Thông báo từ Server...");
+    google.script.run
+      .withSuccessHandler(function(responseStr) {
+        try {
+          const response = JSON.parse(responseStr);
+          if (response.success) {
+            window.currentNotifications = response.data;
+            
+            // LƯU VÀO CACHE CHO CÁC LẦN MỞ SAU
+            window.DataCache[cacheKey] = response.data; 
+            
+            renderNotifications();
+          } else {
+            console.error('Error loading notifications:', response.error);
+            listContainer.innerHTML = '<div class="notification-empty">Lỗi tải thông báo: ' + response.error + '</div>';
+          }
+        } catch(e) {
+          console.error(e);
+        }
+        loading.style.display = 'none';
+        content.style.display = 'block';
+      })
+      .withFailureHandler(function(err) {
+        console.error(err);
+        loading.style.display = 'none';
+        content.style.display = 'block';
+        listContainer.innerHTML = '<div class="notification-empty">Lỗi kết nối máy chủ</div>';
+      })
+      .api_co_getMyNotifications(accountId);
+  }
+
+  function renderNotifications() {
+    const listContainer = document.getElementById('notification-list-general');
+    const notifs = window.currentNotifications;
+    
+    if (!notifs || notifs.length === 0) {
+       listContainer.innerHTML = '<div class="notification-empty">Bạn chưa có thông báo nào</div>';
+       return;
+    }
+    
+    let html = '';
+    notifs.forEach(function(item) {
+       const readClass = item.isRead ? 'read' : 'unread';
+       const dateStr = item.createdAt ? new Date(item.createdAt).toLocaleDateString('vi-VN') : '';
+       
+       html += `
+         <div class="notification-card ${readClass}" onclick="handleNotificationClick('${item.id}', '${item.type}')">
+           <div class="notification-card__title-row">
+             <span class="notification-card__dot"></span>
+             <h4 class="notification-card__title">${item.title}</h4>
+           </div>
+           <div class="notification-card__meta">
+             <span class="notification-card__meta-item">Người gửi: ${item.senderDisplay}</span>
+             <span class="notification-card__meta-item">Ngày: ${dateStr}</span>
+           </div>
+           <div class="notification-card__content">${item.content}</div>
+         </div>
+       `;
+    });
+    
+    listContainer.innerHTML = html;
+  }
+  
+  function handleNotificationClick(id, type) {
+     const notif = window.currentNotifications.find(function(n) { return String(n.id) === String(id); });
+     
+     // Xử lý chuyển trạng thái "Đã đọc"
+     if (notif && !notif.isRead) {
+        // Cập nhật giao diện ngay lập tức để tạo cảm giác mượt mà (Optimistic UI)
+        notif.isRead = true;
+        
+        // CẬP NHẬT LẠI CACHE
+        const accountId = window.currentUserData.id;
+        window.DataCache['notifications_data_' + accountId] = window.currentNotifications;
+        
+        renderNotifications();
+
+        // Chạy ngầm API để báo Server
+        google.script.run
+         .withSuccessHandler(function() {
+            // Đã lưu thành công trên server
+         })
+         .api_co_markNotificationAsRead(id);
+     }
+     
+     // Check if BBHD popup is needed
+     if (notif && (String(notif.title).toUpperCase().includes("BBHĐ") || String(notif.content).toUpperCase().includes("BBHĐ"))) {
+        openBBHDPopup(id);
+     }
+  }
+
+  function switchNotificationTab(tabId) {
+     document.querySelectorAll('.notification-page__tab').forEach(function(el) {
+       el.classList.remove('active');
+     });
+     const tabEl = document.getElementById('tab-notif-' + tabId);
+     if (tabEl) tabEl.classList.add('active');
+  }
+
+  function openBBHDPopup(notifId) {
+     window.currentBBHDNotifId = notifId; // Lưu lại để dùng lúc xóa Cache
+     const bbhdCacheKey = 'bbhd_records_' + notifId;
+     
+     const overlay = document.getElementById('bbhd-overlay');
+     if (!overlay) return;
+     
+     overlay.style.display = 'flex';
+     
+     // KIỂM TRA CACHE CỦA BBHĐ
+     if (window.DataCache[bbhdCacheKey]) {
+        console.log("⚡ Đã tải BBHĐ từ Cache");
+        renderBBHDTable(window.DataCache[bbhdCacheKey]);
+        return;
+     }
+
+     document.getElementById('bbhd-table-body').innerHTML = '<tr><td colspan="6" style="text-align:center;">Đang tải...</td></tr>';
+     document.getElementById('bbhd-empty').style.display = 'none';
+
+     // Nếu không có cache, gọi Server
+     google.script.run
+      .withSuccessHandler(function(responseStr) {
+         try {
+           const response = JSON.parse(responseStr);
+           if (response.success) {
+               window.DataCache[bbhdCacheKey] = response.data; // LƯU CACHE BBHĐ
+               renderBBHDTable(response.data);
+           }
+         } catch(e){}
+      })
+      .api_co_getBBHDRecords(notifId);
+  }
+
+  function renderBBHDTable(data) {
+     const tbody = document.getElementById('bbhd-table-body');
+     const empty = document.getElementById('bbhd-empty');
+     
+     if (!data || data.length === 0) {
+        tbody.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+     }
+     
+     empty.style.display = 'none';
+     let html = '';
+     
+     data.forEach(function(item, index) {
+        let stClass = '';
+        if (item.status === 'Chờ duyệt') stClass = 'status-cho-duyet';
+        if (item.status === 'Đã đồng ý') stClass = 'status-dong-y';
+        if (item.status === 'Từ chối') stClass = 'status-tu-choi';
+        
+        const fileLinkHtml = item.fileLink ? `<a href="${item.fileLink}" target="_blank" class="bbhd-file-link">Xem file</a>` : '<span class="bbhd-file-none">Chưa có file</span>';
+        
+        html += `
+          <tr id="bbhd-row-${item.id}">
+            <td class="bbhd-stt">${index + 1}</td>
+            <td><div class="bbhd-topic-title">${item.topicTitle}</div></td>
+            <td>
+              <div class="bbhd-student-name">${item.studentName}</div>
+              <span class="bbhd-student-mssv">${item.studentId}</span>
+            </td>
+            <td>${fileLinkHtml}</td>
+            <td>
+              <select class="bbhd-status-select ${stClass}" onchange="updateBBHDStatus('${item.id}', this.value)" id="bbhd-select-${item.id}">
+                <option value="Chờ duyệt" ${item.status === 'Chờ duyệt' ? 'selected' : ''}>Chờ duyệt</option>
+                <option value="Đã đồng ý" ${item.status === 'Đã đồng ý' ? 'selected' : ''}>Đã đồng ý</option>
+                <option value="Từ chối" ${item.status === 'Từ chối' ? 'selected' : ''}>Từ chối</option>
+              </select>
+            </td>
+            <td>
+              <div class="bbhd-actions">
+                <button class="bbhd-action-btn" title="Cập nhật nhanh" onclick="updateBBHDStatus('${item.id}', document.getElementById('bbhd-select-${item.id}').value)">
+                  <span class="material-symbols-outlined">save</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+     });
+     tbody.innerHTML = html;
+  }
+
+  function updateBBHDStatus(recordId, newStatus) {
+      document.getElementById('bbhd-select-' + recordId).className = 'bbhd-status-select ' + 
+        (newStatus === 'Chờ duyệt' ? 'status-cho-duyet' : newStatus === 'Đã đồng ý' ? 'status-dong-y' : 'status-tu-choi');
+      
+      google.script.run
+       .withSuccessHandler(function(responseStr) {
+           console.log("Cập nhật BBHĐ thành công", responseStr);
+           // XÓA CACHE BBHĐ ĐỂ CẬP NHẬT LẠI KHI MỞ LẦN SAU
+           if (window.currentBBHDNotifId) {
+             delete window.DataCache['bbhd_records_' + window.currentBBHDNotifId];
+           }
+       })
+       .api_co_updateBBHDStatus(recordId, newStatus);
+  }
+
+  function approveAllBBHD() {
+      if (!confirm("Bạn có chắc chắn duyệt tất cả biên bản Hội đồng đang chờ?")) return;
+      
+      const awaits = [];
+      document.querySelectorAll('.bbhd-status-select').forEach(function(sel) {
+          if (sel.value === 'Chờ duyệt') {
+              const match = sel.id.match(/bbhd-select-(.+)/);
+              if (match) awaits.push(match[1]);
+          }
+      });
+      
+      if (awaits.length === 0) {
+          alert("Không có biên bản nào đang chờ duyệt.");
+          return;
+      }
+      
+      google.script.run
+       .withSuccessHandler(function(resStr) {
+           try {
+             const res = JSON.parse(resStr);
+             if (res.success) {
+               alert(res.message);
+               // XÓA CACHE BBHĐ SAU KHI DUYỆT TẤT CẢ
+               if (window.currentBBHDNotifId) {
+                 delete window.DataCache['bbhd_records_' + window.currentBBHDNotifId];
+               }
+               closeBBHDPopup();
+             } else {
+               alert("Lỗi: " + res.error);
+             }
+           } catch(e){}
+       })
+       .api_co_approveAllBBHD(JSON.stringify(awaits));
+  }
+
+  function closeBBHDPopup() {
+      const overlay = document.getElementById('bbhd-overlay');
+      if (overlay) overlay.style.display = 'none';
+  }
+</script>
