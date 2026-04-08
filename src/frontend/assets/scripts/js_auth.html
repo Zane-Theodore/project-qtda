@@ -32,7 +32,7 @@
     }
 
     if (!isValid) {
-      return; 
+      return;
     }
 
     emailError.style.display = 'none';
@@ -49,7 +49,7 @@
     };
 
     google.script.run
-      .withSuccessHandler(function(response) {
+      .withSuccessHandler(function (response) {
 
         btnSubmit.innerHTML = 'ĐĂNG NHẬP';
         btnSubmit.disabled = false;
@@ -59,9 +59,9 @@
           const header = document.querySelector('.layout-header');
           const appContent = document.getElementById('app-content');
 
-          if(sidebar) sidebar.style.display = '';
-          if(header) header.style.display = '';
-          if(appContent) appContent.style.width = '100%';
+          if (sidebar) sidebar.style.display = '';
+          if (header) header.style.display = '';
+          if (appContent) appContent.style.width = '100%';
 
           window.currentUserData = response.userData || {};
           window.currentUserData.role = (window.currentUserData.role || '').toString().toUpperCase();
@@ -71,7 +71,7 @@
           if (typeof safeSetText === 'function') {
             safeSetText('side-user-name', window.currentUserData.fullName);
             safeSetText('side-user-email', window.currentUserData.email);
-            
+
             // Cập nhật ở Dropdown Header luôn (nếu có)
             safeSetText('dropdown-user-name', window.currentUserData.fullName);
             safeSetText('dropdown-user-email', window.currentUserData.email);
@@ -84,14 +84,14 @@
 
           // Cập nhật tooltip (tiêu đề khi trỏ chuột vào avatar)
           const avatarBtn = document.getElementById('userAvatarBtn');
-          if(avatarBtn) {
+          if (avatarBtn) {
             avatarBtn.title = response.userData.fullName + ' (' + response.userData.email + ')';
           }
 
           loadMenuByRole(response.userData.role);
-          
-          if(appContent) appContent.innerHTML = '';
-          
+
+          if (appContent) appContent.innerHTML = '';
+
           const role = window.currentUserData.role;
 
           // Chỉ kiểm tra LECTURER và HOD
@@ -103,12 +103,12 @@
 
         } else {
           alert(response.message);
-          
+
           document.getElementById('login-password').value = '';
           document.getElementById('login-password').focus();
         }
       })
-      .withFailureHandler(function(error) {
+      .withFailureHandler(function (error) {
         btnSubmit.innerHTML = 'ĐĂNG NHẬP';
         btnSubmit.disabled = false;
         alert("Lỗi kết nối đến máy chủ. Vui lòng thử lại!");
@@ -153,15 +153,15 @@
     const sidebar = document.querySelector('.layout-sidebar');
     const header = document.querySelector('.layout-header');
     const appContent = document.getElementById('app-content');
-    
+
     // Đóng dropdown nếu đang mở
     const dropdown = document.getElementById('userDropdown');
     if (dropdown) dropdown.classList.add('hidden');
 
-    if(sidebar) sidebar.style.display = 'none';
-    if(header) header.style.display = 'none';
-    if(appContent) appContent.innerHTML = '';
-    
+    if (sidebar) sidebar.style.display = 'none';
+    if (header) header.style.display = 'none';
+    if (appContent) appContent.innerHTML = '';
+
     navigate('frontend/views/auth/view_login');
   }
 
@@ -174,9 +174,9 @@
     const header = document.querySelector('.layout-header');
     const appContent = document.getElementById('app-content');
 
-    if(sidebar) sidebar.style.display = 'none';
-    if(header) header.style.display = 'none';
-    if(appContent) appContent.innerHTML = '';
+    if (sidebar) sidebar.style.display = 'none';
+    if (header) header.style.display = 'none';
+    if (appContent) appContent.innerHTML = '';
 
     navigate('frontend/views/auth/view_login');
   }
@@ -203,17 +203,17 @@
     console.log('✅ Rendering menu for Role:', role, '| Positions:', positions);
 
     let combinedMenuItems = [];
-    
+
     // Hàm phụ trợ đẩy item vào mảng (nếu chưa bị trùng ID)
     const addMenuItems = (key) => {
-       const items = window.LecturerRoleMenu[key];
-       if (items) {
-          items.forEach(newItem => {
-             if (!combinedMenuItems.find(existingItem => existingItem.id === newItem.id)) {
-                 combinedMenuItems.push(newItem);
-             }
-          });
-       }
+      const items = window.LecturerRoleMenu[key];
+      if (items) {
+        items.forEach(newItem => {
+          if (!combinedMenuItems.find(existingItem => existingItem.id === newItem.id)) {
+            combinedMenuItems.push(newItem);
+          }
+        });
+      }
     };
 
     // Nạp Menu theo Role & Positions
@@ -235,8 +235,10 @@
 
     // Mặc định an toàn
     if (combinedMenuItems.length === 0) {
-       addMenuItems('default');
+      addMenuItems('default');
     }
+
+    window._renderedLecturerMenuItems = combinedMenuItems;
 
     menuList.innerHTML = combinedMenuItems.map(item => `
       <li>
@@ -252,17 +254,15 @@
    * Xử lý các action của lecturer menu bằng cách quét toàn bộ cấu hình
    */
   function handleLecturerAction(actionId) {
-    let foundAction = null;
-    
-    for (const key in window.LecturerRoleMenu) {
-       const item = window.LecturerRoleMenu[key]?.find(m => m.id === actionId);
-       if (item && item.action) {
-           foundAction = item.action;
-           break; 
-       }
-    }
-
     console.log('📌 Action triggered:', actionId);
+
+    let foundAction = null;
+    if (window._renderedLecturerMenuItems) {
+      const item = window._renderedLecturerMenuItems.find(m => m.id === actionId);
+      if (item && item.action) {
+        foundAction = item.action;
+      }
+    }
 
     if (foundAction) {
       updateActiveMenu(actionId);
@@ -282,7 +282,7 @@
 
     const normalizedRole = (role || '').toString().toUpperCase();
     let fileName = '';
-    
+
     // Chỉ cần check 2 role
     if (['LECTURER', 'HOD'].includes(normalizedRole)) {
       fileName = 'frontend/components/sidebars/sidebar_lecturer';
@@ -311,10 +311,10 @@
       while (tempDiv.firstChild) {
         fragment.appendChild(tempDiv.firstChild);
       }
-      
+
       menuContainer.innerHTML = '';
       menuContainer.appendChild(fragment);
-      
+
       // Render lecturer menu
       if (['LECTURER', 'HOD'].includes(normalizedRole) && window.currentUserData) {
         setTimeout(() => {
@@ -325,7 +325,7 @@
           }
         }, 100);
       }
-      return; 
+      return;
     }
 
     menuContainer.innerHTML = `
@@ -335,13 +335,13 @@
     `;
 
     google.script.run
-      .withSuccessHandler(function(htmlContent) {
+      .withSuccessHandler(function (htmlContent) {
         window.ViewCache[fileName] = htmlContent;
 
         const fragment = document.createDocumentFragment();
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = htmlContent;
-        
+
         // Execute scripts in the loaded HTML
         const scripts = tempDiv.querySelectorAll('script');
         scripts.forEach(script => {
@@ -354,14 +354,14 @@
             }
           }
         });
-        
+
         while (tempDiv.firstChild) {
           fragment.appendChild(tempDiv.firstChild);
         }
-        
+
         menuContainer.innerHTML = '';
         menuContainer.appendChild(fragment);
-        
+
         // Render lecturer menu
         if (['LECTURER', 'HOD'].includes(normalizedRole) && window.currentUserData) {
           setTimeout(() => {
@@ -373,7 +373,7 @@
           }, 100);
         }
       })
-      .withFailureHandler(function(error) {
+      .withFailureHandler(function (error) {
         menuContainer.innerHTML = '<div style="color: #e74c3c; text-align: center; padding: 20px;">Lỗi kết nối máy chủ!</div>';
       })
       .api_loadView(fileName);

@@ -1,0 +1,107 @@
+<!-- File: src/frontend/views/lecturer/view_hod_approve_thesis.html -->
+<div class="view-container hod-approve-page">
+  <div class="hod-header">
+    <div class="hod-tab active">Duyệt đề tài (HOD)</div>
+  </div>
+
+  <div class="hod-stats">
+    <div class="stat-card">
+      <div class="stat-title">TỔNG SỐ ĐỀ TÀI</div>
+      <div class="stat-body">
+        <span class="stat-number text-blue" id="hod-total-theses">00</span>
+        <span class="stat-label">ĐỀ TÀI</span>
+      </div>
+    </div>
+    <div class="stat-card border-green">
+      <div class="stat-title">ĐÃ DUYỆT</div>
+      <div class="stat-body">
+        <span class="stat-number text-green" id="hod-approved-theses">00</span>
+        <span class="stat-label">HOÀN THÀNH</span>
+      </div>
+    </div>
+    <div class="stat-card border-orange">
+      <div class="stat-title">CHỜ DUYỆT</div>
+      <div class="stat-body">
+        <span class="stat-number text-orange" id="hod-pending-theses">00</span>
+        <span class="stat-label">ĐANG XỬ LÝ</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hod-table-container">
+    <table class="hod-table">
+      <thead>
+        <tr>
+          <th style="width: 60px;">STT</th>
+          <th>TÊN ĐỀ TÀI</th>
+          <th>SINH VIÊN THỰC HIỆN</th>
+          <th style="width: 180px; text-align: center;">TRẠNG THÁI</th>
+        </tr>
+      </thead>
+      <tbody id="hod-thesis-list">
+        <tr>
+          <td colspan="4" style="text-align:center; padding: 20px;">Đang tải danh sách đề tài...</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="hod-pagination">
+      <div class="hod-pagination-info" id="hod-pagination-info">Hiển thị 0 - 0 trên tổng số 0 đề tài</div>
+      <div class="hod-pagination-buttons" id="hod-pagination-buttons"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CHI TIẾT ĐỀ TÀI CHO HOD -->
+<div class="hod-modal-overlay" id="modal-thesis-detail" style="display: none;" onclick="if(event.target === this) closeThesisDetailModal()">
+  <div class="hod-modal">
+    <div class="hod-modal-header">
+      <h2>Phê duyệt đề tài (Trưởng Bộ Môn)</h2>
+      <button class="btn-close-modal" onclick="closeThesisDetailModal()">&times;</button>
+    </div>
+    <div class="hod-modal-body">
+      <div class="form-group-custom">
+        <label class="field-label">Tên đề tài</label>
+        <div class="val-box val-text-bold" id="mdl-thesis-title">—</div>
+      </div>
+
+      <div class="form-group-custom">
+        <label class="field-label">Tài liệu đính kèm</label>
+        <div class="file-card">
+          <div class="file-icon"><span class="material-symbols-outlined">article</span></div>
+          <div class="file-info">
+            <div class="file-name" id="mdl-thesis-filename">Chưa có file</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group-custom">
+        <label class="field-label" style="color:#1a73e8">Giảng viên hướng dẫn đăng ký</label>
+        <div class="val-box" id="mdl-thesis-registered-gv" style="border-left-color: #1a73e8;">—</div>
+      </div>
+
+      <div class="form-group-custom">
+        <label class="field-label">Phân công / Thay đổi GVHD (Nếu cần)</label>
+        <select id="mdl-thesis-assign-gv" class="custom-select">
+          <option value="">-- Đang tải danh sách giảng viên... --</option>
+        </select>
+      </div>
+
+      <div id="hod-comment-section" style="display: none; margin-top: 20px; border-top: 1px dashed #ddd; padding-top: 15px;">
+        <label class="field-label" style="color: #4f46e5;">Nhận xét từ Bộ môn</label>
+        <textarea id="hod-comment-input" class="custom-select" rows="3" placeholder="Nhập nhận xét hoặc thông báo cho sinh viên..."></textarea>
+      </div>
+    </div>
+    <div class="hod-modal-footer">
+      <button class="btn-comment" onclick="handleBtnComment()">
+        <span class="material-symbols-outlined">add_comment</span> Nhận xét
+      </button>
+      <button class="btn-reject" onclick="handleBtnReject()">
+        <span class="material-symbols-outlined">block</span> Từ chối
+      </button>
+      <button class="btn-approve" onclick="handleBtnApprove()">
+        <span class="material-symbols-outlined">task_alt</span> Duyệt đăng ký
+      </button>
+    </div>
+  </div>
+</div>
