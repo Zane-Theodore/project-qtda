@@ -1,7 +1,7 @@
 <!-- File: src/frontend/views/lecturer/view_hod_approve_thesis.html -->
 <div class="view-container hod-approve-page">
   <div class="hod-header">
-    <div class="hod-tab active">Duyệt đề tài (HOD)</div>
+    <div class="hod-tab active">Duyệt đề tài</div>
   </div>
 
   <div class="hod-stats">
@@ -53,7 +53,8 @@
 </div>
 
 <!-- MODAL CHI TIẾT ĐỀ TÀI CHO HOD -->
-<div class="hod-modal-overlay" id="modal-thesis-detail" style="display: none;" onclick="if(event.target === this) closeThesisDetailModal()">
+<div class="hod-modal-overlay" id="modal-thesis-detail" style="display: none;"
+  onclick="if(event.target === this) closeThesisDetailModal()">
   <div class="hod-modal">
     <div class="hod-modal-header">
       <h2>Phê duyệt đề tài (Trưởng Bộ Môn)</h2>
@@ -87,9 +88,11 @@
         </select>
       </div>
 
-      <div id="hod-comment-section" style="display: none; margin-top: 20px; border-top: 1px dashed #ddd; padding-top: 15px;">
+      <div id="hod-comment-section"
+        style="display: none; margin-top: 20px; border-top: 1px dashed #ddd; padding-top: 15px;">
         <label class="field-label" style="color: #4f46e5;">Nhận xét từ Bộ môn</label>
-        <textarea id="hod-comment-input" class="custom-select" rows="3" placeholder="Nhập nhận xét hoặc thông báo cho sinh viên..."></textarea>
+        <textarea id="hod-comment-input" class="custom-select" rows="3"
+          placeholder="Nhập nhận xét hoặc thông báo cho sinh viên..."></textarea>
       </div>
     </div>
     <div class="hod-modal-footer">
