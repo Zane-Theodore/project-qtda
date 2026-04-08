@@ -1,0 +1,104 @@
+<div class="view-container hod-list-page">
+  <div class="hod-header">
+    <div class="hod-tab active">Danh sách</div>
+  </div>
+
+  <div class="hod-table-container hod-list-card">
+    <table class="hod-table hod-list-table">
+      <thead>
+        <tr>
+          <th class="hod-list-col-stt">STT</th>
+          <th class="hod-list-col-info">THÔNG TIN ĐỀ TÀI</th>
+          <th class="hod-list-col-score">ĐIỂM</th>
+          <th class="hod-list-col-badge">DUYỆT BBHĐ</th>
+          <th class="hod-list-col-badge">DUYỆT BCKLTN</th>
+        </tr>
+      </thead>
+      <tbody id="hod-list-tbody">
+        <tr>
+          <td colspan="5" style="text-align:center;padding:24px;">Đang tải…</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="hod-pagination">
+      <div class="hod-pagination-info" id="hod-list-pagination-info">Hiển thị 0 – 0 trong số 0 đề tài</div>
+      <div class="hod-pagination-buttons" id="hod-list-pagination-buttons"></div>
+    </div>
+  </div>
+</div>
+
+<div class="hod-modal-overlay" id="hod-list-detail-modal" style="display: none;" onclick="hodListModalBackdrop(event)">
+  <div class="hod-modal hod-modal-detail" onclick="event.stopPropagation()">
+    <div class="hod-modal-header hod-modal-detail-header">
+      <h2>Chi tiết thông tin đề tài</h2>
+      <button type="button" class="btn-close-modal" onclick="hodListCloseModal()" aria-label="Đóng">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <div class="hod-modal-body hod-modal-detail-body">
+      <div class="form-group-custom">
+        <div class="field-label field-label-accent">TÊN ĐỀ TÀI</div>
+        <div class="hod-detail-thesis-title" id="hod-list-mdl-title">—</div>
+      </div>
+
+      <div class="hod-detail-two-cols">
+        <div class="hod-detail-student-block">
+          <div class="hod-detail-row">
+            <span class="material-symbols-outlined hod-detail-icon">person</span>
+            <div>
+              <div class="hod-detail-label">Sinh viên thực hiện</div>
+              <div class="hod-detail-value" id="hod-list-mdl-student-name">—</div>
+            </div>
+          </div>
+          <div class="hod-detail-row">
+            <span class="material-symbols-outlined hod-detail-icon">badge</span>
+            <div>
+              <div class="hod-detail-label">Mã số sinh viên</div>
+              <div class="hod-detail-value" id="hod-list-mdl-student-code">—</div>
+            </div>
+          </div>
+        </div>
+        <div class="hod-detail-council-box">
+          <div class="hod-detail-label">GVHD</div>
+          <div class="hod-detail-gvhd" id="hod-list-mdl-supervisor">—</div>
+          <div class="hod-detail-label hod-detail-label-spaced">Hội đồng</div>
+          <div class="hod-detail-council-name" id="hod-list-mdl-council">—</div>
+        </div>
+      </div>
+
+      <div class="hod-detail-attachments-head">Tài liệu đính kèm</div>
+      <div class="hod-detail-file-row">
+        <span class="material-symbols-outlined hod-file-pdf">picture_as_pdf</span>
+        <div class="hod-detail-file-meta">
+          <div class="hod-detail-file-title">Báo cáo KLTN</div>
+          <div class="hod-detail-file-name" id="hod-list-mdl-file-bckltn">Chưa có</div>
+        </div>
+        <button type="button" class="hod-file-download-btn" id="hod-list-btn-dl-bckltn"
+          title="Tải xuống Báo cáo KLTN" onclick="hodListDownloadFile('bckltn')" disabled>
+          <span class="material-symbols-outlined">download</span>
+        </button>
+      </div>
+      <div class="hod-detail-file-row">
+        <span class="material-symbols-outlined hod-file-pdf">picture_as_pdf</span>
+        <div class="hod-detail-file-meta">
+          <div class="hod-detail-file-title">Biên bản Hội đồng</div>
+          <div class="hod-detail-file-name" id="hod-list-mdl-file-bbhd">Chưa có</div>
+        </div>
+        <button type="button" class="hod-file-download-btn" id="hod-list-btn-dl-bbhd"
+          title="Tải xuống Biên bản Hội đồng" onclick="hodListDownloadFile('bbhd')" disabled>
+          <span class="material-symbols-outlined">download</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="hod-modal-footer hod-modal-detail-footer">
+      <button type="button" class="hod-btn-text" onclick="hodListCloseModal()">Đóng</button>
+      <button type="button" class="hod-btn-primary" id="hod-list-btn-approve-bbhd" onclick="hodListApproveBbhd()">
+        <span class="material-symbols-outlined" style="font-size:20px;">verified</span>
+        Duyệt Biên bản
+      </button>
+    </div>
+  </div>
+</div>

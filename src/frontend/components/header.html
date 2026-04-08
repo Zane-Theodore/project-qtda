@@ -13,9 +13,31 @@
       <span class="material-symbols-outlined">help</span>
     </button>
 
-    <div class="header-avatar" title="Hồ sơ cá nhân" id="userAvatarBtn" onclick="showNotification('Tính năng đang phát triển!', 'info')">
-      <div class="profile-avatar" id="profile-avatar-text"></div>
+    <div class="user-menu-container" style="position: relative; display: flex; align-items: center;">
+      
+      <div class="header-avatar" title="Tài khoản" id="userAvatarBtn" onclick="toggleUserDropdown(event)" style="cursor: pointer;">
+        <div class="profile-avatar" id="profile-avatar-text" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-weight: bold; background: #e8f0fe; color: #0F57D0; border-radius: 50%;">A</div>
+      </div>
+      
+      <div id="userDropdown" class="user-dropdown hidden">
+        
+        <div class="dropdown-list">
+          
+          <button class="dropdown-item" onclick="showNotification('Tính năng đang phát triển!', 'info')">
+            <span class="material-symbols-outlined">person</span> 
+            Hồ sơ cá nhân
+          </button>
+
+          <div class="dropdown-divider"></div>
+          
+          <button class="dropdown-item text-danger" onclick="handleLogout()">
+            <span class="material-symbols-outlined">logout</span> 
+            Đăng xuất
+          </button>
+          
+        </div>
+      </div>
+
     </div>
-    
-  </div>
+    </div>
 </div>

@@ -1,0 +1,131 @@
+<div class="result-container">
+    <div class="result-header">Kết quả đề tài KLTN</div>
+    <div class="result-header-line"></div>
+
+    <div id="result-loading" class="result-loading">
+        <div class="spinner"></div>
+        <p>Đang tải kết quả...</p>
+    </div>
+
+    <div id="result-content" class="d-none">
+        
+        <div class="result-top-section">
+            <div class="score-card">
+                <div class="score-card-title">ĐIỂM KHÓA LUẬN</div>
+                <div class="score-circle">
+                    <span id="txt-score-value" class="score-value">--</span>
+                    <span class="score-max">/ 10</span>
+                </div>
+                <div id="txt-score-rank" class="score-label">Chưa có điểm</div>
+                <div class="score-subtext">Thang điểm hệ 10</div>
+            </div>
+
+            <div class="comments-section">
+                <div class="comments-title">
+                    <span class="material-symbols-outlined">forum</span>
+                    Nhận xét từ Hội đồng & Giảng viên
+                </div>
+
+                <div class="comment-card">
+                    <div class="comment-avatar">
+                        <span class="material-symbols-outlined">person</span>
+                    </div>
+                    <div class="comment-content">
+                        <h4>
+                            <span id="txt-reviewer-name">Giảng viên hướng dẫn / Phản biện</span>
+                            <span class="comment-role">Nhận xét</span>
+                        </h4>
+                        <p id="txt-reviewer-comment" class="comment-text">"Chưa có nhận xét"</p>
+                    </div>
+                </div>
+
+                <div class="comment-card">
+                    <div class="comment-avatar comment-avatar-council">
+                        <span class="material-symbols-outlined">groups</span>
+                    </div>
+                    <div class="comment-content">
+                        <h4>
+                            Hội đồng chấm khóa luận
+                            <span class="comment-role">Hội đồng</span>
+                        </h4>
+                        <p id="txt-council-comment" class="comment-text">"Chưa có nhận xét"</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="docs-section">
+            <div class="docs-title">
+                <span class="material-symbols-outlined">folder_open</span>
+                Hồ sơ & Tài liệu chính thức
+            </div>
+            
+            <table class="docs-table">
+                <thead>
+                    <tr>
+                        <th>TÊN TÀI LIỆU</th>
+                        <th>NGUỒN</th>
+                        <th>NGÀY CẬP NHẬT</th>
+                        <th style="text-align: right;">HÀNH ĐỘNG</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="doc-name-cell">
+                                <div class="doc-icon pdf">
+                                    <span class="material-symbols-outlined">picture_as_pdf</span>
+                                </div>
+                                <div class="doc-info">
+                                    <h5>Biên bản hội đồng chấm KLTN</h5>
+                                    <p>Tài liệu đánh giá chính thức</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge outline-blue">
+                                <span class="material-symbols-outlined" style="font-size: 14px;">account_balance</span>
+                                Hội đồng
+                            </span>
+                        </td>
+                        <td id="txt-report-date">--</td>
+                        <td style="text-align: right;">
+                            <a id="btn-view-report" href="#" target="_blank" class="btn-action btn-view" disabled>
+                                <span class="material-symbols-outlined">visibility</span>
+                                Xem chi tiết
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="doc-name-cell">
+                                <div class="doc-icon upload">
+                                    <span class="material-symbols-outlined">assignment</span>
+                                </div>
+                                <div class="doc-info">
+                                    <h5>Báo cáo KLTN hoàn thiện</h5>
+                                    <p>Yêu cầu nộp bản chính thức để lưu trữ</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge outline-gray">
+                                <span class="material-symbols-outlined" style="font-size: 14px;">person</span>
+                                Sinh viên
+                            </span>
+                        </td>
+                        <td id="txt-submission-status">Chưa nộp</td>
+                        <td style="text-align: right;">
+                            <button id="btn-upload-file" class="btn-action btn-upload" onclick="document.getElementById('input-file-upload').click()">
+                                <span class="material-symbols-outlined">upload</span>
+                                Tải lên file
+                            </button>
+                            <input type="file" id="input-file-upload" class="d-none" accept=".pdf,.doc,.docx" onchange="handleFileUpload(event)" />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+    </div>
+</div>

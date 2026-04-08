@@ -1,0 +1,150 @@
+<!-- File: src/frontend/views/lecturer/view_lecturer_thesis_progress.html -->
+
+<div class="lecturer-progress-page" id="app-lecturer-progress-container">
+    <div class="progress-header">
+        <h2 class="page-title">Theo dõi<span class="title-underline"></span></h2>
+    </div>
+
+    <div class="progress-layout">
+        <!-- CỘT TRÁI: Tổng quan + Danh sách SV -->
+        <div class="progress-left-column">
+            <!-- Khối tổng quan -->
+            <div class="overview-card">
+                <h3>TỔNG QUAN</h3>
+                <h1 id="overview-total-theses">0 Đề tài</h1>
+                <div class="overview-stats">
+                    <div class="stat-box box-success">
+                        <span class="stat-label">ĐÃ NỘP</span>
+                        <span class="stat-value" id="overview-submitted">0</span>
+                    </div>
+                    <div class="stat-box box-warning">
+                        <span class="stat-label">ĐANG THỰC HIỆN</span>
+                        <span class="stat-value" id="overview-in-progress">0</span>
+                    </div>
+                    <div class="stat-box box-danger">
+                        <span class="stat-label">TRỄ HẠN</span>
+                        <span class="stat-value" id="overview-overdue">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Danh sách sinh viên -->
+            <div class="student-list-section">
+                <div class="section-header-row">
+                    <h3>Danh sách Sinh viên</h3>
+                </div>
+                <button class="btn-primary-outline" id="btn-open-add-task">+ Thêm bài tập</button>
+
+                <div class="student-list" id="student-progress-list">
+                    <!-- Javascript sẽ render danh sách vào đây -->
+                    <div class="loading-state">Đang tải dữ liệu...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CỘT PHẢI: Panel chi tiết -->
+        <div class="progress-right-column">
+            <div class="detail-panel" id="student-detail-panel" style="display: none;">
+                <div class="detail-panel-header">
+                    <h3>Quản lý đề tài <br><span id="detail-student-name" style="font-weight: normal; font-size: 0.9em;"></span></h3>
+                    <!-- Nút edit có thể dùng để sửa mô tả ban đầu nếu cần -->
+                    <!-- <button class="btn-icon"><i class="fas fa-pen"></i></button> -->
+                </div>
+                
+                <div class="detail-timeline" id="detail-timeline-container">
+                    <!-- Javascript sẽ render timeline chi tiết vào đây -->
+                </div>
+            </div>
+            <div class="detail-panel-empty" id="student-detail-empty">
+                <p>Chọn một sinh viên để xem chi tiết tiến độ</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL THÊM BÀI TẬP -->
+<div class="modal-overlay" id="modal-add-task" style="display: none;">
+    <div class="modal-content modal-md">
+        <div class="modal-header">
+            <h3>Thêm bài tập</h3>
+            <button class="btn-close-modal" id="btn-close-add-task">&times;</button>
+        </div>
+        <div class="modal-body form-group-list">
+            <div class="form-group">
+                <label>Tiêu đề</label>
+                <input type="text" id="task-title" class="form-control" placeholder="Thêm tiêu đề..." required>
+            </div>
+            <div class="form-group">
+                <label>Mô tả</label>
+                <textarea id="task-desc" class="form-control" placeholder="Thêm mô tả..." rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Danh sách sinh viên</label>
+                <select id="task-student-select" class="form-control" required>
+                    <!-- Options sẽ load động dựa trên list theses -->
+                    <option value="">Chọn sinh viên</option>
+                </select>
+            </div>
+            
+            <!-- THÊM CHỌN LOẠI BÀI TẬP (Mới thêm theo requirement) -->
+            <div class="form-group">
+                <label>Loại bài tập</label>
+                <select id="task-type-select" class="form-control" required>
+                    <option value="TienDo1">Lần 1</option>
+                    <option value="TienDo2">Lần 2</option>
+                    <option value="CuoiKy">Cuối Kỳ</option>
+                    <option value="Final">Báo cáo Mộc</option>
+                </select>
+            </div>
+
+            <div class="form-row" style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>Ngày hết hạn</label>
+                    <input type="date" id="task-due-date" class="form-control" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Giờ hết hạn</label>
+                    <input type="time" id="task-due-time" class="form-control" value="23:59">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer" style="justify-content: flex-end; padding-top: 15px;">
+            <button class="btn-primary" id="btn-submit-task">Giao bài tập</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PHẢN HỒI -->
+<div class="modal-overlay" id="modal-feedback" style="display: none;">
+    <div class="modal-content modal-sm">
+        <div class="modal-header">
+            <h3>Phản hồi sinh viên</h3>
+            <button class="btn-close-modal" id="btn-close-feedback">&times;</button>
+        </div>
+        <div class="modal-body form-group">
+            <textarea id="feedback-content" class="form-control" placeholder="Nhập nhận xét..." rows="4"></textarea>
+            <input type="hidden" id="feedback-submission-id">
+        </div>
+        <div class="modal-footer" style="justify-content: flex-end;">
+            <button class="btn-primary" id="btn-submit-feedback">Gửi phản hồi</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DUYỆT FINAL KLTN -->
+<div class="modal-overlay" id="modal-approve-final" style="display: none;">
+    <div class="modal-content modal-md">
+        <div class="modal-header">
+            <h3>Duyệt Báo cáo KLTN</h3>
+            <button class="btn-close-modal" id="btn-close-approve-final">&times;</button>
+        </div>
+        <div class="modal-body" style="text-align: center; padding: 30px;">
+            <p>Bạn có chắc chắn duyệt Báo cáo KLTN hoàn chỉnh của sinh viên này không?</p>
+            <input type="hidden" id="approve-submission-id">
+        </div>
+        <div class="modal-footer" style="justify-content: center; gap: 10px;">
+            <button class="btn-primary-outline" id="btn-reject-final">Từ chối</button>
+            <button class="btn-primary" id="btn-accept-final">Chấp nhận</button>
+        </div>
+    </div>
+</div>
