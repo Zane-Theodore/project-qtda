@@ -124,9 +124,16 @@
 
   /**
    * Xử lý quá trình đăng xuất khỏi hệ thống.
+   * Sử dụng Confirmation Modal (Async/Await).
    */
-  function handleLogout() {
-    if (!confirm("Bạn có chắc muốn đăng xuất?")) {
+  async function handleLogout() {
+    const result = await showConfirmationModal(
+      'Xác nhận đăng xuất',
+      'Bạn có chắc chắn muốn đăng xuất?',
+      { confirmText: 'Đăng xuất' }
+    );
+
+    if (!result) {
       return;
     }
 

@@ -119,6 +119,17 @@
   }
 
   /**
+   * Cập nhật avatar từ dữ liệu người dùng hiện tại (window.currentUserData)
+   * Helper function để tiện cập nhật avatar header
+   * @param {string} avatarElementId - ID của phần tử avatar (mặc định: 'profile-avatar-text')
+   */
+  function updateHeaderAvatar(avatarElementId = 'profile-avatar-text') {
+    if (window.currentUserData && window.currentUserData.fullName) {
+      updateAvatarFromName(window.currentUserData.fullName, avatarElementId);
+    }
+  }
+
+  /**
    * Hiện loading, ẩn nội dung
    * @param {string} loadingId - ID phần tử loading
    * @param {string} contentId - ID phần tử nội dung
@@ -167,4 +178,32 @@
     }
     return items.map(templateFn).join('');
   }
+
+  /**
+ * Đóng/Mở Dropdown menu ở Avatar
+ */
+function toggleUserDropdown(event) {
+  // Ngăn chặn sự kiện click lan ra ngoài body (nếu không nó sẽ kích hoạt luôn sự kiện đóng bên dưới)
+  if (event) event.stopPropagation(); 
+  
+  const dropdown = document.getElementById('userDropdown');
+  if (dropdown) {
+    dropdown.classList.toggle('hidden');
+  }
+}
+
+/**
+ * Lắng nghe sự kiện click trên toàn màn hình để đóng Dropdown nếu người dùng click ra ngoài
+ */
+window.addEventListener('click', function(event) {
+  const dropdown = document.getElementById('userDropdown');
+  const avatarBtn = document.getElementById('userAvatarBtn');
+  
+  if (dropdown && !dropdown.classList.contains('hidden')) {
+    // Nếu click chuột KHÔNG nằm trong dropdown VÀ KHÔNG nằm trong avatar
+    if (!dropdown.contains(event.target) && !avatarBtn.contains(event.target)) {
+      dropdown.classList.add('hidden'); // Ẩn nó đi
+    }
+  }
+});
 </script>

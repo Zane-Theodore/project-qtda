@@ -119,4 +119,80 @@
     background-color: #95a5a6;
     cursor: not-allowed;
   }
+
+  /* Logout */
+  /* Container của Dropdown */
+.user-dropdown {
+  position: absolute;
+  top: 110%; /* Nằm ngay dưới Avatar */
+  right: 0;  /* Căn mép phải */
+  width: 220px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  z-index: 1000;
+  overflow: hidden;
+  transition: opacity 0.2s, transform 0.2s;
+  transform-origin: top right;
+}
+
+/* Trạng thái ẩn */
+.user-dropdown.hidden {
+  opacity: 0;
+  transform: scale(0.95);
+  pointer-events: none; /* Không cho click khi đang ẩn */
+}
+
+/* Phần thông tin user trên cùng */
+.dropdown-header {
+  padding: 16px;
+  background-color: #f8fafc;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background-color: #e2e8f0;
+  width: 100%;
+}
+
+.dropdown-list {
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.dropdown-item {
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  padding: 10px 16px;
+  font-size: 14px;
+  color: #334155;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+  background-color: #f1f5f9;
+}
+
+.dropdown-item .material-symbols-outlined {
+  font-size: 18px;
+  color: #64748b;
+}
+
+.dropdown-item.text-danger {
+  color: #e63946;
+}
+.dropdown-item.text-danger:hover {
+  background-color: #ffe6e6;
+}
+.dropdown-item.text-danger .material-symbols-outlined {
+  color: #e63946;
+}
 </style>

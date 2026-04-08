@@ -1,0 +1,230 @@
+<!-- =======================================
+     CONFIRMATION MODAL COMPONENT (REUSABLE)
+     ======================================= -->
+
+<div id="confirmation-modal" class="modal hidden">
+  <div class="modal-overlay"></div>
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <h2 id="modal-title">Xác nhận</h2>
+      <button class="modal-close-btn" onclick="closeConfirmationModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p id="modal-message">Bạn có chắc chắn muốn thực hiện hành động này?</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeConfirmationModal(false)">Hủy</button>
+      <button class="btn btn-danger" id="modal-confirm-btn" onclick="confirmModal(true)">Xác nhận</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Modal Container */
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal:not(.hidden) {
+    display: flex;
+  }
+
+  .modal.hidden {
+    display: none;
+  }
+
+  /* Modal Overlay (Semi-transparent background) */
+  .modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+  }
+
+  /* Modal Dialog Box */
+  .modal-dialog {
+    position: relative;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow: auto;
+    animation: modalSlideIn 0.3s ease-out;
+  }
+
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-50px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Modal Header */
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #e8e8e8;
+  }
+
+  .modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+    color: #333;
+  }
+
+  /* Modal Close Button */
+  .modal-close-btn {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #999;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+  }
+
+  .modal-close-btn:hover {
+    color: #333;
+  }
+
+  /* Modal Body */
+  .modal-body {
+    padding: 20px;
+    color: #555;
+    line-height: 1.6;
+  }
+
+  .modal-body p {
+    margin: 0;
+  }
+
+  /* Modal Footer */
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 20px;
+    border-top: 1px solid #e8e8e8;
+    background-color: #f8f9fa;
+  }
+
+  /* Button Styles */
+  .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+
+  .btn-secondary {
+    background-color: #e8e8e8;
+    color: #333;
+  }
+
+  .btn-secondary:hover {
+    background-color: #d0d0d0;
+  }
+
+  .btn-danger {
+    background-color: #dc3545;
+    color: white;
+  }
+
+  .btn-danger:hover {
+    background-color: #c82333;
+  }
+</style>
+
+<script>
+  /**
+   * Store for modal result callback
+   */
+  let _modalCallback = null;
+
+  /**
+   * Mở modal với tiêu đề và nội dung tùy chỉnh
+   * @param {string} title - Tiêu đề modal
+   * @param {string} message - Nội dung/thông báo của modal
+   * @param {Object} options - Tùy chọn bổ sung
+   * @param {string} options.confirmText - Text nút xác nhận (mặc định: "Xác nhận")
+   * @param {string} options.cancelText - Text nút hủy (mặc định: "Hủy")
+   * @returns {Promise<boolean>} Promise trả về true nếu người dùng xác nhận, false nếu hủy
+   */
+  function showConfirmationModal(title, message, options = {}) {
+    return new Promise((resolve) => {
+      const modal = document.getElementById('confirmation-modal');
+      const titleEl = document.getElementById('modal-title');
+      const messageEl = document.getElementById('modal-message');
+      const confirmBtn = document.getElementById('modal-confirm-btn');
+      const overlay = modal.querySelector('.modal-overlay');
+
+      // Set title and message
+      titleEl.textContent = title;
+      messageEl.textContent = message;
+
+      // Update button text if provided
+      if (options.confirmText) {
+        confirmBtn.textContent = options.confirmText;
+      } else {
+        confirmBtn.textContent = 'Xác nhận';
+      }
+
+      // Store callback
+      _modalCallback = resolve;
+
+      // Show modal
+      modal.classList.remove('hidden');
+
+      // Close modal when clicking overlay
+      overlay.onclick = () => closeConfirmationModal(false);
+    });
+  }
+
+  /**
+   * Đóng modal và trả về kết quả
+   * @param {boolean} result - Kết quả (true = xác nhận, false = hủy)
+   */
+  function closeConfirmationModal(result = false) {
+    const modal = document.getElementById('confirmation-modal');
+    modal.classList.add('hidden');
+    
+    if (_modalCallback) {
+      _modalCallback(result);
+      _modalCallback = null;
+    }
+  }
+
+  /**
+   * Xác nhận và đóng modal
+   */
+  function confirmModal(result) {
+    closeConfirmationModal(result);
+  }
+</script>
