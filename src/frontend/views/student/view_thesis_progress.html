@@ -216,7 +216,7 @@
     /* -------------------------------------
    CSS DÀNH CHO POPUP MODAL (UPLOAD)
 ---------------------------------------- */
-    .modal-overlay {
+    #uploadModal {
         position: fixed;
         top: 0;
         left: 0;
@@ -224,11 +224,15 @@
         bottom: 0;
         background: rgba(0, 0, 0, 0.5);
         /* Nền mờ đặc theo hình */
-        display: flex;
+        display: none;
         align-items: center;
         justify-content: center;
         z-index: 9999;
         font-family: 'Inter', sans-serif;
+    }
+
+    #uploadModal.active {
+        display: flex;
     }
 
     .modal-content {
@@ -385,7 +389,7 @@
 <!-- ==============================================
      COMPONENTS POPUP MỚI - "Đăng tải Báo Cáo"
 =============================================== -->
-<div id="uploadModal" class="modal-overlay" style="display: none;">
+<div id="uploadModal">
     <div class="modal-content">
         <div class="modal-header">
             <h3 class="modal-title">Đăng tải Báo cáo</h3>

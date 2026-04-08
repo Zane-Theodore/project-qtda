@@ -197,12 +197,12 @@
 
   window.openProgressModal = function(milestoneId) {
       window.ThesisState.currentOpenMilestoneId = milestoneId;
-      document.getElementById('uploadModal').style.display = 'flex';
+      document.getElementById('uploadModal').classList.add('active');
       window.resetProgressForm();
   };
 
   window.closeProgressModal = function() {
-      document.getElementById('uploadModal').style.display = 'none';
+      document.getElementById('uploadModal').classList.remove('active');
       window.ThesisState.currentOpenMilestoneId = null;
       window.resetProgressForm();
   };
