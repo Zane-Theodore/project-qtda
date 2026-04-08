@@ -1,28 +1,52 @@
 <script>
+  // Khởi tạo vùng nhớ đệm dữ liệu (Data Cache)
+  window.DataCache = window.DataCache || {};
   window.currentNotifications = [];
   
+  // Lưu tạm ID của thông báo BBHĐ đang mở để xử lý xóa Cache khi cần
+  window.currentBBHDNotifId = null; 
+
   function initNotification() {
     console.log("initNotification called");
     loadNotifications();
   }
 
   function loadNotifications() {
-    var accountId = window.currentUserData.id;
-    var listContainer = document.getElementById('notification-list-general');
-    var loading = document.getElementById('notification-loading');
-    var content = document.getElementById('notification-content');
+    const accountId = window.currentUserData.id;
+    const cacheKey = 'notifications_data_' + accountId;
+
+    const listContainer = document.getElementById('notification-list-general');
+    const loading = document.getElementById('notification-loading');
+    const content = document.getElementById('notification-content');
     
     if (!listContainer || !loading || !content) return;
 
     loading.style.display = 'block';
     content.style.display = 'none';
 
+    // 1. KIỂM TRA CACHE TRƯỚC
+    if (window.DataCache[cacheKey]) {
+      console.log("⚡ Đã tải Thông báo từ Cache");
+      window.currentNotifications = window.DataCache[cacheKey];
+      renderNotifications();
+      
+      loading.style.display = 'none';
+      content.style.display = 'block';
+      return; // Kết thúc, không gọi Server
+    }
+
+    // 2. NẾU KHÔNG CÓ CACHE -> GỌI SERVER
+    console.log("⏳ Đang lấy Thông báo từ Server...");
     google.script.run
       .withSuccessHandler(function(responseStr) {
         try {
-          var response = JSON.parse(responseStr);
+          const response = JSON.parse(responseStr);
           if (response.success) {
             window.currentNotifications = response.data;
+            
+            // LƯU VÀO CACHE CHO CÁC LẦN MỞ SAU
+            window.DataCache[cacheKey] = response.data; 
+            
             renderNotifications();
           } else {
             console.error('Error loading notifications:', response.error);
@@ -44,18 +68,18 @@
   }
 
   function renderNotifications() {
-    var listContainer = document.getElementById('notification-list-general');
-    var notifs = window.currentNotifications;
+    const listContainer = document.getElementById('notification-list-general');
+    const notifs = window.currentNotifications;
     
     if (!notifs || notifs.length === 0) {
        listContainer.innerHTML = '<div class="notification-empty">Bạn chưa có thông báo nào</div>';
        return;
     }
     
-    var html = '';
+    let html = '';
     notifs.forEach(function(item) {
-       var readClass = item.isRead ? 'read' : 'unread';
-       var dateStr = item.createdAt ? new Date(item.createdAt).toLocaleDateString('vi-VN') : '';
+       const readClass = item.isRead ? 'read' : 'unread';
+       const dateStr = item.createdAt ? new Date(item.createdAt).toLocaleDateString('vi-VN') : '';
        
        html += `
          <div class="notification-card ${readClass}" onclick="handleNotificationClick('${item.id}', '${item.type}')">
@@ -76,19 +100,29 @@
   }
   
   function handleNotificationClick(id, type) {
-     var notif = window.currentNotifications.find(function(n) { return String(n.id) === String(id); });
+     const notif = window.currentNotifications.find(function(n) { return String(n.id) === String(id); });
+     
+     // Xử lý chuyển trạng thái "Đã đọc"
      if (notif && !notif.isRead) {
+        // Cập nhật giao diện ngay lập tức để tạo cảm giác mượt mà (Optimistic UI)
+        notif.isRead = true;
+        
+        // CẬP NHẬT LẠI CACHE
+        const accountId = window.currentUserData.id;
+        window.DataCache['notifications_data_' + accountId] = window.currentNotifications;
+        
+        renderNotifications();
+
+        // Chạy ngầm API để báo Server
         google.script.run
          .withSuccessHandler(function() {
-            notif.isRead = true;
-            renderNotifications();
+            // Đã lưu thành công trên server
          })
          .api_co_markNotificationAsRead(id);
      }
      
      // Check if BBHD popup is needed
      if (notif && (String(notif.title).toUpperCase().includes("BBHĐ") || String(notif.content).toUpperCase().includes("BBHĐ"))) {
-        // Open BBHĐ popup
         openBBHDPopup(id);
      }
   }
@@ -97,25 +131,36 @@
      document.querySelectorAll('.notification-page__tab').forEach(function(el) {
        el.classList.remove('active');
      });
-     var tabEl = document.getElementById('tab-notif-' + tabId);
+     const tabEl = document.getElementById('tab-notif-' + tabId);
      if (tabEl) tabEl.classList.add('active');
   }
 
   function openBBHDPopup(notifId) {
-     var overlay = document.getElementById('bbhd-overlay');
+     window.currentBBHDNotifId = notifId; // Lưu lại để dùng lúc xóa Cache
+     const bbhdCacheKey = 'bbhd_records_' + notifId;
+     
+     const overlay = document.getElementById('bbhd-overlay');
      if (!overlay) return;
      
      overlay.style.display = 'flex';
      
+     // KIỂM TRA CACHE CỦA BBHĐ
+     if (window.DataCache[bbhdCacheKey]) {
+        console.log("⚡ Đã tải BBHĐ từ Cache");
+        renderBBHDTable(window.DataCache[bbhdCacheKey]);
+        return;
+     }
+
      document.getElementById('bbhd-table-body').innerHTML = '<tr><td colspan="6" style="text-align:center;">Đang tải...</td></tr>';
      document.getElementById('bbhd-empty').style.display = 'none';
 
-     // Fetch records
+     // Nếu không có cache, gọi Server
      google.script.run
       .withSuccessHandler(function(responseStr) {
          try {
-           var response = JSON.parse(responseStr);
+           const response = JSON.parse(responseStr);
            if (response.success) {
+               window.DataCache[bbhdCacheKey] = response.data; // LƯU CACHE BBHĐ
                renderBBHDTable(response.data);
            }
          } catch(e){}
@@ -124,8 +169,8 @@
   }
 
   function renderBBHDTable(data) {
-     var tbody = document.getElementById('bbhd-table-body');
-     var empty = document.getElementById('bbhd-empty');
+     const tbody = document.getElementById('bbhd-table-body');
+     const empty = document.getElementById('bbhd-empty');
      
      if (!data || data.length === 0) {
         tbody.innerHTML = '';
@@ -134,15 +179,15 @@
      }
      
      empty.style.display = 'none';
-     var html = '';
+     let html = '';
      
      data.forEach(function(item, index) {
-        var stClass = '';
+        let stClass = '';
         if (item.status === 'Chờ duyệt') stClass = 'status-cho-duyet';
         if (item.status === 'Đã đồng ý') stClass = 'status-dong-y';
         if (item.status === 'Từ chối') stClass = 'status-tu-choi';
         
-        var fileLinkHtml = item.fileLink ? `<a href="${item.fileLink}" target="_blank" class="bbhd-file-link">Xem file</a>` : '<span class="bbhd-file-none">Chưa có file</span>';
+        const fileLinkHtml = item.fileLink ? `<a href="${item.fileLink}" target="_blank" class="bbhd-file-link">Xem file</a>` : '<span class="bbhd-file-none">Chưa có file</span>';
         
         html += `
           <tr id="bbhd-row-${item.id}">
@@ -179,7 +224,11 @@
       
       google.script.run
        .withSuccessHandler(function(responseStr) {
-           console.log(responseStr);
+           console.log("Cập nhật BBHĐ thành công", responseStr);
+           // XÓA CACHE BBHĐ ĐỂ CẬP NHẬT LẠI KHI MỞ LẦN SAU
+           if (window.currentBBHDNotifId) {
+             delete window.DataCache['bbhd_records_' + window.currentBBHDNotifId];
+           }
        })
        .api_co_updateBBHDStatus(recordId, newStatus);
   }
@@ -187,10 +236,10 @@
   function approveAllBBHD() {
       if (!confirm("Bạn có chắc chắn duyệt tất cả biên bản Hội đồng đang chờ?")) return;
       
-      var awaits = [];
+      const awaits = [];
       document.querySelectorAll('.bbhd-status-select').forEach(function(sel) {
           if (sel.value === 'Chờ duyệt') {
-              var match = sel.id.match(/bbhd-select-(.+)/);
+              const match = sel.id.match(/bbhd-select-(.+)/);
               if (match) awaits.push(match[1]);
           }
       });
@@ -203,9 +252,13 @@
       google.script.run
        .withSuccessHandler(function(resStr) {
            try {
-             var res = JSON.parse(resStr);
+             const res = JSON.parse(resStr);
              if (res.success) {
                alert(res.message);
+               // XÓA CACHE BBHĐ SAU KHI DUYỆT TẤT CẢ
+               if (window.currentBBHDNotifId) {
+                 delete window.DataCache['bbhd_records_' + window.currentBBHDNotifId];
+               }
                closeBBHDPopup();
              } else {
                alert("Lỗi: " + res.error);
@@ -216,7 +269,7 @@
   }
 
   function closeBBHDPopup() {
-     var overlay = document.getElementById('bbhd-overlay');
-     if (overlay) overlay.style.display = 'none';
+      const overlay = document.getElementById('bbhd-overlay');
+      if (overlay) overlay.style.display = 'none';
   }
 </script>
