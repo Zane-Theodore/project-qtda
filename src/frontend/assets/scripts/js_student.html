@@ -68,4 +68,212 @@
         .api_st_getStudentByAccountId(currentAccountId);
     }
   };
+
+  // ----- THESIS PROGRESS JS -----
+  window.initThesisProgress = function() {
+      window.ThesisState = {
+          selectedFile: null,
+          base64String: null,
+          currentOpenMilestoneId: null
+      };
+
+      if (typeof google !== 'undefined') {
+          google.script.run
+              .withSuccessHandler(function(resStr) {
+                  try {
+                      const response = JSON.parse(resStr);
+                      if (response.success) {
+                          window.renderMilestones(response.data);
+                      } else {
+                          alert("Lỗi tải dữ liệu: " + response.error);
+                      }
+                  } catch(e) { console.error("Parse Error:", e); }
+              })
+              .api_st_getStudentProgress(window.currentUserData.id);
+      }
+  };
+
+  window.renderMilestones = function(data) {
+      document.getElementById('ui-progress-fill').style.width = data.progressPercent + '%';
+      document.getElementById('ui-progress-text').innerText = data.progressPercent + '%';
+
+      const container = document.getElementById('milestones-container');
+      container.innerHTML = '';
+      
+      const now = new Date();
+
+      data.milestones.forEach(function(item) {
+          const isCompleted = item.status === "COMPLETED";
+          const deadlineDate = new Date(item.deadline + "T23:59:59");
+          const isOverdue = !isCompleted && now > deadlineDate;
+
+          let iconClass = "pending";
+          let iconName = "assignment";
+          
+          if (isCompleted) {
+              iconClass = "completed";
+              iconName = "check";
+          } else if (item.id === "CuoiKy") {
+              iconClass = "final";
+              iconName = "description";
+          } else {
+              iconClass = "pending";
+              iconName = "assignment";
+          }
+
+          let formatDl = item.deadline.split("-").reverse().join("/");
+
+          let cardHTML = `
+          <div class="milestone-card">
+              <div class="status-icon ${iconClass}">
+                  <span class="material-symbols-outlined" style="${isCompleted ? 'font-size: 28px;' : ''}">${iconName}</span>
+              </div>
+              <div class="milestone-content">
+                  <div class="milestone-header">
+                      <div class="milestone-title-group">
+                          <h4>${item.title}</h4>
+                          <div class="milestone-deadline ${isOverdue ? 'deadline-error' : ''}">
+                              Thời hạn: ${formatDl} ${isOverdue ? '(Đã quá hạn)' : ''}
+                          </div>
+                          ${!isCompleted && item.description ? `<div class="milestone-desc">${item.description}</div>` : ''}
+                      </div>
+                      <div style="display: flex; gap: 15px; align-items: center; margin-top: 5px;">
+                      ${isCompleted 
+                          ? `<div class="status-label completed">ĐÃ HOÀN THÀNH</div>`
+                          : `<div class="status-label pending">CHỜ NỘP</div>
+                             <button class="btn-action ${isOverdue ? 'btn-disabled' : ''}" 
+                                     onclick="window.openProgressModal('${item.id}')"
+                                     ${isOverdue ? 'disabled' : ''}>
+                                <span class="material-symbols-outlined" style="font-size: 18px;">cloud_upload</span> 
+                                ${item.id === "CuoiKy" ? 'Nộp bài KLTN' : 'Thêm bài nộp'}
+                             </button>`
+                      }
+                      </div>
+                  </div>
+                  ${isCompleted ? `
+                      <div class="feedback-box">
+                          <div class="feedback-label">NHẬN XÉT CỦA GIẢNG VIÊN</div>
+                          <div class="feedback-text">${item.feedback ? item.feedback : '<i>(Giảng viên đang nhận xét các bài báo cáo khóa luận tốt nghiệp...)</i>'}</div>
+                      </div>
+                  ` : ''}
+                  ${isOverdue ? `
+                     <div style="color: #ef4444; font-size: 13px; margin-top: 10px; font-weight: 500;">
+                       Hệ thống đã tự động đóng cổng nộp bài.
+                     </div>
+                  `: ''}
+              </div>
+          </div>`;
+
+          container.innerHTML += cardHTML;
+      });
+
+      setTimeout(window.bindModalEvents, 100);
+  };
+
+  window.bindModalEvents = function() {
+      const dropZone = document.getElementById('dropZone');
+      const fileInput = document.getElementById('fileInput');
+
+      if (!dropZone || dropZone.dataset.bound) return;
+      dropZone.dataset.bound = "true";
+
+      dropZone.addEventListener('dragover', function(e) { e.preventDefault(); dropZone.classList.add('dragover'); });
+      dropZone.addEventListener('dragleave', function(e) { e.preventDefault(); dropZone.classList.remove('dragover'); });
+      dropZone.addEventListener('drop', function(e) {
+          e.preventDefault(); 
+          dropZone.classList.remove('dragover');
+          if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+              window.handleFileSelection(e.dataTransfer.files[0]);
+          }
+      });
+
+      dropZone.addEventListener('click', function() { fileInput.click(); });
+      fileInput.addEventListener('change', function(e) {
+          if (e.target.files.length > 0) {
+              window.handleFileSelection(e.target.files[0]);
+          }
+      });
+  };
+
+  window.openProgressModal = function(milestoneId) {
+      window.ThesisState.currentOpenMilestoneId = milestoneId;
+      document.getElementById('uploadModal').style.display = 'flex';
+      window.resetProgressForm();
+  };
+
+  window.closeProgressModal = function() {
+      document.getElementById('uploadModal').style.display = 'none';
+      window.ThesisState.currentOpenMilestoneId = null;
+      window.resetProgressForm();
+  };
+
+  window.resetProgressForm = function() {
+      window.ThesisState.selectedFile = null;
+      window.ThesisState.base64String = null;
+      document.getElementById('fileInput').value = '';
+      document.getElementById('fileNameDisplay').style.display = 'none';
+      document.getElementById('dropZone').style.display = 'block';
+      
+      const btnUpload = document.getElementById('btnUpload');
+      btnUpload.innerText = 'Đăng tải';
+      btnUpload.disabled = false;
+      btnUpload.style.opacity = '1';
+  };
+
+  window.handleFileSelection = function(file) {
+      if (file.type !== 'application/pdf') {
+          alert('Lỗi: Hệ thống chỉ hỗ trợ duyệt tệp tin .PDF !');
+          return;
+      }
+      window.ThesisState.selectedFile = file;
+      document.getElementById('fNameText').innerText = file.name;
+      document.getElementById('dropZone').style.display = 'none'; 
+      document.getElementById('fileNameDisplay').style.display = 'flex'; 
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+          window.ThesisState.base64String = event.target.result;
+      };
+      reader.readAsDataURL(file);
+  };
+
+  window.doProgressUpload = function() {
+      const state = window.ThesisState;
+      if (!state.selectedFile || !state.base64String) {
+          alert('Trạng thái treo: Vui lòng kéo thả hoặc click chọn thư mục tải tệp .pdf');
+          return;
+      }
+
+      const btnUpload = document.getElementById('btnUpload');
+      btnUpload.innerText = 'Đang đẩy lên máy chủ...';
+      btnUpload.style.opacity = '0.7';
+      btnUpload.disabled = true;
+
+      google.script.run
+          .withSuccessHandler(function(responseStr) {
+              try {
+                  const response = JSON.parse(responseStr);
+                  if (response.success) {
+                      alert(response.message);
+                      window.closeProgressModal();
+                      window.initThesisProgress();
+                  } else {
+                      alert("Lỗi tải lên: " + response.error);
+                      btnUpload.innerText = 'Đăng tải';
+                      btnUpload.disabled = false;
+                      btnUpload.style.opacity = '1';
+                  }
+              } catch(err) {
+                  alert('Lỗi parse phản hồi hệ thống!');
+                  window.closeProgressModal();
+              }
+          })
+          .withFailureHandler(function(error) {
+              alert("Lỗi kết nối Server: " + error.message);
+              btnUpload.innerText = 'Đăng tải';
+              btnUpload.disabled = false;
+              btnUpload.style.opacity = '1';
+          })
+          .uploadFileToDrive(state.base64String, state.selectedFile.name);
+  };
 </script>
