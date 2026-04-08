@@ -1,0 +1,269 @@
+<script>
+  window.HODState = {
+    theses: [],
+    lecturers: [],
+    currentPage: 1,
+    pageSize: 10,
+    currentThesisModal: null
+  };
+
+  window.initHODApproveThesis = function() {
+    showLoading(); // Giả sử JS utils có hàm này
+    
+    // Fetch lecturers first
+    google.script.run
+      .withSuccessHandler(function(responseStr) {
+        var resp = JSON.parse(responseStr);
+        if (resp.success) {
+          window.HODState.lecturers = resp.data;
+          fetchTheses();
+        } else {
+          alert('Lỗi tải giảng viên: ' + resp.error);
+        }
+      })
+      .api_hod_getAllLecturers();
+  };
+
+  function fetchTheses() {
+    google.script.run
+      .withSuccessHandler(function(responseStr) {
+        var resp = JSON.parse(responseStr);
+        if (resp.success) {
+          window.HODState.theses = resp.data;
+          renderHODUI();
+        } else {
+          alert('Lỗi tải đề tài: ' + resp.error);
+        }
+        hideLoading(); // Giả sử JS utils có hàm này
+      })
+      .api_hod_getAllTheses();
+  }
+
+  function renderHODUI() {
+    var theses = window.HODState.theses;
+    
+    var total = theses.length;
+    var approved = theses.filter(t => t.status === 'Đã duyệt' || t.status === 'Đã nộp' || t.status === 'Đang thực hiện' || t.status === 'Đã hoàn thành').length;
+    var pending = theses.filter(t => t.status === 'Chờ duyệt').length;
+
+    safeSetText('hod-total-theses', formatNumberWithZero(total));
+    safeSetText('hod-approved-theses', formatNumberWithZero(approved));
+    safeSetText('hod-pending-theses', formatNumberWithZero(pending));
+
+    renderHODTable();
+  }
+
+  function formatNumberWithZero(num) {
+    return num < 10 && num > 0 ? '0' + num : num;
+  }
+
+  function renderHODTable() {
+    var list = window.HODState.theses;
+    var tbody = document.getElementById('hod-thesis-list');
+    
+    if (!tbody) return;
+    
+    var sorted = [...list].sort((a,b) => {
+        // Có thể sắp xếp, ví dụ chờ duyệt lên trên
+        if(a.status === 'Chờ duyệt' && b.status !== 'Chờ duyệt') return -1;
+        if(a.status !== 'Chờ duyệt' && b.status === 'Chờ duyệt') return 1;
+        return 0;
+    });
+
+    var startIndex = (window.HODState.currentPage - 1) * window.HODState.pageSize;
+    var endIndex = startIndex + window.HODState.pageSize;
+    var paginated = sorted.slice(startIndex, endIndex);
+
+    if (paginated.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center">Chưa có đề tài nào</td></tr>';
+      return;
+    }
+
+    var html = paginated.map(function(t, index) {
+      var badgeClass = 'status-default';
+      if (t.status === 'Chờ duyệt') badgeClass = 'status-pending';
+      else if (t.status === 'Đã duyệt' || t.status === 'Đã đồng ý') badgeClass = 'status-approved';
+      else if (t.status === 'Từ chối' || t.status === 'GVHD từ chối') badgeClass = 'status-rejected';
+      else if (t.status === 'Đang thực hiện') badgeClass = 'status-inprogress';
+      else if (t.status === 'Đã hoàn thành' || t.status === 'Hoàn thành') badgeClass = 'status-completed';
+
+      return `
+        <tr style="cursor: pointer" onclick="openThesisDetailModal('${t.id}')">
+          <td style="color:#888">${formatNumberWithZero(startIndex + index + 1)}</td>
+          <td style="font-weight:600">${t.title}</td>
+          <td>${t.studentName}</td>
+          <td><span class="status-badge ${badgeClass}">${t.status || 'Chờ duyệt'}</span></td>
+        </tr>
+      `;
+    }).join('');
+
+    tbody.innerHTML = html;
+
+    renderHODPagination(sorted.length);
+  }
+
+  function renderHODPagination(totalItems) {
+    var info = document.getElementById('hod-pagination-info');
+    var btnContainer = document.getElementById('hod-pagination-buttons');
+    if(!info || !btnContainer) return;
+
+    var totalPages = Math.ceil(totalItems / window.HODState.pageSize);
+    if(totalPages === 0) totalPages = 1;
+
+    var startIndex = (window.HODState.currentPage - 1) * window.HODState.pageSize + 1;
+    var endIndex = Math.min(startIndex + window.HODState.pageSize - 1, totalItems);
+    if(totalItems === 0) { startIndex = 0; endIndex = 0; }
+
+    info.innerText = `Hiển thị ${startIndex} - ${endIndex} trên tổng số ${totalItems} đề tài`;
+
+    var buttonsHtml = `<button class="page-btn" onclick="goToHodPage(${window.HODState.currentPage - 1})" ${window.HODState.currentPage <= 1 ? 'disabled' : ''}>‹</button>`;
+    
+    for (var i = 1; i <= totalPages; i++) {
+        var active = (i === window.HODState.currentPage) ? 'active' : '';
+        buttonsHtml += `<button class="page-btn ${active}" onclick="goToHodPage(${i})">${i}</button>`;
+    }
+
+    buttonsHtml += `<button class="page-btn" onclick="goToHodPage(${window.HODState.currentPage + 1})" ${window.HODState.currentPage >= totalPages ? 'disabled' : ''}>›</button>`;
+    
+    btnContainer.innerHTML = buttonsHtml;
+  }
+
+  window.goToHodPage = function(page) {
+    var totalItems = window.HODState.theses.length;
+    var totalPages = Math.ceil(totalItems / window.HODState.pageSize);
+    
+    if (page < 1 || page > totalPages) return;
+    window.HODState.currentPage = page;
+    renderHODTable();
+  }
+
+  window.openThesisDetailModal = function(id) {
+    var thesis = window.HODState.theses.find(t => t.id === id);
+    if(!thesis) return;
+    
+    window.HODState.currentThesisModal = thesis;
+
+    safeSetText('mdl-thesis-title', thesis.title);
+    safeSetText('mdl-thesis-filename', thesis.descriptionFile || 'Chưa cung cấp file');
+    safeSetText('mdl-thesis-registered-gv', thesis.supervisorName);
+
+    var select = document.getElementById('mdl-thesis-assign-gv');
+    if (select) {
+        var ops = '<option value="">-- Chọn giảng viên khác (Không bắt buộc) --</option>';
+        window.HODState.lecturers.forEach(l => {
+            var selected = (thesis.supervisorId === l.id) ? 'selected' : '';
+            ops += `<option value="${l.id}" ${selected}>${l.fullName}</option>`;
+        });
+        select.innerHTML = ops;
+    }
+
+    document.getElementById('modal-thesis-detail').style.display = 'flex';
+  }
+
+  window.closeThesisDetailModal = function() {
+    document.getElementById('modal-thesis-detail').style.display = 'none';
+    window.HODState.currentThesisModal = null;
+    var sec = document.getElementById('hod-comment-section');
+    if(sec) sec.style.display = 'none';
+    var inp = document.getElementById('hod-comment-input');
+    if(inp) inp.value = '';
+  }
+
+  window.handleBtnReject = function() {
+    var thesis = window.HODState.currentThesisModal;
+    if(!thesis) return;
+    
+    var reasonInput = document.getElementById('hod-comment-input');
+    var reason = reasonInput ? reasonInput.value.trim() : '';
+
+    showLoading();
+    google.script.run
+      .withSuccessHandler(function(respStr) {
+        var resp = JSON.parse(respStr);
+        if(resp.success) {
+            showNotification(resp.message, 'success');
+            closeThesisDetailModal();
+            fetchTheses(); // refresh list
+        } else {
+            showNotification('Lỗi: ' + resp.error, 'error');
+            hideLoading();
+        }
+      })
+      .api_hod_rejectThesis(thesis.id, reason);
+  }
+
+  window.handleBtnApprove = function() {
+    var thesis = window.HODState.currentThesisModal;
+    if(!thesis) return;
+
+    var select = document.getElementById('mdl-thesis-assign-gv');
+    var selectedSupervisorId = select ? select.value : '';
+
+    var reasonInput = document.getElementById('hod-comment-input');
+    var comment = reasonInput ? reasonInput.value.trim() : '';
+
+    showLoading();
+    google.script.run
+      .withSuccessHandler(function(respStr) {
+        var resp = JSON.parse(respStr);
+        if(resp.success) {
+            showNotification(resp.message, 'success');
+            closeThesisDetailModal();
+            fetchTheses(); // refresh list
+        } else {
+            showNotification('Lỗi: ' + resp.error, 'error');
+            hideLoading();
+        }
+      })
+      .api_hod_approveThesis(thesis.id, selectedSupervisorId, comment);
+  }
+
+  window.handleBtnComment = function() {
+    var thesis = window.HODState.currentThesisModal;
+    if(!thesis) return;
+    
+    var sec = document.getElementById('hod-comment-section');
+    if (sec) {
+        sec.style.display = sec.style.display === 'none' ? 'block' : 'none';
+        if (sec.style.display === 'block') {
+            document.getElementById('hod-comment-input').focus();
+        }
+    }
+  }
+
+  window.submitHodComment = function() {
+    var thesis = window.HODState.currentThesisModal;
+    if (!thesis) return;
+
+    var reasonInput = document.getElementById('hod-comment-input');
+    var comment = reasonInput ? reasonInput.value.trim() : '';
+    if (!comment) {
+      showNotification('Vui lòng nhập nội dung nhận xét!', 'error');
+      return;
+    }
+
+    showLoading();
+    google.script.run
+      .withSuccessHandler(function(respStr) {
+        var resp = JSON.parse(respStr);
+        hideLoading();
+        if (resp.success) {
+          showNotification(resp.message, 'success');
+          if (reasonInput) reasonInput.value = '';
+          var sec = document.getElementById('hod-comment-section');
+          if (sec) sec.style.display = 'none';
+        } else {
+          showNotification('Lỗi: ' + resp.error, 'error');
+        }
+      })
+      .api_hod_addComment(thesis.id, comment);
+  }
+
+  // Utility to be used inside frontend logic
+  function showLoading() {
+      // Mock loading display
+  }
+  function hideLoading() {
+      // Mock loading display
+  }
+</script>
