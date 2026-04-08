@@ -435,13 +435,6 @@ function api_lec_rejectThesis(thesisId, comment) {
     }
 }
 
-<<<<<<< HEAD
-return {
-    id: user.id,
-    fullName: user.fullName,
-    role: user.role         // student / lecturer
-}
-
 // ==========================================
 // CHAIRMAN — DANH SÁCH ĐỀ TÀI (BBHĐ / BCKLTN / ĐIỂM)
 // ==========================================
