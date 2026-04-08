@@ -16,22 +16,63 @@ function verifyLogin(account) {
 
     if (String(user.password) === String(account.password)) {
 
-      // 👉 LẤY POSITION TẠI ĐÂY
-      var lecturer = db_findRecordByColumn(CONFIG.TABLES.LECTURER, "accountId", user.id);
-      var position = "lecturer";
+      // Khởi tạo biến positions là một Mảng (Array) để chứa nhiều chức danh
+      var positions = [];
 
-      if (lecturer) {
-        var councilMember = db_findRecordByColumn(
-          CONFIG.TABLES.COUNCIL_MEMBER, // fix undefined tab
-          "lecturerId",
-          lecturer.id
-        );
+      // Nếu Role là HOD (Trưởng bộ môn) -> Gắn cứng luôn
+      if (user.role === "HOD") {
+         positions.push("hod");
+      }
+      
+      // Nếu là HOD hoặc LECTURER -> Cần quét các bảng để lấy vị trí
+      if (user.role === "LECTURER" || user.role === "HOD") {
+        
+        var lecturer = db_findRecordByColumn(CONFIG.TABLES.LECTURER, "accountId", user.id);
+        
+        if (lecturer) {
+          // 1. QUÉT BẢNG HỘI ĐỒNG (COUNCIL_MEMBER)
+          // (Dùng db_getAll và filter vì một GV có thể ở nhiều Hội đồng)
+          var allCouncilMembers = db_getAll(CONFIG.TABLES.COUNCIL_MEMBER);
+          if (allCouncilMembers && allCouncilMembers.length > 0) {
+            allCouncilMembers.forEach(function(cm) {
+              if (cm.lecturerId == lecturer.id) {
+                var roleInCouncil = cm.position || cm.Position || cm.role || cm.Role || "";
+                var mappedPosition = mapCouncilRoleToPosition(roleInCouncil);
+                // Thêm vào mảng nếu chưa có (Tránh trùng lặp)
+                if (mappedPosition !== "lecturer" && positions.indexOf(mappedPosition) === -1) {
+                  positions.push(mappedPosition);
+                }
+              }
+            });
+          }
 
-        if (councilMember) {
-            var val = councilMember.position || councilMember.Position || councilMember.role || councilMember.Role || "";
-            position = mapCouncilRoleToPosition(val);
-        } else {
-            position = "supervisor";
+          // 2. QUÉT BẢNG ĐỀ TÀI (THESIS) 
+          // Để tìm chức danh Hướng dẫn (Supervisor) và Phản biện (Reviewer)
+          var allTheses = db_getAll(CONFIG.TABLES.THESIS);
+          if (allTheses && allTheses.length > 0) {
+            allTheses.forEach(function(thesis) {
+              
+              // Nếu GV này là người hướng dẫn đề tài này
+              if (thesis.supervisorId == lecturer.id) {
+                if (positions.indexOf("supervisor") === -1) {
+                  positions.push("supervisor");
+                }
+              }
+
+              // Nếu GV này là người phản biện đề tài này
+              if (thesis.reviewerId == lecturer.id) {
+                if (positions.indexOf("reviewer") === -1) {
+                  positions.push("reviewer");
+                }
+              }
+
+            });
+          }
+          
+          // 3. Nếu rà soát xong mà không có chức danh nào đặc biệt, gán mặc định
+          if (positions.length === 0) {
+             positions.push("lecturer"); // Hoặc có thể để "supervisor" làm mặc định tuỳ bạn
+          }
         }
       }
 
@@ -42,7 +83,7 @@ function verifyLogin(account) {
           email: user.email,
           fullName: user.fullName,
           role: user.role,
-          position: position
+          positions: positions // TRẢ VỀ MẢNG POSITIONS
         }
       };
     }
@@ -54,6 +95,9 @@ function verifyLogin(account) {
   }
 }
 
+/**
+ * Hàm phụ trợ map chữ tiếng Việt sang key hệ thống
+ */
 function mapCouncilRoleToPosition(role) {
   var raw = String(role || "").trim().toLowerCase();
 
@@ -65,20 +109,9 @@ function mapCouncilRoleToPosition(role) {
     return "secretary";
   }
 
-  if (raw.includes("giảng viên phản biện") || raw.includes("reviewer")) {
-    return "reviewer";
-  }
-
   if (raw.includes("thành viên hội đồng") || raw.includes("member")) {
     return "member";
   }
 
-  if (raw.includes("giảng viên hướng dẫn") || raw.includes("supervisor")) {
-    return "supervisor";
-  }
-
-  if (raw.includes("trưởng bộ môn") || raw.includes("head of department") || raw.includes("hod")) {
-    return "hod";
-  }
-  return "lecturer"; // default
+  return "lecturer"; 
 }
