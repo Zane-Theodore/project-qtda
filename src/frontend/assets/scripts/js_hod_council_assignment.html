@@ -78,17 +78,24 @@ function renderCouncilsTable(councils) {
     const secretaryName = secretary?.fullName || '--';
 
     const memberCount = council.members?.length || 0;
-    const statusClass = council.isGradeLocked ? 'status-badge-active' : 'status-badge-locked';
-    const statusText = council.isGradeLocked ? 'Hoạt động' : 'Bản nháp';
+    const statusClass = council.isGradeLocked ? 'status-ready' : 'status-draft';
+    const statusText = council.isGradeLocked ? 'Sẵn sàng' : 'Bản nháp';
 
     return `
       <tr onclick="openEditCouncilModal('${council.id}')">
-        <td>${String(idx + 1).padStart(2, '0')}</td>
-        <td><strong>${council.councilName}</strong></td>
-        <td>${presidentName} / ${secretaryName}</td>
-        <td>${memberCount}</td>
+        <td class="stt-col">${String(idx + 1).padStart(2, '0')}</td>
+        <td><a class="council-name-link">${council.councilName}</a></td>
+        <td>
+          <div class="member-role-stack">
+            <span class="member-name-primary">${presidentName}</span>
+            <span class="member-name-secondary">${secretaryName} (TK)</span>
+          </div>
+        </td>
+        <td style="text-align: center;">
+          <span class="badge-counter">${String(memberCount).padStart(2, '0')}</span>
+        </td>
         <td>${formatCouncilDate(council.createdAt || '')}</td>
-        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+        <td><span class="badge-premium-status ${statusClass}">${statusText}</span></td>
       </tr>
     `;
   }).join('');
@@ -562,19 +569,21 @@ window.switchHodCouncilTab = function(tabName) {
   document.querySelectorAll('.council-tab-content').forEach(el => {
     el.style.display = 'none';
   });
-  document.querySelectorAll('.council-tab-btn').forEach(el => {
+  document.querySelectorAll('.premium-tab').forEach(el => {
     el.classList.remove('active');
   });
 
   const tab = document.getElementById(tabName);
-  const btnIndex = Array.from(document.querySelectorAll('.council-tab-btn')).findIndex(btn => {
-    return btn.getAttribute('onclick').includes(tabName);
+  
+  // Find button that triggers this tab
+  const buttons = document.querySelectorAll('.premium-tab');
+  buttons.forEach(btn => {
+    if (btn.getAttribute('onclick').includes(tabName)) {
+      btn.classList.add('active');
+    }
   });
 
   if (tab) tab.style.display = 'block';
-  if (btnIndex >= 0) {
-    document.querySelectorAll('.council-tab-btn')[btnIndex].classList.add('active');
-  }
 };
 // ====== DEFENSE ROOM LOGIC ======
 window.DefenseRoomState = {
@@ -651,22 +660,24 @@ function renderDefenseRooms() {
     const formattedDate = formatScheduleTime(room.scheduleTime);
     
     html += `
-      <tr style="border-bottom: 1px solid #eee; transition: background 0.3s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-        <td style="text-align:center; font-weight: bold; color:#1e293b; padding: 20px;">${(index + 1).toString().padStart(2, '0')}</td>
-        <td style="padding: 20px;">
-          <div style="color: #0F57D0; font-weight: 700; cursor:pointer; font-size: 15px;" onclick="openEditDefenseRoomModal('${room.councilId}')">${room.councilName}</div>
+      <tr onclick="openEditDefenseRoomModal('${room.councilId}')">
+        <td class="stt-col" style="text-align:center;">${(index + 1).toString().padStart(2, '0')}</td>
+        <td>
+          <a class="council-name-link">${room.councilName}</a>
         </td>
-        <td style="padding: 20px; line-height: 1.5;">
-          <div style="color: #333; font-size: 14px;"><strong>CT:</strong> ${room.presidentName || 'Chưa phân công'}</div>
-          <div style="font-size: 13px; color: #888;"><strong>TK:</strong> ${room.secretaryName || 'Chưa phân công'}</div>
+        <td>
+          <div class="member-role-stack">
+            <span class="member-name-primary">${room.presidentName || 'Chưa phân công'}</span>
+            <span class="member-name-secondary">${room.secretaryName || 'Chưa phân công'} (TK)</span>
+          </div>
         </td>
-        <td style="padding: 20px; color: #333; font-size: 14px;">${room.roomName}</td>
-        <td style="padding: 20px;">
+        <td>${room.roomName}</td>
+        <td>
           <div style="font-weight: bold; color: #1e293b; font-size: 14px;">${formattedDate.date}</div>
           <div style="font-size: 13px; color: #888; font-weight: 500;">${formattedDate.time}</div>
         </td>
-        <td style="text-align:center; padding: 20px;">
-          <span style="display:inline-block; padding: 6px 12px; background: #e0e0e0; color: #000; border-radius: 4px; font-weight: bold; font-size: 13px;">
+        <td style="text-align:center;">
+          <span class="badge-counter">
             ${(room.studentCount || 0).toString().padStart(2, '0')}
           </span>
         </td>
