@@ -151,9 +151,28 @@
         // 2. Render Functions
         const renderOverview = (overview) => {
             safeSetText('overview-total-theses', overview.total + ' Đề tài');
-            safeSetText('overview-submitted', overview.submitted < 10 ? '0' + overview.submitted : overview.submitted);
-            safeSetText('overview-in-progress', overview.inProgress < 10 ? '0' + overview.inProgress : overview.inProgress);
-            safeSetText('overview-overdue', overview.overdue < 10 ? '0' + overview.overdue : overview.overdue);
+
+            const submittedStr = overview.submitted < 10 ? '0' + overview.submitted : overview.submitted;
+            const inProgressStr = overview.inProgress < 10 ? '0' + overview.inProgress : overview.inProgress;
+            const overdueStr = overview.overdue < 10 ? '0' + overview.overdue : overview.overdue;
+
+            const statContainer = document.getElementById('overview-stats-container');
+            if (statContainer) {
+                statContainer.innerHTML = `
+                <div class="stat-tag tag-success">
+                    <span class="stat-tag-label">ĐÃ NỘP</span>
+                    <span class="stat-tag-value">${submittedStr}</span>
+                </div>
+                <div class="stat-tag tag-warning">
+                    <span class="stat-tag-label">ĐANG THỰC HIỆN</span>
+                    <span class="stat-tag-value">${inProgressStr}</span>
+                </div>
+                <div class="stat-tag tag-danger">
+                    <span class="stat-tag-label">TRỄ HẠN</span>
+                    <span class="stat-tag-value">${overdueStr}</span>
+                </div>
+            `;
+            }
         };
 
         const getTimelineInfoHtml = (thesis) => {
@@ -211,8 +230,13 @@
             }
 
             html += `<div class="progress-footer">
-            <div>${pendingTaskText}</div>
-            <button class="btn-detail" onclick="event.stopPropagation(); window.selectStudent('${thesis.thesisId}')">Xem chi tiết</button>
+            ${pendingTaskText}
+            <div class="footer-actions">
+                <button class="btn-history" onclick="event.stopPropagation(); alert('Chức năng lịch sử nộp đang phát triển!')">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">history</span> Lịch sử nộp
+                </button>
+                <button class="btn-detail" onclick="event.stopPropagation(); window.selectStudent('${thesis.thesisId}')">Xem chi tiết</button>
+            </div>
         </div>`;
 
             return html;
@@ -228,15 +252,18 @@
 
                 let badgeClass = thesis.status === 'Đã nộp' ? 'success' : 'warning';
                 let badgeText = thesis.status || 'ĐANG THỰC HIỆN';
+                let cardBorderStatus = thesis.status === 'Đã nộp' ? 'status-success' : 'status-warning';
+
                 if (thesis.status !== 'Đã nộp' && thesis.isOverdue) {
                     badgeClass = 'danger';
                     badgeText = 'TRỄ HẠN';
+                    cardBorderStatus = 'status-danger';
                 }
 
                 const activeClass = window.LecturerProgressState.selectedThesisId === thesis.thesisId ? 'active' : '';
 
                 return `
-            <div class="student-card ${activeClass}" id="card-thesis-${thesis.thesisId}" onclick="window.selectStudent('${thesis.thesisId}')">
+            <div class="student-card ${activeClass} ${cardBorderStatus}" id="card-thesis-${thesis.thesisId}" onclick="window.selectStudent('${thesis.thesisId}')">
                 <div class="student-card-header">
                     <div class="student-info">
                         <div class="student-avatar">${shortName.toUpperCase()}</div>
@@ -273,36 +300,34 @@
                 if (!sub) return '';
 
                 const isDone = sub.pdfFile && sub.pdfFile.trim() !== '';
-                const statusText = isDone ? '<span class="status-done">HOÀN THÀNH</span>' : '<span style="color:#4338ca">ĐANG THỰC HIỆN</span>';
+                const statusText = isDone ? '<span class="v-step-status status-text-done">HOÀN THÀNH</span>' : '<span class="v-step-status status-text-active">ĐANG THỰC HIỆN</span>';
                 const stepClass = isDone ? '' : 'active';
+                const indicatorClass = isDone ? 'indicator-done' : 'indicator-active';
+                const indicatorContent = isDone ? '✓' : '';
 
                 let extraHtml = '';
                 if (isDone) {
-                    const commentHtml = sub.comment ? `<p style="color:#166534"><i class="fas fa-comment-dots"></i> Nhận xét: ${sub.comment}</p>` : '';
+                    const commentHtml = sub.comment ? `<p style="color:#166534; font-size:13px;"><span class="material-symbols-outlined" style="font-size:14px; vertical-align:middle;">chat</span> Nhận xét: ${sub.comment}</p>` : '';
                     extraHtml = `<div class="v-step-date">Đã nộp: ${formatDateTime(sub.submittedAt)}</div>
-                              <div class="active-task-box">
-                                ${sub.description ? `<p>${sub.description}</p>` : ''}
-                                ${commentHtml}
-                                <div class="file-link"><i class="fas fa-file-pdf"></i> ${sub.pdfFile}</div>
+                             ${sub.description ? `<p style="font-size:13px; color:#475569;">${sub.description}</p>` : ''}
+                             ${commentHtml}`;
+                } else {
+                    extraHtml = `<div class="active-task-wrapper">
+                                <div class="deadline"><span class="material-symbols-outlined" style="font-size: 16px;">schedule</span> Hạn chót: ${formatDateTime(sub.deadline)}</div>
+                                ${sub.description ? `<p style="font-size:13px; color:#475569; margin-bottom: 10px;">${sub.description}</p>` : ''}
+                                <div class="file-link">Bản thảo chưa được nộp</div>
                                 <div class="task-actions">
-                                    <button class="btn-secondary" onclick="window.open('${sub.pdfFile}', '_blank')">Xem bài nộp</button>
-                                    <button class="btn-primary" onclick="window.openFeedbackModal('${sub.id}')">Phản hồi</button>
+                                    <button class="btn-secondary" onclick="window.editTaskModal('${sub.id}')">Chỉnh sửa bài tập</button>
                                 </div>
                               </div>`;
-                } else {
-                    extraHtml = `<div class="active-task-box">
-                                <div class="deadline"><i class="far fa-clock"></i> Hạn chót: ${formatDateTime(sub.deadline)}</div>
-                                ${sub.description ? `<p>${sub.description}</p>` : ''}
-                                <p style="color: #64748b; font-style: italic;">Sinh viên chưa nộp bài</p>
-                                <button class="btn-secondary" style="margin-top: 10px" onclick="window.editTaskModal('${sub.id}')">Chỉnh sửa bài tập</button>
-                            </div>`;
                 }
 
                 return `
             <div class="v-step ${stepClass}">
+                <div class="v-step-indicator ${indicatorClass}">${indicatorContent}</div>
                 <div class="v-step-header">
                     <p class="v-step-title">${title || sub.title}</p>
-                    <span class="v-step-status">${statusText}</span>
+                    ${statusText}
                 </div>
                 ${extraHtml}
             </div>
@@ -313,6 +338,7 @@
 
             html += `
             <div class="v-step">
+                <div class="v-step-indicator indicator-done">✓</div>
                 <div class="v-step-header">
                     <p class="v-step-title">Duyệt đề tài</p>
                     <span class="v-step-status status-done">HOÀN THÀNH</span>
@@ -335,17 +361,23 @@
             const finalSub = thesis.submissions.find(s => s.submissionType === 'Final');
             if (finalSub && finalSub.pdfFile) {
                 const isApproved = finalSub.lectureApproved === 'TRUE' || finalSub.lectureApproved === true;
+                const statusTextColor = isApproved ? 'status-text-done' : 'status-text-active';
+                const indicatorColor = isApproved ? 'indicator-done' : 'indicator-active';
+                const statusLabel = isApproved ? 'HOÀN THÀNH' : 'ĐANG CHỜ DUYỆT';
+                const indicatorMark = isApproved ? '✓' : '';
+
                 html += `
              <div class="v-step ${isApproved ? '' : 'active'}">
+                <div class="v-step-indicator ${indicatorColor}">${indicatorMark}</div>
                 <div class="v-step-header">
                     <p class="v-step-title">Duyệt Báo cáo KLTN hoàn chỉnh</p>
-                    <span class="v-step-status" style="color: ${isApproved ? '#166534' : '#4338ca'}">${isApproved ? 'ĐÃ DUYỆT' : 'ĐANG CHỜ'}</span>
+                    <span class="v-step-status ${statusTextColor}">${statusLabel}</span>
                 </div>
-                <div class="active-task-box">
-                    <div class="file-link"><i class="fas fa-file-pdf"></i> ${finalSub.pdfFile}</div>
+                <div class="active-task-wrapper">
+                    <div class="file-link"><span class="material-symbols-outlined" style="font-size:16px;">description</span> Bản thảo KLTN: ${finalSub.pdfFile}</div>
                     <div class="task-actions">
                         <button class="btn-secondary" onclick="window.open('${finalSub.pdfFile}', '_blank')">Xem bài nộp</button>
-                        ${!isApproved ? `<button class="btn-primary" onclick="window.openApproveFinalModal('${finalSub.id}')">Duyệt KLTN</button>` : `<button class="btn-primary" style="background:#dc2626" onclick="window.openApproveFinalModal('${finalSub.id}')">Hủy duyệt</button>`}
+                        ${!isApproved ? `<button class="btn-primary" onclick="window.openApproveFinalModal('${finalSub.id}')">Duyệt KLTN</button>` : `<button class="btn-danger" style="background:#dc2626; color:white; border:none; padding:8px 16px; border-radius:4px; font-weight:bold; cursor:pointer;" onclick="window.openApproveFinalModal('${finalSub.id}')">Hủy duyệt</button>`}
                     </div>
                 </div>
             </div>`;
@@ -354,8 +386,10 @@
             } else {
                 html += `
              <div class="v-step pending">
+                <div class="v-step-indicator indicator-pending"></div>
                 <div class="v-step-header">
-                    <p class="v-step-title" style="color:#94a3b8">Duyệt Báo cáo KLTN hoàn chỉnh</p>
+                    <p class="v-step-title pending-text">Duyệt Báo cáo KLTN hoàn chỉnh</p>
+                    <span class="v-step-status status-text-pending">ĐANG CHỜ</span>
                 </div>
             </div>`;
             }
@@ -573,4 +607,207 @@
         loadData();
         setupEvents();
     };
+
+    /* ========================================================
+       LOGIC CHO TRANG NHẬP ĐIỂM (GRADING)
+       ======================================================== */
+
+    // Cache for grading list
+    window.GradingDataCache = [];
+
+    window.initLecturerGrading = function () {
+        const currentAccountId = window.currentUserData.id;
+
+        // Show loading
+        const tbody = document.getElementById('grading-table-body');
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px;">Đang tải dữ liệu...</td></tr>';
+        }
+
+        google.script.run
+            .withSuccessHandler(function (responseString) {
+                const response = JSON.parse(responseString);
+                if (response.success) {
+                    window.GradingDataCache = response.data;
+                    renderGradingTable(window.GradingDataCache);
+                } else {
+                    alert("Lỗi tải danh sách chấm điểm: " + response.error);
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">Lỗi tải dữ liệu.</td></tr>';
+                }
+            })
+            .withFailureHandler(function (error) {
+                alert("Lỗi kết nối máy chủ!");
+                if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">Lỗi kết nối.</td></tr>';
+            })
+            .api_lec_getGradingList(currentAccountId);
+    };
+
+    function renderGradingTable(data) {
+        const tbody = document.getElementById('grading-table-body');
+        if (!tbody) return;
+
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px; color: #64748b;">Chưa có đề tài nào cần chấm điểm.</td></tr>';
+            return;
+        }
+
+        let html = '';
+        data.forEach(item => {
+            const scoreStr = item.score !== null ? item.score.toFixed(1) : '--';
+            const scoreClass = item.score !== null ? '' : 'empty';
+            const roleClass = item.role === 'GVHD' ? 'tag-gvhd' : item.role === 'GVPB' ? 'tag-gvpb' : 'tag-tvhd';
+
+            html += `
+        <tr>
+          <td style="color: #64748b; font-weight: 600;">${item.stt}</td>
+          <td>
+            <span class="student-name">${item.stName}</span>
+            <span class="student-mssv">MSSV: ${item.stMssv}</span>
+          </td>
+          <td><span class="thesis-title">${item.title}</span></td>
+          <td><span class="score-display ${scoreClass}">${scoreStr}</span></td>
+          <td><span class="role-tag ${roleClass}">${item.role}</span></td>
+          <td>
+            <button class="action-btn" onclick="openGradingModal('${item.id}', '${item.role}')">
+              <span class="material-symbols-outlined">edit</span>
+            </button>
+          </td>
+        </tr>
+      `;
+        });
+
+        tbody.innerHTML = html;
+    }
+
+    window.openGradingModal = function (id, role) {
+        const item = window.GradingDataCache.find(d => d.id === id);
+        if (!item) return;
+
+        // Save active item ID to be accessed by saveGrading
+        document.getElementById('grading-modal').dataset.activeId = id;
+
+        // Populate modal
+        document.getElementById('modal-thesis-title').innerText = item.title;
+        document.getElementById('modal-score-input').value = item.score !== null ? item.score : '';
+
+        // Xử lý vùng xuất hiện Tệp đính kèm
+        const fileBox = document.querySelector('.file-attachment-box');
+        const inputElement = document.getElementById('modal-score-input');
+        if (fileBox) {
+            if (item.fileName) {
+                inputElement.disabled = false;
+                fileBox.innerHTML = `
+          <div class="file-icon-wrapper">
+            <span class="material-symbols-outlined pdf-icon">picture_as_pdf</span>
+          </div>
+          <div class="file-details">
+            <span class="file-name" id="modal-file-name">${item.fileName}</span>
+            <span class="file-size" id="modal-file-size">${item.fileSize || ''}</span>
+          </div>
+          <button class="btn-view-file">Xem</button>
+        `;
+            } else {
+                inputElement.disabled = true; // Chặn nhập điểm
+                fileBox.innerHTML = `<span style="font-style: italic; color: #94a3b8; padding: 10px 0;">Sinh viên chưa nộp báo cáo.</span>`;
+            }
+        }
+
+        const dynamicArea = document.getElementById('modal-dynamic-area');
+        let dynamicHtml = '';
+
+        if (role === 'GVHD') {
+            dynamicHtml = `
+        <div class="field-label">TỆP TURNITIN</div>
+        <div class="upload-area">
+          <div class="upload-icon">
+            <span class="material-symbols-outlined" style="font-size: 24px;">upload_file</span>
+          </div>
+          <div class="upload-title">Tải lên báo cáo Turnitin</div>
+          <div class="upload-subtitle">Định dạng PDF, tối đa 10MB</div>
+        </div>
+      `;
+        } else if (role === 'GVPB') {
+            dynamicHtml = `
+        <div class="field-label">CÂU HỎI PHẢN BIỆN</div>
+        <textarea id="modal-comment-input" class="feedback-textarea" placeholder="Nhập câu hỏi để hướng dẫn sinh viên hoàn thiện báo cáo...">${item.comment || ""}</textarea>
+      `;
+        } else if (role === 'TVHĐ') {
+            dynamicHtml = `
+        <div class="field-label">NHẬN XÉT CỦA THÀNH VIÊN HỘI ĐỒNG</div>
+        <textarea id="modal-comment-input" class="feedback-textarea" placeholder="Nhập tóm tắt đánh giá và nhận xét hội đồng...">${item.comment || ""}</textarea>
+      `;
+        }
+
+        dynamicArea.innerHTML = dynamicHtml;
+
+        // Show modal
+        document.getElementById('grading-modal').classList.add('show');
+    };
+
+    window.closeGradingModal = function () {
+        document.getElementById('grading-modal').classList.remove('show');
+        document.getElementById('grading-modal').dataset.activeId = "";
+    };
+
+    window.saveGrading = function () {
+        const activeId = document.getElementById('grading-modal').dataset.activeId;
+        if (!activeId) return;
+
+        const item = window.GradingDataCache.find(d => d.id === activeId);
+        if (!item) return;
+
+        if (!item.fileName) {
+            alert("Học viên chưa nộp báo cáo cuối kỳ, bạn chưa thể chấm điểm ở thời điểm này!");
+            return;
+        }
+
+        const currentAccountId = window.currentUserData.id;
+        const scoreValText = document.getElementById('modal-score-input').value;
+        const scoreValue = parseFloat(scoreValText);
+
+        if (isNaN(scoreValue) || scoreValue < 0 || scoreValue > 10) {
+            alert("Vui lòng nhập điểm hợp lệ từ 0 đến 10.");
+            return;
+        }
+
+        let comment = "";
+        const commentInput = document.getElementById('modal-comment-input');
+        if (commentInput) {
+            comment = commentInput.value;
+        }
+
+        // Disable button or show loading
+        const saveBtn = document.querySelector('.modal-footer .btn-primary-custom');
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerText = "Đang lưu...";
+        }
+
+        google.script.run
+            .withSuccessHandler(function (responseString) {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerText = "Lưu điểm";
+                }
+
+                const response = JSON.parse(responseString);
+                if (response.success) {
+                    showNotification("Đã lưu điểm thành công!", 'success');
+                    closeGradingModal();
+                    // Reload list to get updated score
+                    initLecturerGrading();
+                } else {
+                    alert("Lỗi lưu điểm: " + response.error);
+                }
+            })
+            .withFailureHandler(function (error) {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerText = "Lưu điểm";
+                }
+                alert("Lỗi kết nối máy chủ khi lưu điểm!");
+            })
+            .api_lec_saveGrade(currentAccountId, item.coreThesisId, item.scoreTypeLog, scoreValue, comment);
+    };
+
 </script>

@@ -1,6 +1,6 @@
-﻿<style>
+<style>
   /* =========================================
-     CSS Äá»˜C QUYá»€N CHO LECTURER PROFILE
+     CSS ĐỘC QUYỀN CHO LECTURER PROFILE
      ========================================= */
   .profile-container {
     max-width: 1100px;
@@ -10,14 +10,14 @@
     color: #333;
   }
 
-  /* Grid 2 cá»™t cho Giáº£ng viÃªn */
+  /* Grid 2 cột cho Giảng viên */
   .lec-grid {
     display: grid;
     grid-template-columns: 340px 1fr;
     gap: 25px;
   }
 
-  /* --- CÃC THáºº CARD CHUNG --- */
+  /* --- CÁC THẺ CARD CHUNG --- */
   .info-card {
     background: #fff;
     border-radius: 20px;
@@ -26,7 +26,7 @@
     margin-bottom: 25px;
   }
 
-  /* --- Cá»˜T TRÃI: CARD CÃ NHÃ‚N --- */
+  /* --- CỘT TRÁI: CARD CÁ NHÂN --- */
   .center-card {
     text-align: center;
     display: flex;
@@ -126,7 +126,7 @@
     font-size: 17px;
   }
 
-  /* --- Cá»˜T TRÃI: CARD LIÃŠN Há»† --- */
+  /* --- CỘT TRÁI: CARD LIÊN HỆ --- */
   .card-heading {
     font-size: 17px;
     color: #64748b;
@@ -172,7 +172,7 @@
     opacity: 0.8;
   }
 
-  /* --- Cá»˜T PHáº¢I: CHI TIáº¾T ÄÃ€O Táº O & THÃ€NH Tá»°U --- */
+  /* --- CỘT PHẢI: CHI TIẾT ĐÀO TẠO & THÀNH TỰU --- */
   .update-time {
     text-align: right;
     font-size: 15px;
@@ -208,7 +208,7 @@
     background: #3b82f6;
   }
 
-  /* LÆ°á»›i Hoáº¡t Ä‘á»™ng Ä‘Ã o táº¡o (Pills) */
+  /* Lưới Hoạt động đào tạo (Pills) */
   .teaching-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -260,7 +260,7 @@
     margin-top: 4px;
   }
 
-  /* Timeline ThÃ nh tá»±u */
+  /* Timeline Thành tựu */
   .timeline-container {
     border-left: 2px solid #e2e8f0;
     margin-left: 10px;
@@ -324,7 +324,7 @@
   }
 
   /* =========================================
-     CHAIRMAN / HOD â€” DANH SÃCH Äá»€ TÃ€I & DUYá»†T Äá»€ TÃ€I
+     CHAIRMAN / HOD — DANH SÁCH ĐỀ TÀI & DUYỆT ĐỀ TÀI
      ========================================= */
   .view-container {
     padding: 20px 40px;
@@ -782,26 +782,31 @@
   }
 
   /* =========================================
-     CSS CHO LECTURER THEO DÃ•I TIáº¾N Äá»˜
+     CSS CHO LECTURER THEO DÕI TIẾN ĐỘ
      ========================================= */
   .progress-header {
     margin-bottom: 20px;
   }
 
-  .progress-header .page-title {
-    font-size: 30px;
-    color: #1e293b;
-    position: relative;
+  .progress-header .page-title-tab {
     display: inline-block;
+    background-color: #2b569a;
+    color: white;
+    font-size: 22px;
+    font-weight: bold;
+    padding: 12px 30px 12px 25px;
+    position: relative;
+    border-top-left-radius: 6px;
+    box-shadow: 4px 0 6px -2px rgba(0,0,0,0.1);
   }
 
-  .progress-header .page-title .title-underline {
+  .progress-header .page-title-tab::after {
+    content: '';
     position: absolute;
-    bottom: -5px;
-    left: 0;
-    width: 60px;
-    height: 3px;
-    background: #6366f1;
+    top: 0;
+    right: -30px;
+    border-bottom: 53px solid #2b569a;
+    border-right: 30px solid transparent;
   }
 
   .progress-layout {
@@ -818,10 +823,20 @@
     margin-bottom: 25px;
   }
 
+  .overview-subtitle {
+    font-size: 14px;
+    font-weight: bold;
+    color: #64748b;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
   .overview-card h1 {
-    font-size: 34px;
-    color: #4338ca;
-    margin: 10px 0 20px 0;
+    font-size: 28px;
+    color: #1e40af;
+    margin: 10px 0 25px 0;
+    font-weight: 700;
   }
 
   .overview-stats {
@@ -829,37 +844,58 @@
     gap: 15px;
   }
 
-  .stat-box {
-    flex: 1;
-    padding: 15px;
-    border-radius: 8px;
+  .stat-tag {
+    padding: 12px 20px;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  .stat-tag-label {
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    letter-spacing: 0.3px;
+    opacity: 0.9;
+  }
+
+  .stat-tag-value {
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  .tag-success { background: #f0fdf4; color: #166534; border: 1px solid #dcfce7; }
+  .tag-warning { background: #fffbeb; color: #b45309; border: 1px solid #fef3c7; }
+  .tag-danger { background: #fef2f2; color: #b91c1c; border: 1px solid #fee2e2; }
+  
+  .btn-outline-custom {
+    background: transparent;
+    border: 1px solid #3b82f6;
+    color: #3b82f6;
+    padding: 10px 25px;
+    border-radius: 6px;
+    font-size: 14px;
     font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 20px;
+    display: inline-block;
   }
-
-  .box-success {
-    background: #dcfce7;
-    color: #166534;
-  }
-
-  .box-warning {
-    background: #fef9c3;
-    color: #854d0e;
-  }
-
-  .box-danger {
-    background: #fee2e2;
-    color: #991b1b;
+  
+  .btn-outline-custom:hover {
+    background: #eff6ff;
   }
 
   .student-card {
     background: #fff;
     border-radius: 8px;
-    padding: 20px;
+    padding: 20px 25px;
     margin-bottom: 15px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     cursor: pointer;
+    border-left: 5px solid transparent;
     transition: 0.2s;
-    border-left: 4px solid transparent;
   }
 
   .student-card:hover {
@@ -867,29 +903,55 @@
   }
 
   .student-card.active {
-    border-left-color: #4338ca;
     background: #f8fafc;
   }
 
-  .status-badge.success {
-    background: #dcfce7;
-    color: #166534;
+  /* Specific border colors based on status via inline style or custom class */
+  .student-card.status-success { border-left-color: #22c55e; }
+  .student-card.status-warning { border-left-color: #f59e0b; }
+  .student-card.status-danger { border-left-color: #ef4444; }
+  .student-card.status-default { border-left-color: #3b82f6; }
+
+  .student-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
   }
 
-  .status-badge.warning {
-    background: #fef9c3;
-    color: #854d0e;
+  .student-info { display: flex; align-items: center; gap: 15px; }
+
+  .student-avatar {
+    width: 45px;
+    height: 45px;
+    background: #e0e7ff;
+    color: #2b569a;
+    font-weight: bold;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
   }
 
-  .status-badge.danger {
-    background: #fee2e2;
-    color: #991b1b;
+  .student-name { font-size: 16px; font-weight: bold; color: #1e293b; margin: 0 0 4px 0; }
+  .student-thesis { font-size: 13px; color: #64748b; margin: 0; max-width: 320px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .status-badge {
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
   }
+
+  .status-badge.success { background: #dcfce7; color: #166534; }
+  .status-badge.warning { background: #ffedd5; color: #c2410c; }
+  .status-badge.danger { background: #fee2e2; color: #b91c1c; }
 
   .horizontal-track {
     display: flex;
     justify-content: space-between;
-    margin: 25px 0 15px;
+    margin: 30px 0 15px;
     position: relative;
   }
 
@@ -899,7 +961,7 @@
     top: 9px;
     left: 10%;
     right: 10%;
-    height: 4px;
+    height: 3px;
     background: #e2e8f0;
     z-index: 1;
   }
@@ -913,16 +975,61 @@
   }
 
   .step-dot {
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     background: #e2e8f0;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     box-shadow: 0 0 0 3px #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: transparent;
   }
 
-  .step-dot.completed {
-    background: #22c55e;
+  .step-dot.completed { background: #22c55e; color: white; }
+  
+  .step-label { font-size: 12px; font-weight: bold; color: #64748b; }
+
+  .progress-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+    padding-top: 15px;
+  }
+  
+  .msg-alert-text { font-size: 12px; color: #ef4444; font-weight: 500; }
+  
+  .footer-actions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-left: auto;
+  }
+
+  .btn-history {
+    background: transparent;
+    border: none;
+    color: #3b82f6;
+    font-weight: bold;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .btn-detail {
+    background: #1e40af;
+    color: white;
+    font-weight: bold;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
   }
 
   .detail-panel {
@@ -934,47 +1041,114 @@
     top: 20px;
   }
 
+  .timeline-vertical {
+    position: relative;
+    padding-left: 20px;
+  }
+
   .timeline-vertical::before {
     content: '';
     position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 8px;
+    top: 10px;
+    bottom: 20px;
+    left: 7px;
     width: 2px;
     background: #e2e8f0;
   }
 
   .v-step {
     position: relative;
-    margin-bottom: 30px;
-    padding-left: 25px;
+    margin-bottom: 25px;
   }
 
-  .v-step::before {
-    content: 'âœ“';
+  .v-step-indicator {
     position: absolute;
     left: -20px;
     top: 0;
-    width: 20px;
-    height: 20px;
-    background: #22c55e;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
-    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
     z-index: 2;
     box-shadow: 0 0 0 4px #fff;
+    font-size: 10px;
+    font-weight: bold;
   }
 
-  .v-step.pending::before {
-    background: #fff;
-    content: '';
-    border: 2px solid #cbd5e1;
-    left: -22px;
-    width: 16px;
-    height: 16px;
+  .indicator-done { background: #22c55e; color: white; }
+  .indicator-active { background: #2b569a; width: 14px; height: 14px; left: -19px; }
+  .indicator-pending { background: white; border: 2px solid #cbd5e1; width: 12px; height: 12px; left: -18px; }
+
+  .v-step-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2px;
+  }
+
+  .v-step-title {
+    margin: 0;
+    font-weight: bold;
+    font-size: 15px;
+    color: #1e293b;
+  }
+  
+  .v-step-title.pending-text { color: #94a3b8; }
+
+  .v-step-status {
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+  }
+
+  .status-text-done { color: #16a34a; }
+  .status-text-active { color: #2b569a; }
+  .status-text-pending { color: #64748b; }
+
+  .v-step-date {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 4px;
+    margin-bottom: 10px;
+  }
+
+  .active-task-wrapper {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin-top: 15px;
+    border: 1px solid #f1f5f9;
+  }
+
+  .deadline { color: #475569; font-size: 13px; margin-bottom: 10px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+  
+  .file-link {
+    font-size: 13px;
+    color: #475569;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    width: fit-content;
+  }
+
+  .task-actions { display: flex; gap: 10px; }
+  
+  .btn-secondary {
+    background: white;
+    border: 1px solid #3b82f6;
+    color: #3b82f6;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
   }
 
   /* =========================================
@@ -1172,8 +1346,8 @@
     background: #94a3b8;
   }
 
-  /* =========================================
-     CSS ─Éß╗ÿC QUYß╗ÇN CHO LECTURER GRADING
+/* =========================================
+     CSS ĐỘC QUYỀN CHO LECTURER GRADING
      ========================================= */
   .grading-container {
     background: #f1f5f9;
@@ -1647,7 +1821,7 @@
     color: #64748b;
   }
 
-  /* GVPB / TVH─É Textarea */
+  /* GVPB / TVHĐ Textarea */
   .feedback-textarea {
     width: 100%;
     background: #f8fafc;
@@ -1677,5 +1851,6 @@
     display: flex;
     justify-content: flex-end;
   }
+
 
 </style>
