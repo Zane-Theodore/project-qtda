@@ -54,7 +54,11 @@ function api_le_getThesesProgress(accountId) {
             var studentFullName = "--";
             if (student) {
                 var acc = accountMap[student.accountId];
-                if (acc) studentFullName = acc.fullName;
+                if (acc && acc.fullName) {
+                    studentFullName = acc.fullName;
+                } else if (student.fullName) {
+                    studentFullName = student.fullName;
+                }
             }
 
             // Lấy Submissions cho Thesis
