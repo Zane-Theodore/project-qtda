@@ -2,7 +2,7 @@
 
 <div class="lecturer-progress-page" id="app-lecturer-progress-container">
     <div class="progress-header">
-        <h2 class="page-title">Theo dõi<span class="title-underline"></span></h2>
+        <div class="page-title-tab">Theo dõi</div>
     </div>
 
     <div class="progress-layout">
@@ -10,30 +10,20 @@
         <div class="progress-left-column">
             <!-- Khối tổng quan -->
             <div class="overview-card">
-                <h3>TỔNG QUAN</h3>
+                <h3 class="overview-subtitle">TỔNG QUAN</h3>
                 <h1 id="overview-total-theses">0 Đề tài</h1>
-                <div class="overview-stats">
-                    <div class="stat-box box-success">
-                        <span class="stat-label">ĐÃ NỘP</span>
-                        <span class="stat-value" id="overview-submitted">0</span>
-                    </div>
-                    <div class="stat-box box-warning">
-                        <span class="stat-label">ĐANG THỰC HIỆN</span>
-                        <span class="stat-value" id="overview-in-progress">0</span>
-                    </div>
-                    <div class="stat-box box-danger">
-                        <span class="stat-label">TRỄ HẠN</span>
-                        <span class="stat-value" id="overview-overdue">0</span>
-                    </div>
+                <div class="overview-stats" id="overview-stats-container">
+                    <!-- Javascript sẽ render tag ở đây -->
                 </div>
             </div>
 
             <!-- Danh sách sinh viên -->
             <div class="student-list-section">
-                <div class="section-header-row">
-                    <h3>Danh sách Sinh viên</h3>
+                <div class="section-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 style="margin: 0; color: #1e293b;">Danh sách Sinh viên</h3>
                 </div>
-                <button class="btn-primary-outline" id="btn-open-add-task">+ Thêm bài tập</button>
+                
+                <button class="btn-outline-custom" id="btn-open-add-task">Thêm bài tập</button>
 
                 <div class="student-list" id="student-progress-list">
                     <!-- Javascript sẽ render danh sách vào đây -->
@@ -45,10 +35,14 @@
         <!-- CỘT PHẢI: Panel chi tiết -->
         <div class="progress-right-column">
             <div class="detail-panel" id="student-detail-panel" style="display: none;">
-                <div class="detail-panel-header">
-                    <h3>Quản lý đề tài <br><span id="detail-student-name" style="font-weight: normal; font-size: 0.9em;"></span></h3>
-                    <!-- Nút edit có thể dùng để sửa mô tả ban đầu nếu cần -->
-                    <!-- <button class="btn-icon"><i class="fas fa-pen"></i></button> -->
+                <div class="detail-panel-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                    <h3 style="margin: 0; color: #1e293b; font-size: 18px;">
+                        Quản lý đề tài <br>
+                        <span id="detail-student-name" style="font-weight: normal; font-size: 16px; color: #0f172a;"></span>
+                    </h3>
+                    <button class="btn-icon" style="background: none; border: none; color: #2563eb; cursor: pointer; padding: 5px;">
+                        <span class="material-symbols-outlined" style="font-size: 20px;">edit</span>
+                    </button>
                 </div>
                 
                 <div class="detail-timeline" id="detail-timeline-container">

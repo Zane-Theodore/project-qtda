@@ -9,7 +9,7 @@
 
 <!-- Cấu hình Menu cho các role của Lecturer -->
 <script>
-      // Configuration for lecturer menu based on position/role
+// Configuration for lecturer menu based on position/role
       window.LecturerRoleMenu = {
             // COUNCIL_MEMBER: Menu chung cho giảng viên hội đồng (supervisor + reviewer)
             // Cả 2 đều có position trong CouncilMember, phân biệt qua supervisorId/reviewerId trong Thesis
@@ -18,7 +18,7 @@
                   { id: 'notification', icon: 'notifications', label: 'Thông báo', action: () => navigate('frontend/views/common/view_notification', 'initNotification') },
                   { id: 'approve_topic', icon: 'task', label: 'Duyệt đề tài', action: () => navigate('frontend/views/lecturer/view_lec_approve_thesis', 'initLecApproveThesis') },
                   { id: 'progress', icon: 'timeline', label: 'Theo dõi tiến độ đề tài', action: () => navigate('frontend/views/lecturer/view_lecturer_thesis_progress', 'initLecturerThesisProgress') },
-                  { id: 'grade', icon: 'grading', label: 'Nhập điểm', action: () => showNotification('Tính năng Nhập điểm đang phát triển!', 'info') }
+                  { id: 'grade', icon: 'grading', label: 'Nhập điểm', action: () => navigate('frontend/views/lecturer/view_lecturer_grading', 'initLecturerGrading') }
             ],
             // LECTURER: Menu cơ bản cho giảng viên thông thường
             lecturer: [
@@ -26,7 +26,7 @@
                   { id: 'notification', icon: 'notifications', label: 'Thông báo', action: () => navigate('frontend/views/common/view_notification', 'initNotification') },
                   { id: 'approve_topic', icon: 'task', label: 'Duyệt đề tài', action: () => navigate('frontend/views/lecturer/view_lec_approve_thesis', 'initLecApproveThesis') },
                   { id: 'progress', icon: 'timeline', label: 'Theo dõi tiến độ đề tài', action: () => navigate('frontend/views/lecturer/view_lecturer_thesis_progress', 'initLecturerThesisProgress') },
-                  { id: 'grade', icon: 'grading', label: 'Nhập điểm', action: () => showNotification('Tính năng Nhập điểm đang phát triển!', 'info') }
+                  { id: 'grade', icon: 'grading', label: 'Nhập điểm', action: () => navigate('frontend/views/lecturer/view_lecturer_grading', 'initLecturerGrading') }
             ],
             // HOD: Duyệt đề tài, Phân công, Danh sách
             hod: [
