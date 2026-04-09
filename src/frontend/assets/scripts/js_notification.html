@@ -6,10 +6,10 @@
   // Lưu tạm ID của thông báo BBHĐ đang mở để xử lý xóa Cache khi cần
   window.currentBBHDNotifId = null; 
 
-  function initNotification() {
+  window.initNotification = function () {
     console.log("initNotification called");
     loadNotifications();
-  }
+  };
 
   function loadNotifications() {
     const accountId = window.currentUserData.id;
