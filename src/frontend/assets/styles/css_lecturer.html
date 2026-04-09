@@ -781,6 +781,16 @@
     background: #4338ca;
   }
 
+  .btn-suggest {
+    background: #14b8a6;
+    border: 1px solid #14b8a6;
+    color: white;
+  }
+
+  .btn-suggest:hover {
+    background: #0d9488;
+  }
+
   /* =========================================
      CSS CHO LECTURER THEO DÕI TIẾN ĐỘ
      ========================================= */
@@ -1591,14 +1601,14 @@
   /* =========================================
      MODAL STYLES
      ========================================= */
-  .modal-overlay {
+  .grading-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
     background: rgba(15, 23, 42, 0.6);
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     z-index: 1000;
@@ -1607,7 +1617,8 @@
     transition: opacity 0.3s ease;
   }
 
-  .modal-overlay.show {
+  .grading-modal-overlay.show {
+    display: flex;
     opacity: 1;
     pointer-events: auto;
   }
@@ -1624,7 +1635,7 @@
     flex-direction: column;
   }
 
-  .modal-overlay.show .grading-modal-box {
+  .grading-modal-overlay.show .grading-modal-box {
     transform: translateY(0);
   }
 
