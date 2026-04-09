@@ -285,6 +285,10 @@
           const thesisCacheKey = 'thesis_data_' + window._thesisAccountId;
           delete window.DataCache[thesisCacheKey];
 
+          // Xóa luôn ViewCache của trang này để navigate() fetch lại HTML mới
+          const viewCacheKey = 'frontend/views/student/view_thesis_registration';
+          if (window.ViewCache) delete window.ViewCache[viewCacheKey];
+
           // Reload view để lấy thông tin đề tài vừa đăng ký
           setTimeout(() => {
             navigate('frontend/views/student/view_thesis_registration', 'initThesisRegistration');

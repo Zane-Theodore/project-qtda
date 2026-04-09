@@ -16,7 +16,17 @@ function include(filename) {
 // =========================================
 function api_loadView(viewName) {
   try {
-    return HtmlService.createTemplateFromFile(viewName).evaluate().getContent();
+    // Thử lấy từ Cache trước (tránh phải parse template lại từ đầu)
+    var cache = CacheService.getScriptCache();
+    var cacheKey = 'view_' + viewName.replace(/\//g, '_');
+    var cached = cache.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+    var html = HtmlService.createTemplateFromFile(viewName).evaluate().getContent();
+    // Lưu vào cache 6 tiếng (21600 giây)
+    try { cache.put(cacheKey, html, 21600); } catch(e) { /* bỏ qua nếu html quá lớn */ }
+    return html;
   } catch (error) {
     return `
       <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; font-family: 'Segoe UI', sans-serif;">

@@ -101,6 +101,12 @@
             navigate('frontend/views/student/view_student_profile', 'initStudentProfile');
           }
 
+          // Preload ngầm các trang còn lại vào ViewCache sau 1s
+          // (đợi trang chính render xong trước)
+          setTimeout(function() {
+            preloadViewsForRole(role);
+          }, 1000);
+
         } else {
           alert(response.message);
 
@@ -377,5 +383,52 @@
         menuContainer.innerHTML = '<div style="color: #e74c3c; text-align: center; padding: 20px;">Lỗi kết nối máy chủ!</div>';
       })
       .api_loadView(fileName);
+  }
+
+  /**
+   * Preload ngầm (background) các views vào ViewCache theo role.
+   * Được gọi sau khi login thành công để các trang tiếp theo chuyển tức thì.
+   * Fetch tuần tự với delay nhỏ để tránh bị rate-limit bởi Apps Script.
+   * @param {string} role - Role của người dùng (STUDENT, LECTURER, HOD)
+   */
+  function preloadViewsForRole(role) {
+    var studentViews = [
+      'frontend/views/student/view_thesis_registration',
+      'frontend/views/student/view_thesis_progress',
+      'frontend/views/student/view_thesis_result',
+      'frontend/views/common/view_notification'
+    ];
+
+    var lecturerViews = [
+      'frontend/views/lecturer/view_lecturer_thesis_progress',
+      'frontend/views/lecturer/view_lecturer_grading',
+      'frontend/views/lecturer/view_lec_approve_thesis',
+      'frontend/views/lecturer/view_hod_approve_thesis',
+      'frontend/views/lecturer/view_hod_thesis_list',
+      'frontend/views/lecturer/view_chairman_thesis_list',
+      'frontend/views/lecturer/view_hod_council_assignment',
+      'frontend/views/common/view_notification'
+    ];
+
+    var viewsToLoad = ['LECTURER', 'HOD'].includes(role) ? lecturerViews : studentViews;
+    var delayMs = 800; // Delay giữa mỗi request (ms)
+
+    viewsToLoad.forEach(function(viewName, index) {
+      // Bỏ qua nếu đã có trong cache
+      if (window.ViewCache && window.ViewCache[viewName]) return;
+
+      setTimeout(function() {
+        google.script.run
+          .withSuccessHandler(function(html) {
+            if (!window.ViewCache) window.ViewCache = {};
+            window.ViewCache[viewName] = html;
+            console.log('✅ Preloaded: ' + viewName);
+          })
+          .withFailureHandler(function() {
+            // Bỏ qua lỗi preload — không ảnh hưởng UX
+          })
+          .api_loadView(viewName);
+      }, index * delayMs);
+    });
   }
 </script>

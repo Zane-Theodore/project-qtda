@@ -10,6 +10,14 @@ function api_st_getThesisResult(accountId) {
     try {
         if (!accountId) throw new Error("Mã tài khoản không hợp lệ.");
 
+        // Kiểm tra cache trước (tránh gọi 5 lần db_getAll mỗi lần load)
+        var cache = CacheService.getScriptCache();
+        var cacheKey = 'result_' + String(accountId);
+        var cached = cache.get(cacheKey);
+        if (cached) {
+            return cached;
+        }
+
         // 1. Lấy thông tin Sinh viên
         var studentInfo = db_findRecordByColumn(CONFIG.TABLES.STUDENT, "accountId", accountId);
         if (!studentInfo) throw new Error("Không tìm thấy sinh viên thuộc tài khoản này.");
@@ -94,8 +102,8 @@ function api_st_getThesisResult(accountId) {
         });
         var isFinalSubmitted = submissions.length > 0;
 
-        // 6. Trả về format chuẩn
-        return JSON.stringify({
+        // 6. Trả về format chuẩn và lưu vào cache 5 phút
+        var resultJson = JSON.stringify({
             success: true,
             data: {
                 score: finalScore,
@@ -105,6 +113,8 @@ function api_st_getThesisResult(accountId) {
                 isFinalSubmitted: isFinalSubmitted
             }
         });
+        try { cache.put(cacheKey, resultJson, 300); } catch(e) { /* bỏ qua nếu quá lớn */ }
+        return resultJson;
 
     } catch (error) {
         Logger.log("ERROR [api_st_getThesisResult]: " + error.message);
@@ -212,6 +222,11 @@ function api_st_uploadFinalSubmission(accountId, base64Data, filename, mimeType)
                 submittedAt: submitDate
             });
         }
+
+        // Xóa cache kết quả để lần tải sau luôn hiện trạng thái mới nhất
+        try {
+            CacheService.getScriptCache().remove('result_' + String(accountId));
+        } catch(e) {}
 
         return JSON.stringify({
             success: true,

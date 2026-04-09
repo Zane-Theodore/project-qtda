@@ -640,6 +640,16 @@
                 if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">Lỗi kết nối.</td></tr>';
             })
             .api_lec_getGradingList(currentAccountId);
+
+        // Gắn sự kiện đóng modal khi click vào backdrop
+        // (đặt đây để chắc chắn DOM của modal đã tồn tại)
+        const gradingModalEl = document.getElementById('grading-modal');
+        if (gradingModalEl && !gradingModalEl._backdropBound) {
+            gradingModalEl.addEventListener('click', function (e) {
+                if (e.target === this) window.closeGradingModal();
+            });
+            gradingModalEl._backdropBound = true; // tránh gắn nhiều lần
+        }
     };
 
     function renderGradingTable(data) {
@@ -740,7 +750,7 @@
 
         dynamicArea.innerHTML = dynamicHtml;
 
-        // Show modal
+        // Show modal — chỉ cần thêm class 'show' (CSS xử lý opacity + pointer-events)
         document.getElementById('grading-modal').classList.add('show');
     };
 

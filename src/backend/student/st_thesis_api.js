@@ -17,6 +17,13 @@
  */
 function api_st_getLecturers() {
     try {
+        // Kiểm tra cache trước — danh sách GV ít thay đổi, cache 30 phút
+        var cache = CacheService.getScriptCache();
+        var cached = cache.get('lecturers_list');
+        if (cached) {
+            return cached;
+        }
+
         // 1. QUERY - Lấy tất cả Account có role LECTURER
         var allAccounts = db_getAll(CONFIG.TABLES.ACCOUNT);
         var lecturerAccounts = allAccounts.filter(function (acc) {
@@ -65,8 +72,10 @@ function api_st_getLecturers() {
             }
         });
 
-        // 5. RETURN
-        return JSON.stringify({ success: true, data: result });
+        // 5. RETURN — lưu vào cache 30 phút (1800 giây)
+        var resultJson = JSON.stringify({ success: true, data: result });
+        try { cache.put('lecturers_list', resultJson, 1800); } catch(e) {}
+        return resultJson;
 
     } catch (error) {
         Logger.log("ERROR [api_st_getLecturers]: " + error.message);
