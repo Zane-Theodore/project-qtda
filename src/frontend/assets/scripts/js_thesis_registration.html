@@ -280,16 +280,14 @@
           showNotification(res.message, 'success');
           
           // =====================================
-          // QUAN TRỌNG: XÓA CACHE CŨ SAU KHI ĐĂNG KÝ
+          // QUAN TRỌNG: XÓA DATA CACHE SAU KHI ĐĂNG KÝ
+          // Chỉ xóa DataCache (data thay đổi), KHÔNG xóa ViewCache (HTML template không đổi)
           // =====================================
           const thesisCacheKey = 'thesis_data_' + window._thesisAccountId;
           delete window.DataCache[thesisCacheKey];
 
-          // Xóa luôn ViewCache của trang này để navigate() fetch lại HTML mới
-          const viewCacheKey = 'frontend/views/student/view_thesis_registration';
-          if (window.ViewCache) delete window.ViewCache[viewCacheKey];
-
-          // Reload view để lấy thông tin đề tài vừa đăng ký
+          // Reload view: ViewCache vẫn còn → navigate tức thì, initThesisRegistration
+          // sẽ gọi API lấy dữ liệu mới vì DataCache đã bị xóa
           setTimeout(() => {
             navigate('frontend/views/student/view_thesis_registration', 'initThesisRegistration');
           }, 1000);

@@ -422,7 +422,7 @@
           .withSuccessHandler(function(html) {
             if (!window.ViewCache) window.ViewCache = {};
             window.ViewCache[viewName] = html;
-            console.log('✅ Preloaded: ' + viewName);
+            console.log('✅ Preloaded view: ' + viewName);
           })
           .withFailureHandler(function() {
             // Bỏ qua lỗi preload — không ảnh hưởng UX
@@ -430,5 +430,47 @@
           .api_loadView(viewName);
       }, index * delayMs);
     });
+
+    // Preload DATA cho sinh viên: lecturers + thesis của chính SV này
+    if (!['LECTURER', 'HOD'].includes(role) && window.currentUserData) {
+      var accountId = window.currentUserData.id;
+
+      // Preload danh sách GV (sau 500ms để không dồn với view preload)
+      setTimeout(function() {
+        if (window.DataCache && window.DataCache['lecturers_list']) return;
+        google.script.run
+          .withSuccessHandler(function(resStr) {
+            try {
+              var res = JSON.parse(resStr);
+              if (res.success) {
+                window.DataCache = window.DataCache || {};
+                window.DataCache['lecturers_list'] = res.data;
+                console.log('✅ Preloaded data: lecturers_list (' + res.data.length + ' GV)');
+              }
+            } catch(e) {}
+          })
+          .withFailureHandler(function() {})
+          .api_st_getLecturers();
+      }, 500);
+
+      // Preload thông tin đề tài của SV (sau 1500ms)
+      setTimeout(function() {
+        var thesisCacheKey = 'thesis_data_' + accountId;
+        if (window.DataCache && window.DataCache.hasOwnProperty(thesisCacheKey)) return;
+        google.script.run
+          .withSuccessHandler(function(resStr) {
+            try {
+              var res = JSON.parse(resStr);
+              if (res.success) {
+                window.DataCache = window.DataCache || {};
+                window.DataCache[thesisCacheKey] = res.data; // null nếu chưa đăng ký
+                console.log('✅ Preloaded data: thesis_data for account ' + accountId);
+              }
+            } catch(e) {}
+          })
+          .withFailureHandler(function() {})
+          .api_st_getStudentThesis(accountId);
+      }, 1500);
+    }
   }
 </script>
