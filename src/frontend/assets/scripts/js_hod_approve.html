@@ -259,6 +259,40 @@
       .api_hod_addComment(thesis.id, comment);
   }
 
+  window.handleBtnSuggestEdit = function() {
+    var thesis = window.HODState.currentThesisModal;
+    if(!thesis) return;
+
+    var reasonInput = document.getElementById('hod-comment-input');
+    var comment = reasonInput ? reasonInput.value.trim() : '';
+
+    if (!comment) {
+      // Tự động mở section nhận xét nếu chưa mở và focus
+      var sec = document.getElementById('hod-comment-section');
+      if (sec) {
+        sec.style.display = 'block';
+        reasonInput.focus();
+      }
+      showNotification('Vui lòng nhập nội dung gợi ý chỉnh sửa vào ô nhận xét!', 'error');
+      return;
+    }
+
+    showLoading();
+    google.script.run
+      .withSuccessHandler(function(respStr) {
+        var resp = JSON.parse(respStr);
+        if(resp.success) {
+            showNotification(resp.message, 'success');
+            closeThesisDetailModal();
+            fetchTheses();
+        } else {
+            showNotification('Lỗi: ' + resp.error, 'error');
+            hideLoading();
+        }
+      })
+      .api_hod_suggestEditThesis(thesis.id, comment);
+  }
+
   // Utility to be used inside frontend logic
   function showLoading() {
     // Mock loading display

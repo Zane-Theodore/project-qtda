@@ -552,16 +552,16 @@ function api_hod_getAllDefenseRooms() {
         var lecturers = db_getAll(CONFIG.TABLES.LECTURER) || [];
 
         var accountMap = {};
-        accounts.forEach(function(a) { accountMap[a.id] = a; });
+        accounts.forEach(function (a) { accountMap[a.id] = a; });
         var lecturerMap = {};
-        lecturers.forEach(function(l) { lecturerMap[l.id] = l; });
+        lecturers.forEach(function (l) { lecturerMap[l.id] = l; });
 
         var councilRoles = {};
-        councilMembers.forEach(function(cm) {
+        councilMembers.forEach(function (cm) {
             if (!councilRoles[cm.councilId]) councilRoles[cm.councilId] = { president: "", secretary: "" };
             var l = lecturerMap[cm.lecturerId];
             var aName = l && accountMap[l.accountId] ? accountMap[l.accountId].fullName : "";
-            
+
             if (cm.position === "Chủ tịch hội đồng") {
                 councilRoles[cm.councilId].president = aName;
             } else if (cm.position === "Thư ký hội đồng") {
@@ -570,17 +570,17 @@ function api_hod_getAllDefenseRooms() {
         });
 
         var studentCounts = {};
-        theses.forEach(function(t) {
+        theses.forEach(function (t) {
             if (t.councilId) {
                 studentCounts[t.councilId] = (studentCounts[t.councilId] || 0) + 1;
             }
         });
 
         var roomMap = {};
-        rooms.forEach(function(r) { roomMap[r.councilId] = r; });
+        rooms.forEach(function (r) { roomMap[r.councilId] = r; });
 
         var result = [];
-        councils.forEach(function(c) {
+        councils.forEach(function (c) {
             var r = roomMap[c.id];
             if (r) {
                 var roles = councilRoles[c.id] || { president: "", secretary: "" };
@@ -615,19 +615,19 @@ function api_hod_getEligibleTheses(councilId) {
         var councilMembers = db_getAll(CONFIG.TABLES.COUNCIL_MEMBER) || [];
 
         var accountMap = {};
-        accounts.forEach(function(a) { accountMap[a.id] = a; });
+        accounts.forEach(function (a) { accountMap[a.id] = a; });
         var studentMap = {};
-        students.forEach(function(s) { studentMap[s.id] = s; });
+        students.forEach(function (s) { studentMap[s.id] = s; });
 
         var thisCouncilLecturers = {};
-        councilMembers.forEach(function(cm) {
+        councilMembers.forEach(function (cm) {
             if (cm.councilId === councilId) {
                 thisCouncilLecturers[cm.lecturerId] = true;
             }
         });
 
         var result = [];
-        theses.forEach(function(t) {
+        theses.forEach(function (t) {
             if (t.councilId && t.councilId !== councilId) return;
             if (t.supervisorId && thisCouncilLecturers[t.supervisorId]) return;
 
@@ -661,7 +661,7 @@ function api_hod_saveDefenseRoom(data) {
         }
 
         var rooms = db_getAll(CONFIG.TABLES.DEFENSE_ROOM) || [];
-        var existingRoom = rooms.find(function(r) { return r.councilId === data.councilId; });
+        var existingRoom = rooms.find(function (r) { return r.councilId === data.councilId; });
 
         var scheduleStr = data.date + " " + data.time;
 
@@ -691,9 +691,9 @@ function api_hod_saveDefenseRoom(data) {
 
         var theses = db_getAll(CONFIG.TABLES.THESIS) || [];
         var selectedThesisIdsMap = {};
-        (data.selectedThesisIds || []).forEach(function(tid) { selectedThesisIdsMap[tid] = true; });
+        (data.selectedThesisIds || []).forEach(function (tid) { selectedThesisIdsMap[tid] = true; });
 
-        theses.forEach(function(t) {
+        theses.forEach(function (t) {
             if (t.councilId === data.councilId) {
                 if (!selectedThesisIdsMap[t.id]) {
                     db_update(CONFIG.TABLES.THESIS, "id", t.id, { councilId: "" });
@@ -788,7 +788,7 @@ function api_hod_getAllLecturers() {
 /**
  * Duyệt đề tài (Đồng ý) và chuyển trạng thái sang Chờ duyệt
  */
-function api_hod_approveThesis(thesisId, newSupervisorId) {
+function api_hod_approveThesis(thesisId, newSupervisorId, comment) {
     try {
         var existing = db_findRecordByColumn(CONFIG.TABLES.THESIS, "id", thesisId);
         if (!existing) throw new Error("Đề tài không tồn tại");
@@ -796,6 +796,14 @@ function api_hod_approveThesis(thesisId, newSupervisorId) {
         var updateData = { status: "Chờ duyệt" };
         if (newSupervisorId) {
             updateData.supervisorId = newSupervisorId;
+        }
+
+        if (comment && comment.trim() !== "") {
+            var currentUser = getCurrentUser();
+            var timestamp = Utilities.formatDate(new Date(), "Asia/Ho_Chi_Minh", "dd/MM/yyyy");
+            var newEntry = "[Trưởng BM - " + timestamp + "]: " + comment.trim();
+            var existingComment = existing.comment || "";
+            updateData.comment = existingComment ? existingComment + "\n" + newEntry : newEntry;
         }
 
         db_update(CONFIG.TABLES.THESIS, "id", thesisId, updateData);
@@ -876,6 +884,49 @@ function api_hod_rejectThesis(thesisId, comment) {
         }
 
         return JSON.stringify({ success: true, message: "Đã từ chối đề tài và gửi thông báo!" });
+    } catch (error) {
+        return JSON.stringify({ success: false, error: error.message });
+    }
+}
+
+/**
+ * HOD yêu cầu chỉnh sửa đề tài
+ */
+function api_hod_suggestEditThesis(thesisId, comment) {
+    try {
+        if (!comment || !comment.trim()) throw new Error("Vui lòng nhập nội dung gợi ý chỉnh sửa");
+
+        var thesis = db_findRecordByColumn(CONFIG.TABLES.THESIS, "id", thesisId);
+        if (!thesis) throw new Error("Đề tài không tồn tại");
+
+        var currentUser = getCurrentUser();
+        var timestamp = Utilities.formatDate(new Date(), "Asia/Ho_Chi_Minh", "dd/MM/yyyy");
+        var newEntry = "[Trưởng BM - " + timestamp + "]: " + comment.trim();
+
+        var existingComment = thesis.comment || "";
+        var updatedComment = existingComment ? existingComment + "\n" + newEntry : newEntry;
+
+        db_update(CONFIG.TABLES.THESIS, "id", thesisId, {
+            status: "Cần chỉnh sửa",
+            comment: updatedComment
+        });
+
+        // Gửi thông báo cho sinh viên
+        var student = db_findRecordByColumn(CONFIG.TABLES.STUDENT, "id", thesis.studentId);
+        if (student) {
+            var notifId = "NOTIF_" + new Date().getTime();
+            db_insert(CONFIG.TABLES.NOTIFICATION, {
+                id: notifId,
+                senderId: currentUser.id,
+                receiverId: student.accountId,
+                title: "Trưởng BM yêu cầu chỉnh sửa đề tài",
+                content: "Đề tài '" + thesis.title + "' cần được chỉnh sửa theo góp ý của Trưởng Bộ môn: " + comment.trim(),
+                createdAt: new Date().toISOString(),
+                isRead: false
+            });
+        }
+
+        return JSON.stringify({ success: true, message: "Đã gửi yêu cầu chỉnh sửa!" });
     } catch (error) {
         return JSON.stringify({ success: false, error: error.message });
     }
@@ -1149,7 +1200,7 @@ function api_lec_getAssignedTheses(accountId) {
 /**
  * GVHD đồng ý hướng dẫn và lưu tên sửa đổi (nếu có)
  */
-function api_lec_approveThesis(thesisId, newTitle) {
+function api_lec_approveThesis(thesisId, newTitle, comment) {
     try {
         var thesis = db_findRecordByColumn(CONFIG.TABLES.THESIS, "id", thesisId);
         if (!thesis) throw new Error("Đề tài không tồn tại");
@@ -1194,6 +1245,89 @@ function api_lec_rejectThesis(thesisId, comment) {
         }
 
         return JSON.stringify({ success: true, message: "Đã từ chối đề tài!" });
+    } catch (error) {
+        return JSON.stringify({ success: false, error: error.message });
+    }
+}
+
+/**
+ * GVHD yêu cầu chỉnh sửa đề tài (Chuyển trạng thái sang "Cần chỉnh sửa")
+ */
+function api_lec_suggestEditThesis(thesisId, comment) {
+    try {
+        if (!comment || !comment.trim()) throw new Error("Vui lòng nhập nội dung gợi ý chỉnh sửa");
+
+        var thesis = db_findRecordByColumn(CONFIG.TABLES.THESIS, "id", thesisId);
+        if (!thesis) throw new Error("Đề tài không tồn tại");
+
+        var currentUser = getCurrentUser();
+        var timestamp = Utilities.formatDate(new Date(), "Asia/Ho_Chi_Minh", "dd/MM/yyyy");
+        var newEntry = "[GVHD - " + timestamp + "]: " + comment.trim();
+
+        var existingComment = thesis.comment || "";
+        var updatedComment = existingComment ? existingComment + "\n" + newEntry : newEntry;
+
+        db_update(CONFIG.TABLES.THESIS, "id", thesisId, {
+            status: "Cần chỉnh sửa",
+            comment: updatedComment
+        });
+
+        // Gửi thông báo cho sinh viên
+        var student = db_findRecordByColumn(CONFIG.TABLES.STUDENT, "id", thesis.studentId);
+        if (student) {
+            var notifId = "NOTIF_" + new Date().getTime();
+            db_insert(CONFIG.TABLES.NOTIFICATION, {
+                id: notifId,
+                senderId: currentUser.id,
+                receiverId: student.accountId,
+                title: "GVHD Yêu cầu chỉnh sửa đề tài",
+                content: "Đề tài '" + thesis.title + "' cần được chỉnh sửa theo góp ý của GVHD: " + comment.trim(),
+                createdAt: new Date().toISOString(),
+                isRead: false
+            });
+        }
+
+        return JSON.stringify({ success: true, message: "Đã gửi yêu cầu chỉnh sửa!" });
+    } catch (error) {
+        return JSON.stringify({ success: false, error: error.message });
+    }
+}
+
+/**
+ * GVHD thêm nhận xét vào đề tài (append, không đổi trạng thái)
+ */
+function api_lec_addComment(thesisId, comment) {
+    try {
+        if (!comment || !comment.trim()) throw new Error("Nội dung nhận xét không được để trống");
+
+        var thesis = db_findRecordByColumn(CONFIG.TABLES.THESIS, "id", thesisId);
+        if (!thesis) throw new Error("Đề tài không tồn tại");
+
+        var currentUser = getCurrentUser();
+        var timestamp = Utilities.formatDate(new Date(), "Asia/Ho_Chi_Minh", "dd/MM/yyyy");
+        var newEntry = "[GVHD - " + timestamp + "]: " + comment.trim();
+
+        var existingComment = thesis.comment || "";
+        var updatedComment = existingComment ? existingComment + "\n" + newEntry : newEntry;
+
+        db_update(CONFIG.TABLES.THESIS, "id", thesisId, { comment: updatedComment });
+
+        // Gửi thông báo cho sinh viên
+        var student = db_findRecordByColumn(CONFIG.TABLES.STUDENT, "id", thesis.studentId);
+        if (student) {
+            var commentNotifId = "NOTIF_" + new Date().getTime();
+            db_insert(CONFIG.TABLES.NOTIFICATION, {
+                id: commentNotifId,
+                senderId: currentUser.id,
+                receiverId: student.accountId,
+                title: "GVHD đã nhận xét đề tài",
+                content: "Đề tài '" + thesis.title + "' có nhận xét mới từ GVHD: " + comment.trim(),
+                createdAt: new Date().toISOString(),
+                isRead: false
+            });
+        }
+
+        return JSON.stringify({ success: true, message: "Đã gửi nhận xét thành công!" });
     } catch (error) {
         return JSON.stringify({ success: false, error: error.message });
     }
