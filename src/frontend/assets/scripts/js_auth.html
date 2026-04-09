@@ -222,10 +222,10 @@
     if (positions.includes('chairman')) addMenuItems('chairman');
     if (positions.includes('secretary')) addMenuItems('secretary');
 
-    // Cả supervisor và reviewer đều dùng menu council_member
+    // Cả supervisor và reviewer đều dùng menu supervisor
     // Chúng được phân biệt qua supervisorId/reviewerId trong bảng Thesis
-    if (positions.includes('supervisor') || positions.includes('reviewer')) {
-      addMenuItems('council_member');
+    if (positions.includes('supervisor') || positions.includes('reviewer') || positions.includes('member')) {
+      addMenuItems('supervisor');
     }
 
     // Menu cơ bản cho lecturer (nếu không có position đặc biệt)
