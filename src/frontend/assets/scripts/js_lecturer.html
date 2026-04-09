@@ -131,8 +131,8 @@
                                 const idToSelect = window.LecturerProgressState.selectedThesisId || response.data.theses[0].thesisId;
                                 window.selectStudent(idToSelect);
                             } else {
-                                document.getElementById('student-detail-panel').style.display = 'none';
-                                document.getElementById('student-detail-empty').style.display = 'block';
+                                if (document.getElementById('student-detail-panel')) document.getElementById('student-detail-panel').style.display = 'none';
+                                if (document.getElementById('student-detail-empty')) document.getElementById('student-detail-empty').style.display = 'block';
                                 container.innerHTML = '<div style="padding: 20px; text-align: center; color: #64748b;">Bạn chưa hướng dẫn sinh viên nào.</div>';
                             }
 
@@ -142,7 +142,8 @@
                             container.innerHTML = '<div class="loading-state">Lỗi tải dữ liệu</div>';
                         }
                     } catch (e) {
-                        showNotification('Lỗi parse data', 'error');
+                        console.error('Parse Error Details:', e, 'Response:', responseString);
+                        showNotification('Lỗi parse data: Vui lòng kiểm tra console', 'error');
                     }
                 })
                 .api_le_getThesesProgress(currentAccountId);
@@ -626,13 +627,19 @@
 
         google.script.run
             .withSuccessHandler(function (responseString) {
-                const response = JSON.parse(responseString);
-                if (response.success) {
-                    window.GradingDataCache = response.data;
-                    renderGradingTable(window.GradingDataCache);
-                } else {
-                    alert("Lỗi tải danh sách chấm điểm: " + response.error);
-                    if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">Lỗi tải dữ liệu.</td></tr>';
+                try {
+                    const response = JSON.parse(responseString);
+                    if (response.success) {
+                        window.GradingDataCache = response.data;
+                        renderGradingTable(window.GradingDataCache);
+                    } else {
+                        alert("Lỗi tải danh sách chấm điểm: " + response.error);
+                        if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">Lỗi tải dữ liệu.</td></tr>';
+                    }
+                } catch (e) {
+                    console.error('Grading Parse Error:', e, 'Response:', responseString);
+                    alert("Lỗi parse dữ liệu chấm điểm!");
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">Lỗi parse dữ liệu.</td></tr>';
                 }
             })
             .withFailureHandler(function (error) {
@@ -750,13 +757,17 @@
 
         dynamicArea.innerHTML = dynamicHtml;
 
-        // Show modal — chỉ cần thêm class 'show' (CSS xử lý opacity + pointer-events)
+        // Show modal
         document.getElementById('grading-modal').classList.add('show');
     };
 
     window.closeGradingModal = function () {
-        document.getElementById('grading-modal').classList.remove('show');
-        document.getElementById('grading-modal').dataset.activeId = "";
+        const modal = document.getElementById('grading-modal');
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 300);
+        modal.dataset.activeId = "";
     };
 
     window.saveGrading = function () {

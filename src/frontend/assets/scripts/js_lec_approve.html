@@ -244,4 +244,38 @@
       })
       .api_lec_addComment(thesis.id, comment);
   }
+
+  window.handleLecBtnSuggestEdit = function() {
+    var thesis = window.LecState.currentThesisModal;
+    if(!thesis) return;
+
+    var reasonInput = document.getElementById('lec-comment-input');
+    var comment = reasonInput ? reasonInput.value.trim() : '';
+
+    if (!comment) {
+      // Tự động mở section nhận xét nếu chưa mở và focus
+      var sec = document.getElementById('lec-comment-section');
+      if (sec) {
+        sec.style.display = 'block';
+        reasonInput.focus();
+      }
+      showNotification('Vui lòng nhập nội dung gợi ý chỉnh sửa vào ô nhận xét!', 'error');
+      return;
+    }
+
+    showLoading();
+    google.script.run
+      .withSuccessHandler(function(respStr) {
+        var resp = JSON.parse(respStr);
+        if(resp.success) {
+            showNotification(resp.message, 'success');
+            closeLecThesisDetailModal();
+            fetchLecTheses();
+        } else {
+            showNotification('Lỗi: ' + resp.error, 'error');
+            hideLoading();
+        }
+      })
+      .api_lec_suggestEditThesis(thesis.id, comment);
+  }
 </script>

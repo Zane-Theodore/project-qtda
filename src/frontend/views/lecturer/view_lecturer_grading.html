@@ -63,7 +63,8 @@
 </div>
 
 <!-- Modal Chấm điểm -->
-<div id="grading-modal" class="modal-overlay hidden">
+<div id="grading-modal" class="grading-modal-overlay" style="display: none;"
+  onclick="if(event.target === this) closeGradingModal()">
   <div class="modal-content grading-modal-box">
     <div class="modal-header">
       <h3 class="modal-title">Chấm điểm Đề tài</h3>

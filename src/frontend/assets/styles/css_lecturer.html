@@ -781,6 +781,16 @@
     background: #4338ca;
   }
 
+  .btn-suggest {
+    background: #14b8a6;
+    border: 1px solid #14b8a6;
+    color: white;
+  }
+
+  .btn-suggest:hover {
+    background: #0d9488;
+  }
+
   /* =========================================
      CSS CHO LECTURER THEO DÕI TIẾN ĐỘ
      ========================================= */
@@ -797,7 +807,7 @@
     padding: 12px 30px 12px 25px;
     position: relative;
     border-top-left-radius: 6px;
-    box-shadow: 4px 0 6px -2px rgba(0,0,0,0.1);
+    box-shadow: 4px 0 6px -2px rgba(0, 0, 0, 0.1);
   }
 
   .progress-header .page-title-tab::after {
@@ -866,10 +876,24 @@
     font-weight: 700;
   }
 
-  .tag-success { background: #f0fdf4; color: #166534; border: 1px solid #dcfce7; }
-  .tag-warning { background: #fffbeb; color: #b45309; border: 1px solid #fef3c7; }
-  .tag-danger { background: #fef2f2; color: #b91c1c; border: 1px solid #fee2e2; }
-  
+  .tag-success {
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #dcfce7;
+  }
+
+  .tag-warning {
+    background: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fef3c7;
+  }
+
+  .tag-danger {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fee2e2;
+  }
+
   .btn-outline-custom {
     background: transparent;
     border: 1px solid #3b82f6;
@@ -882,7 +906,7 @@
     margin-bottom: 20px;
     display: inline-block;
   }
-  
+
   .btn-outline-custom:hover {
     background: #eff6ff;
   }
@@ -907,10 +931,21 @@
   }
 
   /* Specific border colors based on status via inline style or custom class */
-  .student-card.status-success { border-left-color: #22c55e; }
-  .student-card.status-warning { border-left-color: #f59e0b; }
-  .student-card.status-danger { border-left-color: #ef4444; }
-  .student-card.status-default { border-left-color: #3b82f6; }
+  .student-card.status-success {
+    border-left-color: #22c55e;
+  }
+
+  .student-card.status-warning {
+    border-left-color: #f59e0b;
+  }
+
+  .student-card.status-danger {
+    border-left-color: #ef4444;
+  }
+
+  .student-card.status-default {
+    border-left-color: #3b82f6;
+  }
 
   .student-card-header {
     display: flex;
@@ -918,7 +953,11 @@
     align-items: flex-start;
   }
 
-  .student-info { display: flex; align-items: center; gap: 15px; }
+  .student-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
 
   .student-avatar {
     width: 45px;
@@ -933,8 +972,22 @@
     border-radius: 8px;
   }
 
-  .student-name { font-size: 16px; font-weight: bold; color: #1e293b; margin: 0 0 4px 0; }
-  .student-thesis { font-size: 13px; color: #64748b; margin: 0; max-width: 320px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .student-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: #1e293b;
+    margin: 0 0 4px 0;
+  }
+
+  .student-thesis {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0;
+    max-width: 320px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
   .status-badge {
     padding: 6px 12px;
@@ -944,9 +997,20 @@
     letter-spacing: 0.5px;
   }
 
-  .status-badge.success { background: #dcfce7; color: #166534; }
-  .status-badge.warning { background: #ffedd5; color: #c2410c; }
-  .status-badge.danger { background: #fee2e2; color: #b91c1c; }
+  .status-badge.success {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .status-badge.warning {
+    background: #ffedd5;
+    color: #c2410c;
+  }
+
+  .status-badge.danger {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
 
   .horizontal-track {
     display: flex;
@@ -988,9 +1052,16 @@
     color: transparent;
   }
 
-  .step-dot.completed { background: #22c55e; color: white; }
-  
-  .step-label { font-size: 12px; font-weight: bold; color: #64748b; }
+  .step-dot.completed {
+    background: #22c55e;
+    color: white;
+  }
+
+  .step-label {
+    font-size: 12px;
+    font-weight: bold;
+    color: #64748b;
+  }
 
   .progress-footer {
     display: flex;
@@ -999,9 +1070,13 @@
     margin-top: 15px;
     padding-top: 15px;
   }
-  
-  .msg-alert-text { font-size: 12px; color: #ef4444; font-weight: 500; }
-  
+
+  .msg-alert-text {
+    font-size: 12px;
+    color: #ef4444;
+    font-weight: 500;
+  }
+
   .footer-actions {
     display: flex;
     gap: 15px;
@@ -1077,9 +1152,25 @@
     font-weight: bold;
   }
 
-  .indicator-done { background: #22c55e; color: white; }
-  .indicator-active { background: #2b569a; width: 14px; height: 14px; left: -19px; }
-  .indicator-pending { background: white; border: 2px solid #cbd5e1; width: 12px; height: 12px; left: -18px; }
+  .indicator-done {
+    background: #22c55e;
+    color: white;
+  }
+
+  .indicator-active {
+    background: #2b569a;
+    width: 14px;
+    height: 14px;
+    left: -19px;
+  }
+
+  .indicator-pending {
+    background: white;
+    border: 2px solid #cbd5e1;
+    width: 12px;
+    height: 12px;
+    left: -18px;
+  }
 
   .v-step-header {
     display: flex;
@@ -1094,8 +1185,10 @@
     font-size: 15px;
     color: #1e293b;
   }
-  
-  .v-step-title.pending-text { color: #94a3b8; }
+
+  .v-step-title.pending-text {
+    color: #94a3b8;
+  }
 
   .v-step-status {
     font-size: 11px;
@@ -1103,9 +1196,17 @@
     letter-spacing: 0.5px;
   }
 
-  .status-text-done { color: #16a34a; }
-  .status-text-active { color: #2b569a; }
-  .status-text-pending { color: #64748b; }
+  .status-text-done {
+    color: #16a34a;
+  }
+
+  .status-text-active {
+    color: #2b569a;
+  }
+
+  .status-text-pending {
+    color: #64748b;
+  }
 
   .v-step-date {
     font-size: 12px;
@@ -1122,8 +1223,16 @@
     border: 1px solid #f1f5f9;
   }
 
-  .deadline { color: #475569; font-size: 13px; margin-bottom: 10px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
-  
+  .deadline {
+    color: #475569;
+    font-size: 13px;
+    margin-bottom: 10px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
   .file-link {
     font-size: 13px;
     color: #475569;
@@ -1138,8 +1247,11 @@
     width: fit-content;
   }
 
-  .task-actions { display: flex; gap: 10px; }
-  
+  .task-actions {
+    display: flex;
+    gap: 10px;
+  }
+
   .btn-secondary {
     background: white;
     border: 1px solid #3b82f6;
@@ -1346,7 +1458,7 @@
     background: #94a3b8;
   }
 
-/* =========================================
+  /* =========================================
      CSS ĐỘC QUYỀN CHO LECTURER GRADING
      ========================================= */
   .grading-container {
@@ -1591,7 +1703,7 @@
   /* =========================================
      MODAL STYLES
      ========================================= */
-  .modal-overlay {
+  .grading-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -1608,7 +1720,6 @@
   }
 
   .modal-overlay.show {
-    display: flex;
     opacity: 1;
     pointer-events: auto;
   }
@@ -1625,7 +1736,7 @@
     flex-direction: column;
   }
 
-  .modal-overlay.show .grading-modal-box {
+  .grading-modal-overlay.show .grading-modal-box {
     transform: translateY(0);
   }
 
@@ -1852,6 +1963,4 @@
     display: flex;
     justify-content: flex-end;
   }
-
-
 </style>
