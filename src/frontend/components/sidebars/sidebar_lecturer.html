@@ -1,6 +1,7 @@
 <ul id="lecturer-menu-list" style="list-style: none; padding: 0; margin: 0;">
-  <!-- Menu items sẽ được render động dựa vào vị trí (position) của giảng viên -->
-  <!-- LECTURER: Duyệt đề tài, Theo dõi tiến độ, Nhập điểm -->
+  <!-- Menu items sẽ được render động dựa vào position của giảng viên trong CouncilMember -->
+  <!-- Cả supervisor và reviewer đều có cùng menu council_member -->
+  <!-- Việc phân biệt hướng dẫn/phản biện được thực hiện qua supervisorId/reviewerId trong bảng Thesis -->
   <!-- HOD: Duyệt đề tài, Phân công, Danh sách -->
   <!-- SECRETARY: Tổng kết đề tài -->
   <!-- CHAIRMAN: Danh sách -->
@@ -48,7 +49,7 @@
     secretary: [
       { id: 'info', icon: 'person', label: 'Thông tin giảng viên', action: () => navigate('frontend/views/lecturer/view_lecturer_profile', 'initLecturerProfile') },
       { id: 'notification', icon: 'notifications', label: 'Thông báo', action: () => showNotification('Tính năng đang phát triển!', 'info') },
-      { id: 'grade', icon: 'grading', label: 'Tổng kết đề tài', action: () => navigate('frontend/views/lecturer/view_lecturer_sumary.html', 'initLecturerSummary') }
+      { id: 'grade', icon: 'grading', label: 'Tổng kết đề tài', action: () => showNotification('Tính năng Tổng kết đề tài đang phát triển!', 'info') }
     ],
     // CHAIRMAN: Danh sách
     chairman: [

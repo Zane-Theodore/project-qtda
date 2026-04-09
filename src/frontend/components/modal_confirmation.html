@@ -1,0 +1,385 @@
+<!-- =======================================
+     CONFIRMATION MODAL COMPONENT (REUSABLE)
+     ======================================= -->
+
+<div id="confirmation-modal" class="modal hidden">
+  <div class="modal-overlay"></div>
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <h2 id="modal-title">Xác nhận</h2>
+      <button class="modal-close-btn" onclick="closeConfirmationModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p id="modal-message">Bạn có chắc chắn muốn thực hiện hành động này?</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeConfirmationModal(false)">Hủy</button>
+      <button class="btn btn-danger" id="modal-confirm-btn" onclick="confirmModal(true)">Xác nhận</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Modal Container */
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 99999 !important;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto !important;
+  }
+
+  .modal:not(.hidden) {
+    display: flex;
+  }
+
+  .modal.hidden {
+    display: none;
+  }
+
+  .modal.force-visible {
+    display: flex !important;
+    z-index: 2147483647 !important; /* Maximum z-index value */
+    pointer-events: auto !important;
+  }
+
+  .modal.force-visible .modal-dialog {
+    z-index: 2147483647 !important;
+    pointer-events: auto !important;
+  }
+
+  .modal.force-visible .modal-overlay,
+  .modal.force-visible .modal-body,
+  .modal.force-visible .modal-footer,
+  .modal.force-visible .btn,
+  .modal.force-visible .modal-close-btn {
+    pointer-events: auto !important;
+  }
+
+  /* Modal Overlay (Semi-transparent background) */
+  .modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    z-index: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  /* Modal Dialog Box */
+  .modal-dialog {
+    position: relative;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow: auto;
+    animation: modalSlideIn 0.3s ease-out;
+    pointer-events: auto !important;
+    z-index: 100000 !important;
+  }
+
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-50px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Modal Header */
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #e8e8e8;
+  }
+
+  .modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+    color: #333;
+  }
+
+  /* Modal Close Button */
+  .modal-close-btn {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #999;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+    pointer-events: auto !important;
+  }
+
+  .modal-close-btn:hover {
+    color: #333;
+  }
+
+  /* Modal Body */
+  .modal-body {
+    padding: 20px;
+    color: #555;
+    line-height: 1.6;
+    pointer-events: auto !important;
+  }
+
+  .modal-body p {
+    margin: 0;
+  }
+
+  /* Modal Footer */
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 20px;
+    border-top: 1px solid #e8e8e8;
+    background-color: #f8f9fa;
+    pointer-events: auto !important;
+  }
+
+  /* Button Styles */
+  .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+    pointer-events: auto !important;
+  }
+
+  .btn-secondary {
+    background-color: #e8e8e8;
+    color: #333;
+  }
+
+  .btn-secondary:hover {
+    background-color: #d0d0d0;
+  }
+
+  .btn-danger {
+    background-color: #dc3545;
+    color: white;
+  }
+
+  .btn-danger:hover {
+    background-color: #c82333;
+  }
+</style>
+
+<script>
+  /**
+   * Store for modal result callback
+   */
+  let _modalCallback = null;
+
+  /**
+   * Mở modal với tiêu đề và nội dung tùy chỉnh
+   * @param {string} title - Tiêu đề modal
+   * @param {string} message - Nội dung/thông báo của modal
+   * @param {Object} options - Tùy chọn bổ sung
+   * @param {string} options.confirmText - Text nút xác nhận (mặc định: "Xác nhận")
+   * @param {string} options.cancelText - Text nút hủy (mặc định: "Hủy")
+   * @returns {Promise<boolean>} Promise trả về true nếu người dùng xác nhận, false nếu hủy
+   */
+  function showConfirmationModal(title, message, options = {}) {
+    return new Promise((resolve) => {
+      // Đảm bảo không có modal nào khác đang mở
+      closeAllOtherModals();
+
+      const modal = document.getElementById('confirmation-modal');
+      const titleEl = document.getElementById('modal-title');
+      const messageEl = document.getElementById('modal-message');
+      const confirmBtn = document.getElementById('modal-confirm-btn');
+      const overlay = modal.querySelector('.modal-overlay');
+
+      // Set title and message
+      titleEl.textContent = title;
+      messageEl.textContent = message;
+
+      // Update button text if provided
+      if (options.confirmText) {
+        confirmBtn.textContent = options.confirmText;
+      } else {
+        confirmBtn.textContent = 'Xác nhận';
+      }
+
+      // Store callback
+      _modalCallback = resolve;
+
+      // Show modal
+      modal.classList.remove('hidden');
+      modal.classList.add('force-visible'); // Force visibility with maximum priority
+      modal.style.display = 'flex'; // Đảm bảo hiển thị
+      modal.style.zIndex = '2147483647'; // Maximum z-index
+      modal.style.pointerEvents = 'auto'; // Đảm bảo nhận click events
+
+      // Force pointer-events cho các element con
+      const modalDialog = modal.querySelector('.modal-dialog');
+      if (modalDialog) {
+        modalDialog.style.pointerEvents = 'auto';
+        modalDialog.style.zIndex = '2147483647';
+      }
+
+      // Force show after a short delay to ensure no conflicts
+      setTimeout(() => {
+        modal.style.display = 'flex';
+        modal.style.zIndex = '2147483647';
+        modal.style.pointerEvents = 'auto';
+        modal.classList.remove('hidden');
+        modal.classList.add('force-visible');
+
+        if (modalDialog) {
+          modalDialog.style.pointerEvents = 'auto';
+          modalDialog.style.zIndex = '2147483647';
+        }
+
+        // Force all buttons to be clickable
+        const buttons = modal.querySelectorAll('button');
+        buttons.forEach(btn => {
+          btn.style.pointerEvents = 'auto';
+          btn.style.zIndex = '2147483647';
+        });
+      }, 10);
+
+      // Close modal when clicking overlay
+      overlay.onclick = () => closeConfirmationModal(false);
+    });
+  }
+
+  /**
+   * Đóng tất cả modal khác trước khi hiển thị confirmation modal
+   */
+  function closeAllOtherModals() {
+    // Đóng user dropdown
+    const userDropdown = document.getElementById('userDropdown');
+    if (userDropdown) {
+      userDropdown.classList.add('hidden');
+    }
+
+    // Đóng upload modal trong thesis progress
+    const uploadModal = document.getElementById('uploadModal');
+    if (uploadModal) {
+      uploadModal.classList.remove('active');
+      uploadModal.style.display = 'none';
+    }
+
+    // Đóng bbhd overlay
+    const bbhdOverlay = document.getElementById('bbhd-overlay');
+    if (bbhdOverlay) {
+      bbhdOverlay.style.display = 'none';
+    }
+
+    // Đóng các modal cụ thể trong lecturer views
+    const modalIds = [
+      'modal-add-task',
+      'modal-feedback', 
+      'modal-approve-final',
+      'modal-lec-thesis-detail',
+      'modal-thesis-detail'
+    ];
+
+    modalIds.forEach(id => {
+      const modal = document.getElementById(id);
+      if (modal) {
+        modal.style.display = 'none';
+      }
+    });
+
+    // Đóng các hod modal
+    const hodModals = document.querySelectorAll('.hod-modal-overlay');
+    hodModals.forEach(modal => {
+      modal.style.display = 'none';
+    });
+
+    // Đóng các modal khác có thể có
+    const allModals = document.querySelectorAll('.modal-overlay');
+    allModals.forEach(modal => {
+      if (!modal.closest('#confirmation-modal')) {
+        modal.style.display = 'none';
+      }
+    });
+  }
+
+  /**
+   * Đóng modal và trả về kết quả
+   * @param {boolean} result - Kết quả (true = xác nhận, false = hủy)
+   */
+  function closeConfirmationModal(result = false) {
+    const modal = document.getElementById('confirmation-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('force-visible'); // Remove force visibility
+    modal.style.display = 'none'; // Đảm bảo ẩn
+    modal.style.zIndex = ''; // Reset z-index
+    modal.style.pointerEvents = ''; // Reset pointer-events
+
+    // Reset pointer-events cho modal-dialog
+    const modalDialog = modal.querySelector('.modal-dialog');
+    if (modalDialog) {
+      modalDialog.style.pointerEvents = '';
+      modalDialog.style.zIndex = '';
+    }
+
+    // Reset buttons
+    const buttons = modal.querySelectorAll('button');
+    buttons.forEach(btn => {
+      btn.style.pointerEvents = '';
+      btn.style.zIndex = '';
+    });
+
+    // Force hide after a short delay
+    setTimeout(() => {
+      modal.classList.add('hidden');
+      modal.classList.remove('force-visible');
+      modal.style.display = 'none';
+      modal.style.zIndex = '';
+      modal.style.pointerEvents = '';
+
+      if (modalDialog) {
+        modalDialog.style.pointerEvents = '';
+        modalDialog.style.zIndex = '';
+      }
+
+      // Reset buttons again
+      buttons.forEach(btn => {
+        btn.style.pointerEvents = '';
+        btn.style.zIndex = '';
+      });
+    }, 10);
+
+    if (_modalCallback) {
+      _modalCallback(result);
+      _modalCallback = null;
+    }
+  }
+
+  /**
+   * Xác nhận và đóng modal
+   */
+  function confirmModal(result) {
+    closeConfirmationModal(result);
+  }
+</script>

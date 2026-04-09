@@ -1,0 +1,235 @@
+<script>
+  window.ChairmanListState = {
+    rows: [],
+    currentPage: 1,
+    pageSize: 10,
+    modalThesisId: null,
+    modalFileUrls: { bckltn: null, bbhd: null }
+  };
+
+  function chairmanListBadgeClass(status) {
+    if (status === "ĐÃ DUYỆT") return "status-badge status-approved";
+    if (status === "CHỜ DUYỆT") return "status-badge status-pending";
+    if (status === "TỪ CHỐI") return "status-badge status-rejected";
+    return "status-badge status-default";
+  }
+
+  window.initChairmanThesisList = function () {
+    var tbody = document.getElementById("chairman-list-tbody");
+    if (tbody) {
+      tbody.innerHTML = "<tr><td colspan=\"4\" style=\"text-align:center;padding:24px;\">Đang tải…</td></tr>";
+    }
+
+    google.script.run
+      .withSuccessHandler(function (responseStr) {
+        var resp = JSON.parse(responseStr);
+        if (!resp.success) {
+          if (tbody) {
+            tbody.innerHTML = "<tr><td colspan=\"4\" style=\"text-align:center;color:#c5221f;\">" +
+              (resp.error || "Lỗi tải dữ liệu") + "</td></tr>";
+          }
+          return;
+        }
+        window.ChairmanListState.rows = resp.data || [];
+        window.ChairmanListState.currentPage = 1;
+        chairmanListRenderTable();
+      })
+      .withFailureHandler(function (err) {
+        if (tbody) {
+          tbody.innerHTML = "<tr><td colspan=\"4\" style=\"text-align:center;color:#c5221f;\">Lỗi kết nối</td></tr>";
+        }
+        console.error(err);
+      })
+      .api_chairman_getThesisListForReview();
+  };
+
+  function chairmanListRenderTable() {
+    var tbody = document.getElementById("chairman-list-tbody");
+    var info = document.getElementById("chairman-list-pagination-info");
+    var btns = document.getElementById("chairman-list-pagination-buttons");
+    if (!tbody) return;
+
+    var list = window.ChairmanListState.rows;
+    var pageSize = window.ChairmanListState.pageSize;
+    var page = window.ChairmanListState.currentPage;
+    var total = list.length;
+    var totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+    if (page > totalPages) {
+      window.ChairmanListState.currentPage = totalPages;
+      page = totalPages;
+    }
+
+    var start = (page - 1) * pageSize;
+    var slice = list.slice(start, start + pageSize);
+
+    if (slice.length === 0) {
+      tbody.innerHTML = "<tr><td colspan=\"4\" style=\"text-align:center;padding:24px;\">Chưa có đề tài</td></tr>";
+    } else {
+      tbody.innerHTML = slice.map(function (row, i) {
+        var stt = start + i + 1;
+        var sttStr = stt < 10 ? "0" + stt : String(stt);
+        var titleEsc = chairmanListEscapeHtml(row.title || "");
+        var nameEsc = chairmanListEscapeHtml(row.studentName || "");
+        var codeEsc = chairmanListEscapeHtml(row.studentCode || "");
+        var tid = chairmanListEscapeHtml(String(row.thesisId));
+
+        return (
+          "<tr class=\"chairman-list-row\" data-thesis-id=\"" + tid + "\" style=\"cursor:pointer;\">" +
+          "<td class=\"chairman-list-stt\">" + sttStr + "</td>" +
+          "<td class=\"chairman-list-info-cell\">" +
+          "<div class=\"chairman-list-thesis-title\">" + titleEsc + "</div>" +
+          "<div class=\"chairman-list-thesis-meta\">" +
+          "<span class=\"material-symbols-outlined chairman-list-meta-ic\">person</span> " + nameEsc +
+          " &nbsp;·&nbsp; <span class=\"material-symbols-outlined chairman-list-meta-ic\">badge</span> MSSV: " + codeEsc +
+          "</div></td>" +
+          "<td class=\"chairman-list-score\">" + chairmanListEscapeHtml(row.avgScoreDisplay || "--") + "</td>" +
+          "<td><span class=\"" + chairmanListBadgeClass(row.bbhdStatus) + "\">" + chairmanListEscapeHtml(row.bbhdStatus) + "</span></td>" +
+          "</tr>"
+        );
+      }).join("");
+
+      var rows = tbody.querySelectorAll("tr.chairman-list-row");
+      for (var r = 0; r < rows.length; r++) {
+        rows[r].addEventListener("click", function () {
+          var id = this.getAttribute("data-thesis-id");
+          if (id) chairmanListOpenModal(id);
+        });
+      }
+    }
+
+    var startIdx = total === 0 ? 0 : start + 1;
+    var endIdx = total === 0 ? 0 : Math.min(start + slice.length, total);
+    if (info) {
+      info.textContent = "Hiển thị " + startIdx + " – " + endIdx + " trong số " + total + " đề tài";
+    }
+
+    if (btns) {
+      var html = "<button type=\"button\" class=\"page-btn\" " +
+        (page <= 1 ? "disabled" : "") + " onclick=\"chairmanListGoPage(" + (page - 1) + ")\">‹</button>";
+      for (var p = 1; p <= totalPages; p++) {
+        var act = p === page ? " active" : "";
+        html += "<button type=\"button\" class=\"page-btn" + act + "\" onclick=\"chairmanListGoPage(" + p + ")\">" + p + "</button>";
+      }
+      html += "<button type=\"button\" class=\"page-btn\" " +
+        (page >= totalPages ? "disabled" : "") + " onclick=\"chairmanListGoPage(" + (page + 1) + ")\">›</button>";
+      btns.innerHTML = html;
+    }
+  }
+
+  window.chairmanListGoPage = function (p) {
+    var total = window.ChairmanListState.rows.length;
+    var totalPages = Math.max(1, Math.ceil(total / window.ChairmanListState.pageSize));
+    if (p < 1 || p > totalPages) return;
+    window.ChairmanListState.currentPage = p;
+    chairmanListRenderTable();
+  };
+
+  function chairmanListEscapeHtml(s) {
+    if (!s) return "";
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function chairmanListFindRow(thesisId) {
+    var rows = window.ChairmanListState.rows;
+    for (var i = 0; i < rows.length; i++) {
+      if (String(rows[i].thesisId) === String(thesisId)) return rows[i];
+    }
+    return null;
+  }
+
+  window.chairmanListOpenModal = function (thesisId) {
+    var row = chairmanListFindRow(thesisId);
+    if (!row) return;
+
+    window.ChairmanListState.modalThesisId = thesisId;
+
+    var elTitle = document.getElementById("chairman-list-mdl-title");
+    var elName = document.getElementById("chairman-list-mdl-student-name");
+    var elCode = document.getElementById("chairman-list-mdl-student-code");
+    var elSup = document.getElementById("chairman-list-mdl-supervisor");
+    var elCouncil = document.getElementById("chairman-list-mdl-council");
+    var elBck = document.getElementById("chairman-list-mdl-file-bckltn");
+    var elBb = document.getElementById("chairman-list-mdl-file-bbhd");
+    var btnAp = document.getElementById("chairman-list-btn-approve-bbhd");
+
+    if (elTitle) elTitle.textContent = row.title || "—";
+    if (elName) elName.textContent = row.studentName || "—";
+    if (elCode) elCode.textContent = row.studentCode || "—";
+    if (elSup) elSup.textContent = row.supervisorName || "—";
+    if (elCouncil) elCouncil.textContent = row.councilName || "—";
+
+    var bckUrl = row.finalSubmissionPdfFile && String(row.finalSubmissionPdfFile).trim();
+    if (elBck) elBck.textContent = bckUrl ? bckUrl : "Chưa có";
+
+    var bbUrl = row.evaluationPdfFile && String(row.evaluationPdfFile).trim();
+    if (elBb) elBb.textContent = bbUrl ? bbUrl : "Chưa có";
+
+    // Lưu URL vào state để nút tải sử dụng
+    window.ChairmanListState.modalFileUrls = { bckltn: bckUrl || null, bbhd: bbUrl || null };
+
+    // Bật/tắt nút tải xuống
+    var btnDlBck = document.getElementById("chairman-list-btn-dl-bckltn");
+    var btnDlBb = document.getElementById("chairman-list-btn-dl-bbhd");
+    if (btnDlBck) btnDlBck.disabled = !bckUrl;
+    if (btnDlBb) btnDlBb.disabled = !bbUrl;
+
+    if (btnAp) {
+      btnAp.disabled = !row.hasEvaluationRecord;
+    }
+
+    var overlay = document.getElementById("chairman-list-detail-modal");
+    if (overlay) overlay.style.display = "flex";
+  };
+
+  window.chairmanListCloseModal = function () {
+    window.ChairmanListState.modalThesisId = null;
+    window.ChairmanListState.modalFileUrls = { bckltn: null, bbhd: null };
+    var overlay = document.getElementById("chairman-list-detail-modal");
+    if (overlay) overlay.style.display = "none";
+  };
+
+  window.chairmanListModalBackdrop = function (ev) {
+    if (ev.target && ev.target.id === "chairman-list-detail-modal") {
+      chairmanListCloseModal();
+    }
+  };
+
+  window.chairmanListDownloadFile = function (fileKey) {
+    var url = window.ChairmanListState.modalFileUrls[fileKey];
+    if (!url) return;
+    window.open(url, "_blank");
+  };
+
+  window.chairmanListApproveBbhd = function () {
+    var thesisId = window.ChairmanListState.modalThesisId;
+    if (!thesisId) return;
+
+    var sender = window.currentUserData && window.currentUserData.id;
+
+    var btn = document.getElementById("chairman-list-btn-approve-bbhd");
+    if (btn) btn.disabled = true;
+
+    google.script.run
+      .withSuccessHandler(function (responseStr) {
+        var resp = JSON.parse(responseStr);
+        if (resp.success) {
+          showNotification(resp.message || "Đã duyệt biên bản.", "success");
+          chairmanListCloseModal();
+          window.initChairmanThesisList();
+        } else {
+          showNotification(resp.error || "Lỗi", "error");
+          if (btn) btn.disabled = false;
+        }
+      })
+      .withFailureHandler(function () {
+        showNotification("Lỗi kết nối máy chủ.", "error");
+        if (btn) btn.disabled = false;
+      })
+      .api_chairman_approveEvaluationMinutes(thesisId, sender);
+  };
+</script>

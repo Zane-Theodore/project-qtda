@@ -1,0 +1,195 @@
+<script>
+  // Khởi tạo vùng nhớ đệm dữ liệu (Data Cache)
+  window.DataCache = window.DataCache || {};
+
+  window.initThesisResult = function() {
+    const accountId = window.currentUserData.id;
+    const cacheKey = 'thesis_result_data_' + accountId;
+    
+    const loadingEl = document.getElementById('result-loading');
+    const contentEl = document.getElementById('result-content');
+
+    // Show loading
+    if (loadingEl) loadingEl.classList.remove('d-none');
+    if (contentEl) contentEl.classList.add('d-none');
+
+    // 1. Kiểm tra Cache
+    if (window.DataCache[cacheKey]) {
+      console.log("⚡ Đã tải kết quả KLTN từ Cache");
+      renderThesisResult(window.DataCache[cacheKey]);
+      if (loadingEl) loadingEl.classList.add('d-none');
+      if (contentEl) contentEl.classList.remove('d-none');
+      return; // Dừng, không gọi API nữa
+    }
+
+    // 2. Nếu không có Cache, tiến hành gọi API
+    console.log("⏳ Đang lấy kết quả KLTN từ Server...");
+    google.script.run
+      .withSuccessHandler(function(responseString) {
+        try {
+          const response = JSON.parse(responseString);
+          
+          if (loadingEl) loadingEl.classList.add('d-none');
+          
+          if (response.success && response.data) {
+            // LƯU VÀO CACHE CHO LẦN MỞ SAU
+            window.DataCache[cacheKey] = response.data;
+            
+            renderThesisResult(response.data);
+            if (contentEl) contentEl.classList.remove('d-none');
+          } else {
+            if (typeof showNotification === 'function') showNotification(response.error || "Không thể tải dữ liệu.", "error");
+            // Vẫn hiện content để hiển thị giao diện trống (empty state)
+            if (contentEl) contentEl.classList.remove('d-none');
+          }
+        } catch(e) {
+          console.error("Parse error:", e);
+          if (typeof showNotification === 'function') showNotification("Lỗi hiển thị dữ liệu", "error");
+        }
+      })
+      .withFailureHandler(function(error) {
+        if (loadingEl) loadingEl.classList.add('d-none');
+        if (typeof showNotification === 'function') showNotification("Lỗi kết nối máy chủ", "error");
+      })
+      .api_st_getThesisResult(accountId);
+  };
+
+  function renderThesisResult(data) {
+    // 1. Score rendering
+    const scoreValEl = document.getElementById('txt-score-value');
+    const scoreRankEl = document.getElementById('txt-score-rank');
+    
+    if (data.score !== null && data.score !== undefined && data.score !== "") {
+      scoreValEl.textContent = parseFloat(data.score).toFixed(1);
+      scoreRankEl.textContent = getRankFromScore(data.score);
+    } else {
+      scoreValEl.textContent = "--";
+      scoreRankEl.textContent = "Chưa có điểm";
+    }
+
+    // 2. Comments rendering
+    const revCommentEl = document.getElementById('txt-reviewer-comment');
+    const councilCommentEl = document.getElementById('txt-council-comment');
+    
+    if (data.reviewerComment) {
+      revCommentEl.textContent = `"${data.reviewerComment}"`;
+    }
+    
+    if (data.committeeComment) {
+      councilCommentEl.textContent = `"${data.committeeComment}"`;
+    }
+
+    // 3. Council Report (Biên bản)
+    const btnViewReport = document.getElementById('btn-view-report');
+    const reportDateEl = document.getElementById('txt-report-date');
+    if (data.reportFileUrl) {
+      btnViewReport.href = data.reportFileUrl;
+      btnViewReport.removeAttribute('disabled');
+      btnViewReport.style.pointerEvents = 'auto';
+      btnViewReport.style.opacity = '1';
+      reportDateEl.textContent = "Đã cập nhật";
+    } else {
+      btnViewReport.removeAttribute('href');
+      btnViewReport.setAttribute('disabled', 'true');
+      btnViewReport.style.pointerEvents = 'none';
+      btnViewReport.style.opacity = '0.5';
+      reportDateEl.textContent = "Chưa có dữ liệu";
+    }
+
+    // 4. Final Submission Status
+    const submissionStatusEl = document.getElementById('txt-submission-status');
+    const btnUpload = document.getElementById('btn-upload-file');
+    if (data.isFinalSubmitted) {
+      submissionStatusEl.textContent = "Đã nộp";
+      submissionStatusEl.style.color = "#4CAF50";
+      submissionStatusEl.style.fontWeight = "bold";
+      btnUpload.innerHTML = '<span class="material-symbols-outlined">restart_alt</span> Cập nhật file';
+      btnUpload.style.backgroundColor = "#ff9800";
+    } else {
+      submissionStatusEl.textContent = "Chưa nộp";
+      submissionStatusEl.style.color = "#888";
+      submissionStatusEl.style.fontWeight = "normal";
+      btnUpload.innerHTML = '<span class="material-symbols-outlined">upload</span> Tải lên file';
+      btnUpload.style.backgroundColor = "#5542f6";
+    }
+  }
+
+  function getRankFromScore(score) {
+    const num = parseFloat(score);
+    if(isNaN(num)) return "Chưa có xếp loại";
+    if (num >= 8.5) return "Xếp loại: Giỏi";
+    if (num >= 7.0) return "Xếp loại: Khá";
+    if (num >= 5.5) return "Xếp loại: Trung bình";
+    if (num >= 4.0) return "Xếp loại: Yếu";
+    return "Xếp loại: Kém";
+  }
+
+  window.handleFileUpload = function(event) {
+    const fileInput = event.target;
+    if (!fileInput.files || fileInput.files.length === 0) return;
+    
+    const file = fileInput.files[0];
+    
+    // Validate file size (e.g., max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      if (typeof showNotification === 'function') showNotification("File quá lớn. Vui lòng chọn file <= 5MB", "error");
+      fileInput.value = "";
+      return;
+    }
+
+    const btnUpload = document.getElementById('btn-upload-file');
+    const originalHtml = btnUpload.innerHTML;
+    btnUpload.innerHTML = '<span class="material-symbols-outlined spin" style="animation: spin 1s linear infinite;">sync</span> Đang tải lên...';
+    btnUpload.disabled = true;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const dataUrl = e.target.result;
+      const base64Data = dataUrl.split(',')[1];
+      
+      const accountId = window.currentUserData.id;
+      
+      google.script.run
+        .withSuccessHandler(function(responseString) {
+          btnUpload.innerHTML = originalHtml;
+          btnUpload.disabled = false;
+          fileInput.value = ""; // clear
+          
+          try {
+            const response = JSON.parse(responseString);
+            if (response.success) {
+              if (typeof showNotification === 'function') showNotification("Nộp báo cáo thành công!", "success");
+              
+              // =====================================
+              // QUAN TRỌNG: XÓA CACHE ĐỂ ÉP TẢI LẠI TRẠNG THÁI MỚI
+              // =====================================
+              const cacheKey = 'thesis_result_data_' + accountId;
+              delete window.DataCache[cacheKey];
+
+              // Gọi lại hàm khởi tạo để fetch dữ liệu mới
+              initThesisResult();
+            } else {
+              if (typeof showNotification === 'function') showNotification(response.error || "Lỗi khi nộp bài", "error");
+            }
+          } catch(err) {
+            if (typeof showNotification === 'function') showNotification("Lỗi từ máy chủ", "error");
+          }
+        })
+        .withFailureHandler(function(error) {
+          btnUpload.innerHTML = originalHtml;
+          btnUpload.disabled = false;
+          fileInput.value = "";
+          if (typeof showNotification === 'function') showNotification("Lỗi kết nối", "error");
+        })
+        .api_st_uploadFinalSubmission(accountId, base64Data, file.name, file.type);
+    };
+    
+    reader.onerror = function() {
+      if (typeof showNotification === 'function') showNotification("Lỗi khi đọc file", "error");
+      btnUpload.innerHTML = originalHtml;
+      btnUpload.disabled = false;
+    };
+    
+    reader.readAsDataURL(file);
+  };
+</script>

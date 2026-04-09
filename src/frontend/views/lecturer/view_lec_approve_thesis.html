@@ -1,0 +1,105 @@
+<!-- File: src/frontend/views/lecturer/view_lec_approve_thesis.html -->
+<div class="view-container lec-approve-page">
+  <div class="hod-header">
+    <div class="hod-tab active">Duyệt đề tài</div>
+  </div>
+
+  <div class="hod-stats">
+    <div class="stat-card">
+      <div class="stat-title">TỔNG SỐ ĐỀ TÀI</div>
+      <div class="stat-body">
+        <span class="stat-number text-blue" id="lec-total-theses">00</span>
+        <span class="stat-label">ĐỀ TÀI</span>
+      </div>
+    </div>
+    <div class="stat-card border-green">
+      <div class="stat-title">ĐÃ DUYỆT</div>
+      <div class="stat-body">
+        <span class="stat-number text-green" id="lec-approved-theses">00</span>
+        <span class="stat-label">HOÀN THÀNH</span>
+      </div>
+    </div>
+    <div class="stat-card border-orange">
+      <div class="stat-title">CHỜ DUYỆT</div>
+      <div class="stat-body">
+        <span class="stat-number text-orange" id="lec-pending-theses">00</span>
+        <span class="stat-label">ĐANG XỬ LÝ</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hod-table-container">
+    <table class="hod-table">
+      <thead>
+        <tr>
+          <th style="width: 60px;">STT</th>
+          <th>TÊN ĐỀ TÀI</th>
+          <th>SINH VIÊN THỰC HIỆN</th>
+          <th style="width: 180px; text-align: center;">TRẠNG THÁI</th>
+        </tr>
+      </thead>
+      <tbody id="lec-thesis-list">
+        <tr>
+          <td colspan="4" style="text-align:center; padding: 20px;">Đang tải dữ liệu...</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="hod-pagination">
+      <div class="hod-pagination-info" id="lec-pagination-info">Hiển thị 0 - 0 trên tổng số 0 đề tài</div>
+      <div class="hod-pagination-buttons" id="lec-pagination-buttons"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CHI TIẾT ĐỀ TÀI -->
+<div class="hod-modal-overlay" id="modal-lec-thesis-detail" style="display: none;"
+  onclick="if(event.target === this) closeLecThesisDetailModal()">
+  <div class="hod-modal">
+    <div class="hod-modal-header">
+      <h2>Chi tiết đề tài đăng ký</h2>
+      <button class="btn-close-modal" onclick="closeLecThesisDetailModal()">&times;</button>
+    </div>
+    <div class="hod-modal-body">
+      <div class="form-group-custom">
+        <label class="field-label">Tên đề tài (Bạn có thể chỉnh sửa tiêu đề)</label>
+        <div class="val-box" style="padding: 5px;">
+          <input type="text" id="mdl-lec-thesis-title" class="custom-select"
+            style="background: white; border: none; font-weight: bold; font-size: 18px;"
+            placeholder="Nhập tên đề tài...">
+        </div>
+      </div>
+
+      <div class="form-group-custom">
+        <label class="field-label">Tài liệu đính kèm</label>
+        <div class="file-card">
+          <div class="file-icon"><span class="material-symbols-outlined">description</span></div>
+          <div class="file-info">
+            <div class="file-name" id="mdl-lec-thesis-filename">Chưa có file</div>
+            <div class="file-meta" id="mdl-lec-thesis-format">Định dạng file</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section nhận xét (mặc định ẩn) -->
+      <div id="lec-comment-section"
+        style="display: none; margin-top: 20px; border-top: 1px dashed #ddd; padding-top: 15px;">
+        <label class="field-label" style="color: #4f46e5;">Nội dung nhận xét / Lý do từ chối</label>
+        <textarea id="lec-comment-input" class="custom-select" rows="3"
+          placeholder="Nhập nhận xét hoặc lý do từ chối tại đây..."
+          style="background: #fdfdfd; border: 1px solid #e5e7eb;"></textarea>
+      </div>
+    </div>
+    <div class="hod-modal-footer">
+      <button class="btn-comment" onclick="handleLecBtnComment()">
+        <span class="material-symbols-outlined">chat_bubble</span> Nhận xét
+      </button>
+      <button class="btn-reject" onclick="handleLecBtnReject()">
+        <span class="material-symbols-outlined">cancel</span> Từ chối
+      </button>
+      <button class="btn-approve" onclick="handleLecBtnApprove()">
+        <span class="material-symbols-outlined">check_circle</span> Phê duyệt
+      </button>
+    </div>
+  </div>
+</div>

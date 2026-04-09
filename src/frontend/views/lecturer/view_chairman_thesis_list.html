@@ -1,0 +1,103 @@
+<div class="view-container chairman-list-page">
+  <div class="chairman-header">
+    <div class="chairman-tab active">Danh sách</div>
+  </div>
+
+  <div class="chairman-table-container chairman-list-card">
+    <table class="chairman-table chairman-list-table">
+      <thead>
+        <tr>
+          <th class="chairman-list-col-stt">STT</th>
+          <th class="chairman-list-col-info">THÔNG TIN ĐỀ TÀI</th>
+          <th class="chairman-list-col-score">ĐIỂM</th>
+          <th class="chairman-list-col-badge">DUYỆT BBHĐ</th>
+        </tr>
+      </thead>
+      <tbody id="chairman-list-tbody">
+        <tr>
+          <td colspan="4" style="text-align:center;padding:24px;">Đang tải…</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="chairman-pagination">
+      <div class="chairman-pagination-info" id="chairman-list-pagination-info">Hiển thị 0 – 0 trong số 0 đề tài</div>
+      <div class="chairman-pagination-buttons" id="chairman-list-pagination-buttons"></div>
+    </div>
+  </div>
+</div>
+
+<div class="chairman-modal-overlay" id="chairman-list-detail-modal" style="display: none;" onclick="chairmanListModalBackdrop(event)">
+  <div class="chairman-modal chairman-modal-detail" onclick="event.stopPropagation()">
+    <div class="chairman-modal-header chairman-modal-detail-header">
+      <h2>Chi tiết thông tin đề tài</h2>
+      <button type="button" class="btn-close-modal" onclick="chairmanListCloseModal()" aria-label="Đóng">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <div class="chairman-modal-body chairman-modal-detail-body">
+      <div class="form-group-custom">
+        <div class="field-label field-label-accent">TÊN ĐỀ TÀI</div>
+        <div class="chairman-detail-thesis-title" id="chairman-list-mdl-title">—</div>
+      </div>
+
+      <div class="chairman-detail-two-cols">
+        <div class="chairman-detail-student-block">
+          <div class="chairman-detail-row">
+            <span class="material-symbols-outlined chairman-detail-icon">person</span>
+            <div>
+              <div class="chairman-detail-label">Sinh viên thực hiện</div>
+              <div class="chairman-detail-value" id="chairman-list-mdl-student-name">—</div>
+            </div>
+          </div>
+          <div class="chairman-detail-row">
+            <span class="material-symbols-outlined chairman-detail-icon">badge</span>
+            <div>
+              <div class="chairman-detail-label">Mã số sinh viên</div>
+              <div class="chairman-detail-value" id="chairman-list-mdl-student-code">—</div>
+            </div>
+          </div>
+        </div>
+        <div class="chairman-detail-council-box">
+          <div class="chairman-detail-label">GVHD</div>
+          <div class="chairman-detail-gvhd" id="chairman-list-mdl-supervisor">—</div>
+          <div class="chairman-detail-label chairman-detail-label-spaced">Hội đồng</div>
+          <div class="chairman-detail-council-name" id="chairman-list-mdl-council">—</div>
+        </div>
+      </div>
+
+      <div class="chairman-detail-attachments-head">Tài liệu đính kèm</div>
+      <div class="chairman-detail-file-row">
+        <span class="material-symbols-outlined chairman-file-pdf">picture_as_pdf</span>
+        <div class="chairman-detail-file-meta">
+          <div class="chairman-detail-file-title">Báo cáo KLTN</div>
+          <div class="chairman-detail-file-name" id="chairman-list-mdl-file-bckltn">Chưa có</div>
+        </div>
+        <button type="button" class="chairman-file-download-btn" id="chairman-list-btn-dl-bckltn"
+          title="Tải xuống Báo cáo KLTN" onclick="chairmanListDownloadFile('bckltn')" disabled>
+          <span class="material-symbols-outlined">download</span>
+        </button>
+      </div>
+      <div class="chairman-detail-file-row">
+        <span class="material-symbols-outlined chairman-file-pdf">picture_as_pdf</span>
+        <div class="chairman-detail-file-meta">
+          <div class="chairman-detail-file-title">Biên bản Hội đồng</div>
+          <div class="chairman-detail-file-name" id="chairman-list-mdl-file-bbhd">Chưa có</div>
+        </div>
+        <button type="button" class="chairman-file-download-btn" id="chairman-list-btn-dl-bbhd"
+          title="Tải xuống Biên bản Hội đồng" onclick="chairmanListDownloadFile('bbhd')" disabled>
+          <span class="material-symbols-outlined">download</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="chairman-modal-footer chairman-modal-detail-footer">
+      <button type="button" class="chairman-btn-text" onclick="chairmanListCloseModal()">Đóng</button>
+      <button type="button" class="chairman-btn-primary" id="chairman-list-btn-approve-bbhd" onclick="chairmanListApproveBbhd()">
+        <span class="material-symbols-outlined" style="font-size:20px;">verified</span>
+        Duyệt Biên bản
+      </button>
+    </div>
+  </div>
+</div>
